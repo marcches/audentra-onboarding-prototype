@@ -7,8 +7,17 @@ antes de decidir cada momento de UI — e exige que a escolha final entre
 falta de pesquisa. Este arquivo é esse registro.
 
 Buscas feitas em 2026-08-10 via `mcp__mobbin__search_screens` (plataforma `web`) e
-o catálogo completo do ReactBits (sitemap de `reactbits.dev`, 4 categorias:
-text-animations, animations, components, backgrounds).
+contra o catálogo do ReactBits.
+
+> **Correção (rodada 2).** A versão anterior deste arquivo dizia "revisado o
+> catálogo inteiro" tendo olhado ~6 dos ~165 componentes. Era falso. O
+> inventário real, conferido em `api.github.com/repos/DavidHDev/react-bits/contents/src/content/<Categoria>`:
+> **Backgrounds 53 · Components 44 · Animations 36 · TextAnimations 32 = 165.**
+> A rejeição em bloco dos seis fundos WebGL também fica **revogada** — ver
+> `docs/adr/0005-reactbits-adopt-by-default-fallback-not-rejection.md` no repo de
+> contexto: num artefato descartável o custo de performance não rejeita
+> componente; onde o custo é real (canvas, `prefers-reduced-motion`) a resposta é
+> fallback estático explícito, não abstenção.
 
 ---
 
@@ -48,17 +57,18 @@ caixa alta com tracking em vez de sentence case; scrim de modal navy em vez de
 | [Zillow — pet policy](https://mobbin.com/screens/bcb632e1-d447-4034-848f-e9a7c558e06d) | Pergunta condicional revelada **inline, logo abaixo da resposta**, sem trocar de tela, com uma nota de reasseguramento ao lado. Virou o branch condicional de Housing. |
 | [Zillow — partner agent](https://mobbin.com/screens/cb38de39-87aa-41e6-a76d-68586edf6ae2), [7shifts](https://mobbin.com/screens/1050237f-2406-4bed-9ed9-155eaafa234b), [YNAB](https://mobbin.com/screens/fb85e8f6-9f19-4522-9481-28b27f696d7f), [Magnific](https://mobbin.com/screens/e1020a86-7e8d-4dbb-b65c-90c2ad113a99) | Padrão consistente de celebração: modal centralizado **com o confete estourando por trás/em volta**, página atrás só escurecida, um CTA primário e a ação opcional como link secundário. Virou o `CelebrationDialog`. |
 
-### Catálogo ReactBits — o que existe e o que foi descartado
+### Catálogo ReactBits — o que foi avaliado na rodada 1
 
-Revisado o catálogo inteiro. Candidatos avaliados e o veredito:
+Candidatos avaliados e o veredito **da rodada 1**. Duas linhas ficaram
+desatualizadas e estão marcadas; a rodada 2 está na seção 6.
 
 | Momento | Candidatos ReactBits | Decisão |
 |---|---|---|
 | Celebração do aceite | `count-up`, `magic-rings`, `click-spark`, `star-border`, `prismatic-burst`, `ballpit` | **`SplitText` (instalado) + `canvas-confetti`.** Não existe componente de confete no ReactBits — nenhum dos candidatos entrega "confete estourando atrás de um modal". `canvas-confetti` faz isso e tem `disableForReducedMotion` nativo. O que o ReactBits agrega de verdade é a **entrada do headline**: `SplitText` (GSAP, char a char com blur) em "You're in.". Foi o componente usado para validar o registry. |
-| Fundo do painel de marca (Entry) | `aurora`, `silk`, `light-rays`, `grainient`, `liquid-ether`, `plasma` | **Rejeitado — CSS próprio (`.brand-panel`).** Todos são canvas WebGL (OGL/three.js). Isto é a **primeira pintura do produto**: um canvas que precisa bootar antes de desenhar custa LCP e ainda exigiria fallback de `prefers-reduced-motion`. Gradiente radial em CSS com drift lento entrega o mesmo efeito, é de graça, e o reset global de reduced-motion já o desliga. |
+| Fundo do painel de marca (Entry) | `aurora`, `silk`, `light-rays`, `grainient`, `liquid-ether`, `plasma` | ~~**Rejeitado — CSS próprio (`.brand-panel`).**~~ **Revogado na rodada 2 — `Aurora` adotado por cima do `.brand-panel`, que passa a ser o fallback.** Ver seção 6. Todos são canvas WebGL (OGL/three.js). Isto é a **primeira pintura do produto**: um canvas que precisa bootar antes de desenhar custa LCP e ainda exigiria fallback de `prefers-reduced-motion`. Gradiente radial em CSS com drift lento entrega o mesmo efeito, é de graça, e o reset global de reduced-motion já o desliga. |
 | Acordeão do About you | `accordion-gallery`, `stack`, `scroll-stack` | **Rejeitado — shadcn `Accordion` (Radix).** O `accordion-gallery` do ReactBits é galeria de imagens, não seção de formulário; nenhum dos três dá semântica de disclosure acessível. Formulário exige Radix. |
 | Passos do onboarding | `stepper` | **Rejeitado.** O `stepper` do ReactBits é um componente multi-etapa autocontido que guarda o passo em estado interno — brigaria com o requisito de "uma rota por passo, deep-linkable" do TanStack Router. |
-| Ranking de residências | `animated-list`, `stack`, `bounce-cards` | **Rejeitado** — ver seção 3. |
+| Ranking de residências | `animated-list`, `stack`, `bounce-cards` | ~~**Rejeitado**~~ **Revogado na rodada 2** — a física de pega/solta do `Stack` entrou no gesto de arrastar. Ver seções 3 e 6. |
 | Abas da Entry | `pill-nav`, `bubble-menu` | **Rejeitado como componente, aproveitado como ideia.** São navegação de site, não `role="tablist"`. Mas o thumb deslizante deles foi reproduzido no `Tabs` com `motion` + `layoutId` sobre o Radix Tabs. |
 
 ---
@@ -156,3 +166,164 @@ conta de cada tela:
 A redação final de cada string continua sendo workstream de conteúdo à parte
 (Further Notes do `spec.md`). O que está aqui é a direção executada, não texto
 homologado.
+
+---
+
+## 6. Rodada 2 — o que mudou, e por quê
+
+O enquadramento mudou com o ADR-0005: ReactBits deixa de ser avaliado e passa a
+ser **adotado por padrão**, com fallback estático onde o custo é real. Alvo
+declarado: **um momento assinatura por tela**, não tratamento pesado em tudo.
+
+### Entry screen — o split
+
+O defeito era estrutural: o painel travado em `max-w-[34rem]` e o formulário em
+`flex-1`, então a folga ia toda para as margens do formulário (240px de cada
+lado a 1440px, 480px a 1920px). O ticket pedia inverter os papéis — painel
+`flex-1`, formulário fixo em ~30rem. Isso conserta o vão morto mas mantém um
+painel que cresce sem limite, e a revisão do Marcos apontou que a **escala entre
+as duas metades** continuava errada. A correção final é um **split proporcional**
+(46% / 54%) com o conteúdo de cada lado em `clamp()`: 1280 e 2560 mostram a mesma
+imagem em tamanhos diferentes, que é o que "parar de derivar" queria dizer.
+
+Junto: a tela passa a ter **exatamente uma altura de viewport** no desktop
+(`lg:h-dvh`), e a coluna que transbordar rola dentro de si. Barra de rolagem de
+página numa tela de login lê como layout que não coube.
+
+### Entry screen — o objeto: convite, não crachá 3D
+
+O ticket 08 pedia `Lanyard` (crachá pendurado com física, arrastável). **Foi
+construído e descartado.** Funcionou tecnicamente — o `frontImage` do componente
+aceita uma textura desenhada em canvas, e o crachá saiu impresso com curso,
+campus e número de inscrição, com linha do nome e foto em branco. O veredito do
+Marcos ao ver rodando: *"perdeu o valor da entrada... deveria ser tipo um
+convite, algo do tipo. pq a pessoa foi tipo selecionada"*. O objeto virou demo de
+tecnologia e a mensagem — **você foi escolhido** — ficou atrás da física.
+
+O que ficou no lugar: um **convite impresso**, 2D, em DOM (texto selecionável,
+tipografia real, nítido em qualquer densidade). Mantém o miolo da ideia original
+— tudo que Aster já sabe vem impresso, a linha do nome fica **em branco**, e é
+isso que criar a conta preenche. O `SplitText` entra na linha do curso.
+
+Custo evitado, de quebra: `three`, `@react-three/fiber`, `@react-three/drei`,
+`@react-three/rapier`, `meshline` e um `card.glb` de 2,4 MB saíram do projeto.
+
+**Plano B do ticket (`ProfileCard` / `TiltedCard`) não foi usado**: os dois são
+tratamentos de card com inclinação, e o problema não era a inclinação — era o
+objeto estar errado.
+
+### Entry screen — `Aurora`
+
+Adotado, com o `.brand-panel` (gradiente CSS que já existia) embaixo como piso.
+Com `prefers-reduced-motion`, o canvas não monta e o painel fica no gradiente.
+Isso revoga a rejeição da rodada 1, que era boa engenharia e enquadramento
+errado: o ADR-0005 diz que num artefato descartável o custo não rejeita, o
+fallback resolve.
+
+### Housing — arrastar **e** setas
+
+A rodada 1 rejeitou arrastar porque falha em toque e com teclado. Metade do
+argumento continua de pé, então arrastar foi **somado**, não substituído: os
+cards reordenam por arrasto (física de pega/solta do `Stack` — leve `scale` e
+`rotate` na pegada, mola na soltura, via `Reorder` do `motion`) e as mesmas
+posições saem por dois botões em cada card, com a mudança anunciada em
+`aria-live`.
+
+As galerias do catálogo (`DomeGallery`, `CircularGallery`, `FlyingPosters`) foram
+consideradas e não servem: todas navegam, nenhuma expressa **ordem**, e ordem é o
+dado que o passo captura.
+
+O que a rodada 1 errou de verdade não era o controle, era o conteúdo: três linhas
+de texto por residência. Agora cada opção é uma **foto** com galeria de três
+(quarto, prédio, área comum), e o quarto vem primeiro porque é a pergunta real.
+
+### Campus life — `ChromaGrid` como mecanismo
+
+O holofote do `ChromaGrid` (as custom properties `--x`/`--y` e a máscara que
+dessatura tudo fora do raio do ponteiro) foi adotado; o componente não. O
+`ChromaGrid` renderiza cards que abrem uma URL, e este passo é **multi-seleção**
+com estado marcado visível. Mecanismo emprestado, card próprio.
+
+### Review & sign
+
+Sem componente ReactBits. O momento assinatura da tela é o **canvas de
+assinatura**, que é gesto, não animação — e as duas outras coisas que a tela faz
+(ler documento inline com o aceite destravando no fim, e cada linha do resumo com
+link de edição) são estrutura. Movimento aqui atrapalharia a leitura, mesma
+exceção fundamentada que o About you tem.
+
+### Deposit — `CountUp`
+
+Adotado no valor de $500, com o número acessível em `sr-only` (um leitor de tela
+não deve ouvir um número subindo) e o odômetro em `aria-hidden`. Com movimento
+reduzido, o valor entra parado.
+
+### Completion — `SplitText`, não `SplitFlapText`
+
+O ticket 13 pedia `SplitFlapText` virando para "YOU'RE ENROLLED" — painel de
+aeroporto, mecânico. **Foi construído e trocado.** Lendo na tela, os ladrilhos
+liam como quadro de partidas: certo para "registro de chegada", errado para
+falar com uma pessoa. O pedido do Marcos foi explícito: conduzir o usuário,
+"congratulations, you're enrolled", grande, com a fonte aparecendo.
+
+O que ficou: uma **sequência** — marca, epígrafe, e o título entrando em duas
+batidas com `SplitText` ("YOU'RE" em branco, "ENROLLED" em mint 620ms depois),
+seguido dos quatro cartões de "o que acontece a seguir" em cascata com `motion`.
+
+O título é **uma linha, em caixa alta, com o tracking do wordmark** — a pedido
+do Marcos, para amarrar as maiores palavras do produto à marca no topo da mesma
+tela. Ele lê como carimbo, não como frase.
+
+O fundo passou por três versões. Foto de campus clara (rejeitada: contraste),
+foto de campus escura ao anoitecer (rejeitada: *"esses fundo na ta encaixando"*),
+e finalmente **`LightRays` (ReactBits) sobre `ink-950`** — que é o que resolve o
+problema de raiz, porque o fundo para de disputar pixels com o texto. Fallback de
+`prefers-reduced-motion`: o canvas não monta e sobra um gradiente radial.
+
+**Continua sem confete.** Ele pertence ao aceite da Offer; repetir aqui dilui os
+dois.
+
+### Imagens
+
+Curadoria em Unsplash, licença livre (Unsplash+ pago foi excluído na curadoria).
+Baixadas, recortadas e recodificadas em WebP para `public/images` — nada de
+hotlink. Crédito e licença por arquivo em `public/images/CREDITS.md`.
+
+Regra de curadoria aplicada: luz de dia, vegetação de verão, câmera na altura dos
+olhos, tijolo — para as três residências lerem como um campus só. Descartados na
+revisão visual: prédios de universidade reconhecíveis (Harvard, Berkeley), tomadas
+de inverno com árvores sem folha, e ângulos de baixo para cima que quebravam a
+altura de câmera.
+
+### Sidebar do onboarding — a instituição
+
+Achado do Marcos na revisão: *"o nome da faculdade ta mto simples po, só texto
+jogado?"*. Estava — wordmark da Audentra em cima, "Aster University" embaixo em
+cinza pequeno. Isso põe o **fornecedor acima da instituição** e trata o
+substantivo mais importante da tela como legenda.
+
+Invertido: a instituição lidera, com `InstitutionBadge` (brasão + nome + campus /
+termo), e a Audentra desce para um crédito de uma linha no pé do rail.
+
+O brasão é **um brasão**, não um avatar de iniciais — uma segunda rodada de
+feedback matou o quadrado com "AU" dentro: *"vc tem q simular o simbolo de uma
+univerdade de verdade"*. É um escudo com chefe e uma áster de oito pétalas
+(*aster* é "estrela" em grego, e é o nome da instituição). No produto real este é
+o slot do logo que o tenant sobe.
+
+O rail também ganhou **um filete entre cada bloco**, no mesmo peso, do brasão ao
+crédito de plataforma — antes só o rodapé tinha um, o que fazia o rodapé parecer
+pregado e tudo acima dele parecer uma coluna indiferenciada.
+
+### Dois bugs achados de graça na revisão visual
+
+- **O wordmark perdia metade.** O `<linearGradient>` do "A" tinha `id` constante,
+  então toda tela que renderiza a marca duas vezes (entry: coluna do formulário +
+  painel; passos: header mobile + rail) tinha dois `<defs>` disputando o mesmo id
+  — e quando o vencedor caía num ramo `display:none`, o traço esquerdo sumia.
+  Agora o id é por instância (`useId`).
+- **`CountUp` demorava ~1,8s no melhor caso.** A prop `duration` do registry não
+  é duração: ela alimenta `damping = 20 + 40/d` e `stiffness = 100/d` ao mesmo
+  tempo, então encolher o número endurece a mola *e* aumenta o amortecimento, e o
+  tempo de acomodação satura. Trocado por mola por duração do `motion`
+  (`{ duration, bounce: 0 }`), onde `duration` quer dizer o que diz.

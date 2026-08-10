@@ -1,9 +1,33 @@
-import { CloudCheckIcon } from "@phosphor-icons/react";
+import { ArrowUUpLeftIcon, CloudCheckIcon } from "@phosphor-icons/react";
+import { Link, useSearch } from "@tanstack/react-router";
 import type * as React from "react";
 
 import { StepRail } from "@/components/step-rail";
-import { type StepId, stepCount, stepIndex, steps } from "@/lib/steps";
+import { type StepId, stepCount, stepIndex } from "@/lib/steps";
 import { cn } from "@/lib/utils";
+
+/**
+ * The return half of the Review & sign round trip.
+ *
+ * The summary's edit links carry `?from=review`; without something reading it,
+ * "the edit link takes you straight to it and brings you back here" was only
+ * half true — fixing one line meant walking the rest of the flow again to get
+ * back to the summary. Rendered by the shell so every step gets it for free.
+ */
+function ReturnToReview() {
+  const search = useSearch({ strict: false }) as { from?: string };
+  if (search.from !== "review") return null;
+
+  return (
+    <Link
+      to="/onboarding/review"
+      className="-mb-2 inline-flex w-fit items-center gap-2 rounded-[var(--radius-pill)] bg-violet-50 px-3.5 py-1.5 text-small font-bold text-violet-700 transition-colors hover:bg-violet-100"
+    >
+      <ArrowUUpLeftIcon weight="bold" aria-hidden className="size-4" />
+      Back to review &amp; sign
+    </Link>
+  );
+}
 
 export function StepShell({
   current,
@@ -19,17 +43,16 @@ export function StepShell({
   children: React.ReactNode;
 }) {
   const index = stepIndex(current);
-  const step = steps[index];
 
   return (
     <>
       <StepRail current={current} />
       <main className="flex-1 px-4 pt-8 pb-24 sm:px-8 lg:px-12 lg:pt-14">
         <div className="mx-auto flex w-full max-w-[46rem] flex-col gap-8">
+          <ReturnToReview />
           <header className="space-y-3">
             <p className="text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
               Step {index + 1} of {stepCount}
-              {step && !step.redesigned ? " · unchanged this round" : ""}
             </p>
             <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
             {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}

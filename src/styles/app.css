@@ -298,6 +298,69 @@
     }
   }
 
+  /* The offer invitation on the entry screen. Sits slightly off-square and
+     drifts, so it reads as a physical card resting on the panel rather than as
+     another <section> in the layout. */
+  /* Square on a phone: the panel clips its overflow, and a rotated card at
+     390px loses a corner to that clip. The tilt is a desktop affordance. */
+  @media (min-width: 640px) {
+    .invitation {
+      transform: rotate(-1.1deg);
+    }
+  }
+
+  .invitation::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    /* Paper grain: fine diagonal fibres, barely there. Enough to stop the card
+       reading as a flat white rectangle under the aurora. */
+    background-image: repeating-linear-gradient(
+      58deg,
+      rgb(10 31 68 / 0.022) 0 1px,
+      transparent 1px 4px
+    );
+    mix-blend-mode: multiply;
+  }
+
+  @media (min-width: 640px) {
+    .invitation-float {
+      animation: invitation-float 9s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes invitation-float {
+    from {
+      transform: rotate(-1.1deg) translate3d(0, 0, 0);
+    }
+    to {
+      transform: rotate(0.4deg) translate3d(0, -10px, 0);
+    }
+  }
+
+  /* The completion headline. Solid white with a cool halo behind it, rather
+     than gradient text: the letters are split into one span each by GSAP, and
+     `background-clip: text` on the wrapper clips to the wrapper's own text
+     nodes — of which there are none once it has been split. The glow survives
+     the split because it is a text-shadow, which inherits. */
+  .arrival-headline {
+    color: #ffffff;
+    text-shadow:
+      0 0 28px color-mix(in oklab, var(--color-azure-400) 55%, transparent),
+      0 0 70px color-mix(in oklab, var(--color-violet-500) 45%, transparent);
+  }
+
+  /* SplitText's wrapper ships with `overflow-hidden`, which is right for a
+     reveal that slides letters up from below — and wrong here, because it
+     crops the halo into a visible rectangle around the line. The letters fade
+     in as well as rise, so nothing needs masking. */
+  .arrival-headline .split-parent,
+  .arrival-headline .split-parent * {
+    overflow: visible !important;
+  }
+
   /* Field label. Small, uppercase, tracked — reads as a form system rather
      than as body copy that happens to sit above an input. */
   .field-label {

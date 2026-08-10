@@ -4,14 +4,15 @@ import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { EntryPanel } from "@/components/entry-panel";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { PhoneInput } from "@/components/phone-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsPanels, TabsTrigger } from "@/components/ui/tabs";
 import { Wordmark } from "@/components/wordmark";
-import { formatDeadline, institution, offer } from "@/lib/fixtures";
+import { institution } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
 import {
   type CreateAccountValues,
@@ -30,16 +31,27 @@ export function EntryRoute() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-dvh flex-col lg:flex-row">
-      <BrandPanel />
+    /* Form first in the DOM, panel second and pulled left on desktop.
+       On a phone that puts the email field at the top of the page instead of
+       behind a full screen of brand — the invitation becomes the closing note.
 
-      <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:py-16">
-        <div className="w-full max-w-[26rem] space-y-7">
+       On desktop the split is exactly one viewport tall and neither half moves
+       the page: whichever column overflows scrolls inside itself. A whole-page
+       scrollbar on an auth screen reads as a layout that didn't fit. */
+    <div className="flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:flex-row lg:overflow-hidden">
+      {/* Centred via an inner wrapper with `min-h-full`, not via `items-center`
+          on the scroller itself. Centring a column that overflows its own
+          scroll box splits the overflow across both edges, and `scrollTop`
+          cannot go negative — so on a short laptop the heading and the tab bar
+          sit above the top edge with no way to reach them. Letting the wrapper
+          grow past `min-h-full` turns that into ordinary downward scroll. */}
+      <div className="flex w-full items-start justify-center px-4 py-10 sm:px-8 lg:w-[46%] lg:shrink-0 lg:overflow-y-auto lg:py-12">
+        <div className="flex min-h-full w-full max-w-[clamp(28rem,26vw,34rem)] flex-col justify-center gap-6">
           <div className="space-y-2 lg:hidden">
             <Wordmark />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <h1 className="text-h1 text-ink-900">
               {state.entry.accountCreated ? "Welcome back" : "Let's get you in"}
             </h1>
@@ -62,22 +74,24 @@ export function EntryRoute() {
               <TabsTrigger value="signin">Sign in</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="create">
-              <CreateAccountForm
-                onSuccess={() => {
-                  patch("entry", { accountCreated: true });
-                  navigate({ to: "/onboarding/offer" });
-                }}
-              />
-            </TabsContent>
+            <TabsPanels>
+              <TabsContent value="create" stacked>
+                <CreateAccountForm
+                  onSuccess={() => {
+                    patch("entry", { accountCreated: true });
+                    navigate({ to: "/onboarding/offer" });
+                  }}
+                />
+              </TabsContent>
 
-            <TabsContent value="signin">
-              <SignInForm
-                onSuccess={() => {
-                  navigate({ to: "/onboarding/offer" });
-                }}
-              />
-            </TabsContent>
+              <TabsContent value="signin" stacked>
+                <SignInForm
+                  onSuccess={() => {
+                    navigate({ to: "/onboarding/offer" });
+                  }}
+                />
+              </TabsContent>
+            </TabsPanels>
           </Tabs>
 
           <Notice tone="info" title="About that verification email">
@@ -86,44 +100,13 @@ export function EntryRoute() {
           </Notice>
         </div>
       </div>
-    </div>
-  );
-}
 
-function BrandPanel() {
-  return (
-    <div className="brand-panel flex flex-col justify-between gap-10 px-6 py-10 text-white sm:px-10 lg:w-[42%] lg:max-w-[34rem] lg:px-14 lg:py-14">
-      <Wordmark tone="on-dark" className="hidden lg:inline-flex" />
-
-      <div className="space-y-5">
-        <p className="text-micro font-bold tracking-[0.06em] text-white/60 uppercase">
-          {institution.name} · Offer of admission
-        </p>
-        <p className="text-h1 font-black tracking-[-0.03em] text-white lg:text-display">
-          You got into {offer.programme}.
-        </p>
-        <p className="max-w-[26rem] text-lead text-white/70">
-          {offer.degree}, starting {offer.startingTerm} at {offer.campus}. Everything you need to
-          say yes is on the other side of this form.
-        </p>
-      </div>
-
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/15 pt-6 text-white/80">
-        <div>
-          <dt className="text-micro font-bold tracking-[0.06em] text-white/50 uppercase">
-            Respond by
-          </dt>
-          <dd className="text-body font-bold text-white">
-            {formatDeadline(offer.responseDeadline)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-micro font-bold tracking-[0.06em] text-white/50 uppercase">
-            Application
-          </dt>
-          <dd className="text-body font-bold text-white">AST-2027-014882</dd>
-        </div>
-      </dl>
+      {/* A proportional split, which is what actually stops the drift: both
+          halves are a percentage of the width, so 1280 and 2560 show the same
+          picture at different sizes. The first round capped the panel and let
+          the form absorb the slack, which is why the gutter around the form
+          grew by 240px every time the monitor did. */}
+      <EntryPanel className="lg:order-first lg:h-full lg:flex-1" />
     </div>
   );
 }
@@ -352,6 +335,28 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
         Sign in
         <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
       </Button>
+
+      {/* Sign in is two fields shorter than Create account, and the stacked
+          panels reserve the taller one's height either way. Rather than leave
+          that as a hole, it holds the two things a sign-in form owes you: a way
+          out when the password is gone, and a way over when there is no
+          account yet. */}
+      <div className="space-y-4 border-t border-ink-100 pt-5">
+        <p className="text-small text-ink-600">
+          Forgotten your password?{" "}
+          <a
+            href={`mailto:${institution.admissionsEmail}`}
+            className="font-bold text-violet-600 underline underline-offset-2"
+          >
+            Ask Admissions to reset it
+          </a>
+          . Self-service reset isn't switched on in this preview.
+        </p>
+        <p className="text-small text-ink-600">
+          No account yet? Use <strong className="text-ink-800">Create account</strong> above — it
+          takes about a minute, and it keeps whatever you've already typed here.
+        </p>
+      </div>
     </form>
   );
 }

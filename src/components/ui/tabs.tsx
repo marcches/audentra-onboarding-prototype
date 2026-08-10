@@ -104,8 +104,49 @@ function TabsTrigger({
   );
 }
 
-function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return <TabsPrimitive.Content data-slot="tabs-content" className={cn(className)} {...props} />;
+/**
+ * Stacks its panels in one grid cell instead of swapping them in and out, so
+ * the container is always as tall as the tallest panel.
+ *
+ * Worth it when the tabs sit in a vertically centred column: on the entry
+ * screen, Sign in is two fields shorter than Create account, and swapping them
+ * re-centres the column — dragging the heading, the tabs and everything below
+ * up the screen, so the tab bar jumps out from under the pointer that just
+ * clicked it.
+ *
+ * Not worth it when the panels differ a lot in height and the column is
+ * top-aligned: there the reserved space is just a hole under the short panel,
+ * and a normal reflow is the better trade. Hence opt-in, on both this wrapper
+ * and the `stacked` prop of the panels inside it.
+ */
+function TabsPanels({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="tabs-panels" className={cn("grid", className)} {...props} />;
 }
 
-export { Tabs, TabsContent, TabsList, TabsTrigger };
+function TabsContent({
+  className,
+  stacked = false,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content> & { stacked?: boolean }) {
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      /* forceMount keeps the inactive panel in the layout; `[&[hidden]]:block`
+         undoes the display:none Radix pairs with it. Hiding by visibility
+         rather than by display is what keeps the inactive form out of the tab
+         order and out of the accessibility tree while it still occupies
+         space. */
+      forceMount={stacked || undefined}
+      className={cn(
+        stacked && [
+          "col-start-1 row-start-1 [&[hidden]]:block",
+          "data-[state=inactive]:pointer-events-none data-[state=inactive]:invisible",
+        ],
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export { Tabs, TabsContent, TabsList, TabsPanels, TabsTrigger };

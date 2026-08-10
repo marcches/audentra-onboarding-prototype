@@ -12,8 +12,6 @@ export type Step = {
   path: string;
   label: string;
   blurb: string;
-  /** False for the three steps this redesign round deliberately did not touch. */
-  redesigned: boolean;
 };
 
 export const steps: Step[] = [
@@ -22,42 +20,36 @@ export const steps: Step[] = [
     path: "/onboarding/offer",
     label: "Your offer",
     blurb: "Say yes or no",
-    redesigned: true,
   },
   {
     id: "about-you",
     path: "/onboarding/about-you",
     label: "About you",
     blurb: "Identity, address, emergency contact, family access",
-    redesigned: true,
   },
   {
     id: "housing",
     path: "/onboarding/housing",
     label: "Housing",
     blurb: "Where you'll live",
-    redesigned: true,
   },
   {
     id: "campus-life",
     path: "/onboarding/campus-life",
     label: "Campus life",
     blurb: "Clubs, people, support",
-    redesigned: false,
   },
   {
     id: "review",
     path: "/onboarding/review",
     label: "Review & sign",
     blurb: "Your document packet",
-    redesigned: false,
   },
   {
     id: "deposit",
     path: "/onboarding/deposit",
     label: "Deposit",
     blurb: "Secure your place",
-    redesigned: false,
   },
 ];
 

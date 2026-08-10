@@ -162,7 +162,10 @@ const SplitText: React.FC<SplitTextProps> = ({
       willChange: 'transform, opacity'
     };
     const classes = `split-parent overflow-hidden inline-block whitespace-normal ${className}`;
-    const Tag = (tag || 'p') as React.ElementType;
+    // LOCAL: R3F augments JSX.IntrinsicElements, which collapses the prop
+    // union behind React.ElementType to never. Every tag this accepts takes
+    // the same ref/style/className/children shape, so pin it to one of them.
+    const Tag = (tag || 'p') as 'p';
 
     return (
       <Tag ref={ref} style={style} className={classes}>

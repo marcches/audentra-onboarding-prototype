@@ -5,16 +5,19 @@ import {
   BuildingApartmentIcon,
   CarIcon,
   HouseLineIcon,
+  ImagesIcon,
+  PlusIcon,
   QuestionIcon,
   UsersThreeIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
-import type * as React from "react";
+import { motion, Reorder, useDragControls, useReducedMotion } from "motion/react";
+import * as React from "react";
 
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
+import { ResidenceGallery } from "@/components/residence-gallery";
 import { StepActions, StepShell } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
@@ -23,6 +26,7 @@ import {
   housingIntents,
   institution,
   protectionOptions,
+  type Residence,
   residences,
 } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
@@ -114,21 +118,29 @@ export function HousingRoute() {
   );
 }
 
+const ORDINALS = ["1st choice", "2nd choice", "3rd choice"];
+
 /**
- * Rank by tapping, not by dragging.
+ * Ranking, as a visual decision.
  *
- * Every ranking pattern Mobbin returned for this was a drag-handle reorder
- * list. Drag is the wrong bet here: a good share of this audience is on a
- * phone, and a drag list is the control that fails hardest on touch and with a
- * keyboard. Tap-to-add plus move up/down does the same job and works
- * everywhere.
+ * Round one made this a text list you tapped into position, on the argument
+ * that drag is the control that fails hardest on touch and with a keyboard.
+ * Half of that argument still holds — so drag is added, not substituted: the
+ * cards reorder by dragging, and the same reorder is available from two
+ * buttons on every card. What round one got wrong was the other half. You
+ * cannot choose where to live from three lines of text, so each option is now
+ * a photograph with a gallery behind it, and the room shot is in there because
+ * that is the picture the student actually wants.
  */
 function ResidenceRanking() {
   const state = useOnboarding();
+  const [gallery, setGallery] = React.useState<Residence | null>(null);
+  const [announcement, setAnnouncement] = React.useState("");
+
   const ranking = state.housing.residenceRanking;
   const ranked = ranking
     .map((id) => residences.find((residence) => residence.id === id))
-    .filter((residence): residence is (typeof residences)[number] => Boolean(residence));
+    .filter((residence): residence is Residence => Boolean(residence));
   /**
    * Everything below indexes this, never the raw stored `ranking`. A stored id
    * that no longer resolves against the fixture — the exact case store.ts's
@@ -142,16 +154,27 @@ function ResidenceRanking() {
     patch("housing", { residenceRanking: next });
   }
 
+  /** Position changes are invisible to a screen reader otherwise. */
+  function announce(next: string[], residence: Residence) {
+    const position = next.indexOf(residence.id);
+    setAnnouncement(
+      position === -1
+        ? `${residence.name} removed from your ranking.`
+        : `${residence.name} is now ${ORDINALS[position] ?? `choice ${position + 1}`}.`,
+    );
+  }
+
   function move(index: number, direction: -1 | 1) {
     const next = [...rankedIds];
     const target = index + direction;
-    if (target < 0 || target >= next.length) return;
     const moved = next[index];
     const displaced = next[target];
     if (moved === undefined || displaced === undefined) return;
     next[index] = displaced;
     next[target] = moved;
     setRanking(next);
+    const residence = residences.find((item) => item.id === moved);
+    if (residence) announce(next, residence);
   }
 
   return (
@@ -159,71 +182,55 @@ function ResidenceRanking() {
       <div className="space-y-1">
         <h2 className="text-h3 text-ink-900">Rank up to three residences</h2>
         <p className="text-body text-ink-600">
-          First choice at the top. Housing considers this, it doesn't guarantee it — rooms are
-          assigned after the deadline.
+          Drag by the number to reorder them, or use the arrows. First choice at the top. Housing
+          considers this, it doesn't guarantee it — rooms are assigned after the deadline.
         </p>
       </div>
 
+      <p aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
+
       {ranked.length > 0 ? (
-        <ol className="space-y-2.5">
+        <Reorder.Group
+          axis="y"
+          as="ol"
+          values={rankedIds}
+          onReorder={(next: string[]) => setRanking(next)}
+          className="space-y-3"
+        >
           {ranked.map((residence, index) => (
-            <li
+            <RankedResidence
               key={residence.id}
-              className="flex items-start gap-3.5 rounded-[var(--radius-card)] border border-violet-500 bg-violet-50/50 p-4 shadow-[0_0_0_1px_var(--color-violet-500)]"
-            >
-              <span className="brand-gradient flex size-7 shrink-0 items-center justify-center rounded-full text-small font-bold text-white">
-                {index + 1}
-              </span>
-              <span className="flex-1">
-                <span className="block text-body font-bold text-ink-900">{residence.name}</span>
-                <span className="block text-small text-ink-500">{residence.detail}</span>
-              </span>
-              <span className="flex shrink-0 items-center gap-1">
-                <IconAction
-                  label={`Move ${residence.name} up`}
-                  disabled={index === 0}
-                  onClick={() => move(index, -1)}
-                >
-                  <ArrowUpIcon weight="bold" aria-hidden className="size-4" />
-                </IconAction>
-                <IconAction
-                  label={`Move ${residence.name} down`}
-                  disabled={index === ranked.length - 1}
-                  onClick={() => move(index, 1)}
-                >
-                  <ArrowDownIcon weight="bold" aria-hidden className="size-4" />
-                </IconAction>
-                <IconAction
-                  label={`Remove ${residence.name} from your ranking`}
-                  onClick={() => setRanking(rankedIds.filter((id) => id !== residence.id))}
-                >
-                  <XIcon weight="bold" aria-hidden className="size-4" />
-                </IconAction>
-              </span>
-            </li>
+              residence={residence}
+              index={index}
+              total={ranked.length}
+              onMove={(direction) => move(index, direction)}
+              onRemove={() => {
+                const next = rankedIds.filter((id) => id !== residence.id);
+                setRanking(next);
+                announce(next, residence);
+              }}
+              onOpenGallery={() => setGallery(residence)}
+            />
           ))}
-        </ol>
+        </Reorder.Group>
       ) : null}
 
       {unranked.length > 0 ? (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {ranked.length > 0 ? <p className="field-label">Also available</p> : null}
           {unranked.map((residence) => (
-            <button
+            <UnrankedResidence
               key={residence.id}
-              type="button"
-              onClick={() => setRanking([...rankedIds, residence.id])}
-              className="flex w-full items-start gap-3.5 rounded-[var(--radius-card)] border border-ink-200 bg-surface p-4 text-left transition-[border-color,box-shadow] hover:border-ink-300 hover:shadow-soft"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-dashed border-ink-300 text-small font-bold text-ink-400">
-                +
-              </span>
-              <span className="flex-1">
-                <span className="block text-body font-bold text-ink-900">{residence.name}</span>
-                <span className="block text-small text-ink-500">{residence.blurb}</span>
-                <span className="mt-1 block text-small text-ink-400">{residence.detail}</span>
-              </span>
-            </button>
+              residence={residence}
+              onAdd={() => {
+                const next = [...rankedIds, residence.id];
+                setRanking(next);
+                announce(next, residence);
+              }}
+              onOpenGallery={() => setGallery(residence)}
+            />
           ))}
         </div>
       ) : null}
@@ -233,6 +240,156 @@ function ResidenceRanking() {
           Skip it if you'd rather. {institution.housingOffice} will place you and tell you where.
         </p>
       ) : null}
+
+      <ResidenceGallery
+        residence={gallery}
+        open={gallery !== null}
+        onOpenChange={(open) => {
+          if (!open) setGallery(null);
+        }}
+      />
+    </div>
+  );
+}
+
+function RankedResidence({
+  residence,
+  index,
+  total,
+  onMove,
+  onRemove,
+  onOpenGallery,
+}: {
+  residence: Residence;
+  index: number;
+  total: number;
+  onMove: (direction: -1 | 1) => void;
+  onRemove: () => void;
+  onOpenGallery: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={residence.id}
+      /* The grab/release feel is Stack's: a little lift and tilt on pick-up,
+         a spring on release. Stack itself is a shuffling deck and expresses no
+         order, which is the one thing this step exists to capture — so the
+         physics is borrowed and the component is not.
+
+         Drag starts from the handle only (`dragListener={false}` plus
+         `dragControls`). Making the whole card draggable takes over the
+         vertical axis on touch, so a swipe anywhere on these full-width cards
+         lifts the card instead of scrolling the page — and with three of them
+         stacked on a 390px screen there is barely any page left to swipe on.
+         That is the exact objection round one raised against drag, and it is
+         answered by narrowing the target rather than by dropping the gesture. */
+      dragListener={false}
+      dragControls={dragControls}
+      whileDrag={
+        reduceMotion ? undefined : { scale: 1.02, rotate: -0.8, boxShadow: "var(--shadow-lift)" }
+      }
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      className="overflow-hidden rounded-[var(--radius-card)] border border-violet-500 bg-surface shadow-[0_0_0_1px_var(--color-violet-500)]"
+    >
+      <div className="flex flex-col sm:flex-row">
+        <img
+          src={residence.images.exterior.src}
+          alt={residence.images.exterior.alt}
+          loading="lazy"
+          draggable={false}
+          className="h-36 w-full shrink-0 object-cover sm:h-auto sm:w-44"
+        />
+
+        <div className="flex flex-1 items-start gap-3 p-4">
+          {/* The number doubles as the grip: it is already the thing that says
+              "this is position N", so it is the thing to take hold of. */}
+          <button
+            type="button"
+            aria-label={`Drag to reorder ${residence.name}`}
+            onPointerDown={(event) => dragControls.start(event)}
+            className="brand-gradient flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-full text-small font-bold text-white active:cursor-grabbing"
+          >
+            {index + 1}
+          </button>
+          <div className="flex-1 space-y-1">
+            <p className="text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
+              {ORDINALS[index] ?? `Choice ${index + 1}`}
+            </p>
+            <p className="text-body font-bold text-ink-900">{residence.name}</p>
+            <p className="text-small text-ink-500">{residence.detail}</p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2"
+              onClick={onOpenGallery}
+            >
+              <ImagesIcon weight="duotone" aria-hidden className="size-4" />
+              See the room
+            </Button>
+          </div>
+
+          <span className="flex shrink-0 flex-col items-center">
+            <IconAction
+              label={`Move ${residence.name} up`}
+              disabled={index === 0}
+              onClick={() => onMove(-1)}
+            >
+              <ArrowUpIcon weight="bold" aria-hidden className="size-4" />
+            </IconAction>
+            <IconAction
+              label={`Move ${residence.name} down`}
+              disabled={index === total - 1}
+              onClick={() => onMove(1)}
+            >
+              <ArrowDownIcon weight="bold" aria-hidden className="size-4" />
+            </IconAction>
+            <IconAction label={`Remove ${residence.name} from your ranking`} onClick={onRemove}>
+              <XIcon weight="bold" aria-hidden className="size-4" />
+            </IconAction>
+          </span>
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+function UnrankedResidence({
+  residence,
+  onAdd,
+  onOpenGallery,
+}: {
+  residence: Residence;
+  onAdd: () => void;
+  onOpenGallery: () => void;
+}) {
+  return (
+    <div className="flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-ink-200 bg-surface transition-[border-color,box-shadow] hover:border-ink-300 hover:shadow-soft sm:flex-row">
+      <img
+        src={residence.images.exterior.src}
+        alt={residence.images.exterior.alt}
+        loading="lazy"
+        className="h-36 w-full shrink-0 object-cover sm:h-auto sm:w-44"
+      />
+      <div className="flex flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <div className="flex-1 space-y-1">
+          <p className="text-body font-bold text-ink-900">{residence.name}</p>
+          <p className="text-small text-ink-600">{residence.blurb}</p>
+          <p className="text-small text-ink-400">{residence.detail}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button type="button" variant="secondary" size="sm" onClick={onOpenGallery}>
+            <ImagesIcon weight="duotone" aria-hidden className="size-4" />
+            See the room
+          </Button>
+          <Button type="button" size="sm" onClick={onAdd}>
+            <PlusIcon weight="bold" aria-hidden className="size-4" />
+            Rank it
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

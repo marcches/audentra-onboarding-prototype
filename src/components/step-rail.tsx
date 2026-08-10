@@ -1,7 +1,8 @@
 import { CheckIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
-import { Wordmark } from "@/components/wordmark";
+import { InstitutionBadge } from "@/components/institution-badge";
+import { AudentraMark } from "@/components/wordmark";
 import { institution } from "@/lib/fixtures";
 import { type StepId, stepCount, stepIndex, steps } from "@/lib/steps";
 import { completedSteps, useOnboarding } from "@/lib/store";
@@ -22,20 +23,23 @@ export function StepRail({ current }: { current: StepId }) {
     <>
       {/* Phone: a single line of progress, no step list competing with the form. */}
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-ink-100 bg-canvas/85 px-4 py-3 backdrop-blur lg:hidden">
-        <Wordmark className="shrink-0" />
+        <InstitutionBadge size="compact" className="min-w-0" />
         {/* Just the counter — the page heading right below already names the
             step, and repeating it twice on a 390px screen is noise. */}
-        <p className="ml-auto text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
+        <p className="ml-auto shrink-0 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
           Step {currentIndex + 1} of {stepCount}
         </p>
       </header>
 
       <aside className="hidden w-[19rem] shrink-0 border-r border-ink-100 bg-surface lg:block">
-        <div className="sticky top-0 flex h-dvh flex-col gap-8 overflow-y-auto p-8">
-          <div className="space-y-1">
-            <Wordmark />
-            <p className="pl-[2.375rem] text-small text-ink-500">{institution.name}</p>
-          </div>
+        {/* One rule between every block, at one weight, from the crest at the
+            top to the platform mark at the bottom. The divider was doing that
+            job at the foot of the rail only, which made the footer look bolted
+            on and everything above it look like one undifferentiated column. */}
+        <div className="sticky top-0 flex h-dvh flex-col gap-6 divide-y divide-ink-100 overflow-y-auto p-8 [&>*+*]:pt-6">
+          {/* The institution leads. This is its portal; Audentra is the thing
+              it runs on, and that goes at the foot of the rail. */}
+          <InstitutionBadge />
 
           <div className="space-y-3">
             <div className="flex items-baseline justify-between">
@@ -121,9 +125,21 @@ export function StepRail({ current }: { current: StepId }) {
             </ol>
           </nav>
 
-          <p className="mt-auto text-small text-ink-400">
-            Stuck on something? {institution.admissionsEmail}
-          </p>
+          {/* Quiet, and one line: the platform credit is the least important
+              thing in the rail and should be sized like it. */}
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <a
+              href={`mailto:${institution.admissionsEmail}`}
+              className="text-small text-ink-400 transition-colors hover:text-ink-600"
+            >
+              Need a hand?
+            </a>
+            <span className="flex items-center gap-1.5 text-ink-400">
+              <span className="text-micro tracking-[0.06em] uppercase">by</span>
+              <AudentraMark className="size-4" />
+              <span className="text-micro font-bold tracking-[0.12em] uppercase">Audentra</span>
+            </span>
+          </div>
         </div>
       </aside>
     </>

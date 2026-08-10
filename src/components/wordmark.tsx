@@ -1,12 +1,21 @@
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 /**
  * The Audentra "A" — two diagonal strokes with a mint crossbar, redrawn from
  * the brand sheet. Kept as inline SVG so it inherits the page's currentColor
  * treatment on dark panels without shipping a second asset.
+ *
+ * The gradient id is per-instance. It used to be a constant, which broke every
+ * screen that renders the mark twice — the entry screen has one in the form
+ * column and one in the panel, and the step screens have one in the mobile
+ * header and one in the rail. Two `<defs>` claiming the same id makes the
+ * document resolve `url(#…)` to whichever came first, and when that one sits in
+ * a `display:none` branch the left stroke renders as nothing at all.
  */
 export function AudentraMark({ className }: { className?: string }) {
-  const gradientId = "audentra-mark-gradient";
+  const gradientId = `audentra-mark-${React.useId()}`;
 
   return (
     <svg viewBox="0 0 48 40" role="img" aria-label="Audentra" className={cn("size-8", className)}>

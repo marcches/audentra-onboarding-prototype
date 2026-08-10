@@ -73,11 +73,43 @@ export type HousingState = {
   submitted: boolean;
 };
 
+export type CampusLifeState = {
+  clubs: string[];
+  accommodations: "yes" | "no" | "";
+  accommodationNote: string;
+  submitted: boolean;
+};
+
+export type ReviewState = {
+  /** Ids of the documents scrolled to the end — consent unlocks per document. */
+  readDocuments: string[];
+  signatureMode: "type" | "draw";
+  typedSignature: string;
+  /** PNG data URL of the drawn signature. */
+  drawnSignature: string;
+  consented: boolean;
+  signedAt: string | null;
+  submitted: boolean;
+};
+
+export type DepositState = {
+  choice: "pay-now" | "pay-by-deadline" | "waiver" | "";
+  paid: boolean;
+  paidAt: string | null;
+  /** Last four typed into the simulated card form. No gateway, no real number. */
+  cardLast4: string;
+  waiverReason: string;
+  submitted: boolean;
+};
+
 export type OnboardingState = {
   entry: EntryState;
   offer: OfferState;
   aboutYou: AboutYouState;
   housing: HousingState;
+  campusLife: CampusLifeState;
+  review: ReviewState;
+  deposit: DepositState;
 };
 
 /** Unique per contact, independent of position — rows can be removed. */
@@ -136,6 +168,29 @@ const initialState: OnboardingState = {
     protectionInterest: "",
     submitted: false,
   },
+  campusLife: {
+    clubs: [],
+    accommodations: "",
+    accommodationNote: "",
+    submitted: false,
+  },
+  review: {
+    readDocuments: [],
+    signatureMode: "type",
+    typedSignature: "",
+    drawnSignature: "",
+    consented: false,
+    signedAt: null,
+    submitted: false,
+  },
+  deposit: {
+    choice: "",
+    paid: false,
+    paidAt: null,
+    cardLast4: "",
+    waiverReason: "",
+    submitted: false,
+  },
 };
 
 function read(): OnboardingState {
@@ -151,6 +206,9 @@ function read(): OnboardingState {
       offer: { ...initialState.offer, ...parsed.offer },
       aboutYou: { ...initialState.aboutYou, ...parsed.aboutYou },
       housing: { ...initialState.housing, ...parsed.housing },
+      campusLife: { ...initialState.campusLife, ...parsed.campusLife },
+      review: { ...initialState.review, ...parsed.review },
+      deposit: { ...initialState.deposit, ...parsed.deposit },
     };
   } catch {
     return initialState;
@@ -183,11 +241,32 @@ function getSnapshot() {
   return state;
 }
 
+/** The slices the Review & sign summary reads back and the packet covers. */
+const SIGNED_OVER: (keyof OnboardingState)[] = ["offer", "aboutYou", "housing", "campusLife"];
+
 export function patch<K extends keyof OnboardingState>(
   slice: K,
   changes: Partial<OnboardingState[K]>,
 ) {
   state = { ...state, [slice]: { ...state[slice], ...changes } };
+
+  /**
+   * Editing an answer un-signs the packet.
+   *
+   * Review & sign tells the student "changing an answer above re-opens this for
+   * signing", and until now nothing did that: the green "Signed on <date>"
+   * notice and the ticked consent box survived any later edit, so a FERPA
+   * release could sit there presented as signed against answers that had since
+   * changed. The rule belongs here rather than in the review screen because
+   * this is the one place every answer is written.
+   */
+  if (SIGNED_OVER.includes(slice) && state.review.submitted) {
+    state = {
+      ...state,
+      review: { ...state.review, submitted: false, consented: false, signedAt: null },
+    };
+  }
+
   persist();
   emit();
 }
@@ -212,5 +291,8 @@ export function completedSteps(current: OnboardingState): StepId[] {
   if (current.offer.response !== null) done.push("offer");
   if (current.aboutYou.submitted) done.push("about-you");
   if (current.housing.submitted) done.push("housing");
+  if (current.campusLife.submitted) done.push("campus-life");
+  if (current.review.submitted) done.push("review");
+  if (current.deposit.submitted) done.push("deposit");
   return done;
 }

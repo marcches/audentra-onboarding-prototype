@@ -7,11 +7,14 @@ import {
 } from "@tanstack/react-router";
 
 import { AboutYouRoute } from "@/routes/about-you";
+import { CampusLifeRoute } from "@/routes/campus-life";
+import { CompletionRoute } from "@/routes/completion";
+import { DepositRoute } from "@/routes/deposit";
 import { EntryRoute } from "@/routes/entry";
 import { HousingRoute } from "@/routes/housing";
 import { OfferRoute } from "@/routes/offer";
+import { ReviewRoute } from "@/routes/review";
 import { StyleGuideRoute } from "@/routes/style-guide";
-import { UnchangedStepRoute } from "@/routes/unchanged-step";
 
 /**
  * Code-based routing on purpose: no generated route tree to keep in sync, so
@@ -43,9 +46,18 @@ const styleGuideRoute = createRoute({
   component: StyleGuideRoute,
 });
 
+/**
+ * `?from=review` marks a step opened from the Review & sign summary, so the
+ * step can offer a way back to it. Declared on the parent so every step
+ * inherits it — without a `validateSearch` the param is stripped and the
+ * summary's "brings you back here" is a promise nothing keeps.
+ */
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/onboarding",
+  validateSearch: (search: Record<string, unknown>): { from?: "review" } => ({
+    from: search.from === "review" ? "review" : undefined,
+  }),
   component: () => (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <Outlet />
@@ -82,25 +94,37 @@ const housingRoute = createRoute({
 const campusLifeRoute = createRoute({
   getParentRoute: () => onboardingRoute,
   path: "campus-life",
-  component: () => <UnchangedStepRoute id="campus-life" />,
+  component: CampusLifeRoute,
 });
 
 const reviewRoute = createRoute({
   getParentRoute: () => onboardingRoute,
   path: "review",
-  component: () => <UnchangedStepRoute id="review" />,
+  component: ReviewRoute,
 });
 
 const depositRoute = createRoute({
   getParentRoute: () => onboardingRoute,
   path: "deposit",
-  component: () => <UnchangedStepRoute id="deposit" />,
+  component: DepositRoute,
+});
+
+/**
+ * The arrival screen sits outside `/onboarding` because it is not a step: it
+ * has no rail, no counter and no place in `steps.ts`, and nesting it under the
+ * step layout would give it all three.
+ */
+const completionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/done",
+  component: CompletionRoute,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   entryRoute,
   styleGuideRoute,
+  completionRoute,
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,

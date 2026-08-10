@@ -9,7 +9,7 @@ import confetti from "canvas-confetti";
 import { useReducedMotion } from "motion/react";
 import * as React from "react";
 
-import SplitText from "@/components/SplitText";
+import SplitText from "@/components/reactbits/SplitText";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { institution, offer } from "@/lib/fixtures";

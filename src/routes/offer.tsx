@@ -30,7 +30,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { declineReasons, formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
+import {
+  campusPhotos,
+  declineReasons,
+  formatDeadline,
+  formatMoney,
+  institution,
+  offer,
+} from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
 
 /* The celebration drags in GSAP and canvas-confetti — a third of the bundle for
@@ -66,14 +73,27 @@ export function OfferRoute() {
       }
     >
       <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-100 bg-surface shadow-card">
-        <div className="brand-panel px-6 py-7 text-white sm:px-8">
-          <p className="text-micro font-bold tracking-[0.06em] text-white/60 uppercase">
+        {/* The photo, not another text block: this is the screen where someone
+            agrees to move their life somewhere, and a card of type alone gives
+            them nothing to picture. The scrim is what keeps the copy legible
+            over it. */}
+        <div className="relative isolate px-6 py-8 text-white sm:px-8 sm:py-10">
+          <img
+            src={campusPhotos.offer.src}
+            alt={campusPhotos.offer.alt}
+            className="absolute inset-0 -z-20 size-full object-cover"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-gradient-to-tr from-ink-950/95 via-ink-950/80 to-violet-700/55"
+          />
+          <p className="text-micro font-bold tracking-[0.06em] text-white/70 uppercase">
             Offer of admission
           </p>
           <h2 className="mt-2 text-h1 font-black tracking-[-0.03em] text-white">
             {offer.programme}
           </h2>
-          <p className="mt-2 max-w-[34rem] text-body text-white/70">{offer.programmeDescription}</p>
+          <p className="mt-2 max-w-[34rem] text-body text-white/80">{offer.programmeDescription}</p>
         </div>
 
         <dl className="grid gap-x-8 gap-y-6 p-6 sm:grid-cols-2 sm:p-8">
