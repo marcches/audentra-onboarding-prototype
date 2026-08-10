@@ -17,31 +17,39 @@ export function phoneDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
-export const phoneNumber = z
-  .string()
-  .trim()
-  .refine((value) => phoneDigits(value).length > 0, {
-    message: "Enter your mobile number.",
-  })
-  .refine((value) => phoneDigits(value).length >= PHONE_DIGITS_MIN, {
-    message: "That number is too short. It should be 7 to 14 digits after the country code.",
-  })
-  .refine((value) => phoneDigits(value).length <= PHONE_DIGITS_MAX, {
-    message: "That number is too long. It should be 7 to 14 digits after the country code.",
-  })
-  .refine((value) => /^[\d\s().-]+$/.test(value), {
-    message: "Use digits only. Spaces, dashes and brackets are fine — letters are not.",
-  });
+/** What a phone number may be made of. Spaces, dashes and brackets survive. */
+const PHONE_CHARSET = /^[\d\s().-]+$/;
 
-export const optionalPhoneNumber = z
-  .string()
-  .trim()
-  .refine((value) => value === "" || phoneDigits(value).length >= PHONE_DIGITS_MIN, {
-    message: "That number is too short. It should be 7 to 14 digits after the country code.",
-  })
-  .refine((value) => value === "" || phoneDigits(value).length <= PHONE_DIGITS_MAX, {
-    message: "That number is too long. It should be 7 to 14 digits after the country code.",
-  });
+/**
+ * One rule set, two entry points. Splitting them by hand is how the About-you
+ * field ended up accepting letters that the same field on the entry screen
+ * rejected.
+ *
+ * Order matters: the charset check runs first, so "five five five" is told to
+ * use digits rather than told the field is empty — which is what happens if the
+ * "any digits at all" check goes first and strips the letters to nothing.
+ */
+function phoneRule({ required }: { required: boolean }) {
+  return z
+    .string()
+    .trim()
+    .refine((value) => value === "" || PHONE_CHARSET.test(value), {
+      message: "Use digits only. Spaces, dashes and brackets are fine — letters are not.",
+    })
+    .refine((value) => !required || value !== "", {
+      message: "Enter your mobile number.",
+    })
+    .refine((value) => value === "" || phoneDigits(value).length >= PHONE_DIGITS_MIN, {
+      message: "That number is too short. It should be 7 to 14 digits after the country code.",
+    })
+    .refine((value) => value === "" || phoneDigits(value).length <= PHONE_DIGITS_MAX, {
+      message: "That number is too long. It should be 7 to 14 digits after the country code.",
+    });
+}
+
+export const phoneNumber = phoneRule({ required: true });
+
+export const optionalPhoneNumber = phoneRule({ required: false });
 
 export const emailAddress = z
   .string()

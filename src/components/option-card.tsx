@@ -28,6 +28,9 @@ export function OptionCard({
       htmlFor={id}
       className={cn(
         "group flex cursor-pointer items-start gap-3.5 rounded-[var(--radius-card)] border border-ink-200 bg-surface p-4 transition-[border-color,box-shadow,background-color] hover:border-ink-300 hover:shadow-soft has-[[data-state=checked]]:border-violet-500 has-[[data-state=checked]]:bg-violet-50/50 has-[[data-state=checked]]:shadow-[0_0_0_1px_var(--color-violet-500)]",
+        // The radio itself is a 20px dot at the edge of a full-width slab, so
+        // the focus ring belongs on the card a keyboard user is actually on.
+        "has-[:focus-visible]:border-violet-500 has-[:focus-visible]:shadow-[0_0_0_2px_var(--color-violet-500)]",
         className,
       )}
     >

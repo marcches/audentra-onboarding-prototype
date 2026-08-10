@@ -2,6 +2,7 @@ import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import { Select as SelectPrimitive } from "radix-ui";
 import type * as React from "react";
 
+import { useFieldControl } from "@/components/field-context";
 import { fieldClassName } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +21,17 @@ function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.V
 function SelectTrigger({
   className,
   children,
+  "aria-describedby": describedBy,
+  "aria-invalid": invalid,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+  const field = useFieldControl();
+
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
+      aria-describedby={describedBy ?? field?.describedBy}
+      aria-invalid={invalid ?? field?.invalid}
       className={cn(
         fieldClassName,
         "flex h-11 items-center justify-between gap-2 text-left data-[placeholder]:text-ink-400",

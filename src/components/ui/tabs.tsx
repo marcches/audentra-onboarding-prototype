@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import * as React from "react";
 
@@ -73,6 +73,7 @@ function TabsTrigger({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
   const context = React.useContext(TabsContext);
+  const reduceMotion = useReducedMotion();
   const isActive = context?.value === value;
 
   return (
@@ -80,7 +81,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       value={value}
       className={cn(
-        "relative flex h-10 flex-1 items-center justify-center rounded-[var(--radius-pill)] px-4 text-body font-bold text-ink-500 transition-colors outline-none hover:text-ink-800 data-[state=active]:text-violet-600",
+        "relative flex h-10 flex-1 items-center justify-center rounded-[var(--radius-pill)] px-4 text-body font-bold text-ink-500 transition-colors hover:text-ink-800 data-[state=active]:text-violet-600",
         className,
       )}
       {...props}
@@ -89,7 +90,12 @@ function TabsTrigger({
         <motion.span
           aria-hidden
           layoutId={context.thumbId}
-          transition={{ type: "spring", stiffness: 420, damping: 36 }}
+          /* The thumb moves under JS-driven inline transforms, which the global
+             prefers-reduced-motion CSS reset cannot reach — it only clamps CSS
+             animations and transitions. So the gate has to live here. */
+          transition={
+            reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 36 }
+          }
           className="absolute inset-0 rounded-[var(--radius-pill)] bg-surface shadow-soft"
         />
       ) : null}
@@ -99,13 +105,7 @@ function TabsTrigger({
 }
 
 function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("outline-none", className)}
-      {...props}
-    />
-  );
+  return <TabsPrimitive.Content data-slot="tabs-content" className={cn(className)} {...props} />;
 }
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };

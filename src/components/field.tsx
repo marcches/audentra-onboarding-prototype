@@ -1,6 +1,7 @@
 import { LockSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
-import type * as React from "react";
+import * as React from "react";
 
+import { FieldContext } from "@/components/field-context";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,16 @@ export function Field({
   const hintId = hint ? `${htmlFor}-hint` : undefined;
   const errorId = error ? `${htmlFor}-error` : undefined;
 
+  // Error first: a screen reader reads describedby in order, and what went
+  // wrong matters more than the standing hint.
+  const context = React.useMemo(
+    () => ({
+      describedBy: [errorId, hintId].filter(Boolean).join(" ") || undefined,
+      invalid: Boolean(error),
+    }),
+    [errorId, hintId, error],
+  );
+
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="flex items-baseline justify-between gap-3">
@@ -42,7 +53,7 @@ export function Field({
           </span>
         ) : null}
       </div>
-      {children}
+      <FieldContext.Provider value={context}>{children}</FieldContext.Provider>
       {hint ? (
         <p id={hintId} className="text-small text-ink-500">
           {hint}

@@ -129,14 +129,21 @@ function ResidenceRanking() {
   const ranked = ranking
     .map((id) => residences.find((residence) => residence.id === id))
     .filter((residence): residence is (typeof residences)[number] => Boolean(residence));
-  const unranked = residences.filter((residence) => !ranking.includes(residence.id));
+  /**
+   * Everything below indexes this, never the raw stored `ranking`. A stored id
+   * that no longer resolves against the fixture — the exact case store.ts's
+   * shallow merge is built to survive — would otherwise sit invisibly in the
+   * list and make the arrows reorder a row nobody can see.
+   */
+  const rankedIds = ranked.map((residence) => residence.id);
+  const unranked = residences.filter((residence) => !rankedIds.includes(residence.id));
 
   function setRanking(next: string[]) {
     patch("housing", { residenceRanking: next });
   }
 
   function move(index: number, direction: -1 | 1) {
-    const next = [...ranking];
+    const next = [...rankedIds];
     const target = index + direction;
     if (target < 0 || target >= next.length) return;
     const moved = next[index];
@@ -188,7 +195,7 @@ function ResidenceRanking() {
                 </IconAction>
                 <IconAction
                   label={`Remove ${residence.name} from your ranking`}
-                  onClick={() => setRanking(ranking.filter((id) => id !== residence.id))}
+                  onClick={() => setRanking(rankedIds.filter((id) => id !== residence.id))}
                 >
                   <XIcon weight="bold" aria-hidden className="size-4" />
                 </IconAction>
@@ -205,7 +212,7 @@ function ResidenceRanking() {
             <button
               key={residence.id}
               type="button"
-              onClick={() => setRanking([...ranking, residence.id])}
+              onClick={() => setRanking([...rankedIds, residence.id])}
               className="flex w-full items-start gap-3.5 rounded-[var(--radius-card)] border border-ink-200 bg-surface p-4 text-left transition-[border-color,box-shadow] hover:border-ink-300 hover:shadow-soft"
             >
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-dashed border-ink-300 text-small font-bold text-ink-400">

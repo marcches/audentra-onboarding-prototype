@@ -15,7 +15,14 @@ const STORAGE_KEY = "audentra.onboarding.v1";
 
 export type EntryState = {
   activeTab: "create" | "signin";
+  /** Live draft of the create-account email field — changes on every keystroke. */
   email: string;
+  /**
+   * The address an account was actually created with. Kept separate from the
+   * draft above: conflating the two makes "this address already has an account"
+   * compare the draft against itself, which is true for anything you type.
+   */
+  registeredEmail: string;
   dialCode: string;
   phone: string;
   signInEmail: string;
@@ -73,6 +80,11 @@ export type OnboardingState = {
   housing: HousingState;
 };
 
+/** Unique per contact, independent of position — rows can be removed. */
+export function newContactId() {
+  return `contact-${crypto.randomUUID()}`;
+}
+
 export const emptyEmergencyContact = (id: string): EmergencyContact => ({
   id,
   fullName: "",
@@ -85,6 +97,7 @@ const initialState: OnboardingState = {
   entry: {
     activeTab: "create",
     email: "",
+    registeredEmail: "",
     dialCode: "+1",
     phone: "",
     signInEmail: "",

@@ -32,17 +32,29 @@ export function Notice({
   children,
   action,
   className,
+  alert = false,
+  ref,
 }: {
   tone?: keyof typeof tones;
   title?: string;
   children: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
+  /**
+   * For a notice that appears in response to something the user just did.
+   * Without it the message is drawn on screen and announced to nobody, and a
+   * screen-reader user reads a failed submit as the button doing nothing.
+   */
+  alert?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 }) {
   const { wrapper, icon, Icon } = tones[tone];
 
   return (
     <div
+      ref={ref}
+      role={alert ? "alert" : undefined}
+      tabIndex={alert ? -1 : undefined}
       className={cn(
         "flex items-start gap-3 rounded-[var(--radius-card)] border px-4 py-3.5",
         wrapper,

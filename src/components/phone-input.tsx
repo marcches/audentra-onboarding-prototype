@@ -33,7 +33,13 @@ export function PhoneInput({
   return (
     <div className="flex gap-2">
       <Select value={dialCode} onValueChange={onDialCodeChange}>
-        <SelectTrigger className="w-[8.5rem] shrink-0" aria-label="Country code">
+        {/* Explicitly not invalid: it sits inside the same Field as the number,
+            and it is the number that fails validation, never the country. */}
+        <SelectTrigger
+          className="w-[8.5rem] shrink-0"
+          aria-label="Country code"
+          aria-invalid={false}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

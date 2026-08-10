@@ -20,6 +20,11 @@ import {
   signInSchema,
 } from "@/lib/validation";
 
+/** Email addresses are matched the way mail servers match them, not case-sensitively. */
+function sameEmail(a: string, b: string) {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 export function EntryRoute() {
   const state = useOnboarding();
   const navigate = useNavigate();
@@ -127,6 +132,13 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
   const state = useOnboarding();
   const [showPassword, setShowPassword] = React.useState(false);
   const [takenEmail, setTakenEmail] = React.useState<string | null>(null);
+  const takenRef = React.useRef<HTMLDivElement>(null);
+
+  // Announce it, and put the keyboard on it. Submit failed silently otherwise:
+  // the message drew above a button the user was still focused on.
+  React.useEffect(() => {
+    if (takenEmail) takenRef.current?.focus();
+  }, [takenEmail]);
 
   const form = useForm<CreateAccountValues>({
     resolver: zodResolver(createAccountSchema),
@@ -144,15 +156,20 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
   const { errors } = form.formState;
 
   function handleSubmit(values: CreateAccountValues) {
+    const submitted = values.email.trim();
+
     // The one failure worth simulating: this address already has an account.
     // It happens for real when someone forgets they signed up last week.
-    if (state.entry.accountCreated && values.email.trim() === state.entry.email) {
-      setTakenEmail(values.email);
+    // Compared against `registeredEmail`, never the live draft — the draft is
+    // whatever is in the box right now, so it always matches itself.
+    if (state.entry.accountCreated && sameEmail(submitted, state.entry.registeredEmail)) {
+      setTakenEmail(submitted);
       return;
     }
 
     patch("entry", {
-      email: values.email.trim(),
+      email: submitted,
+      registeredEmail: submitted,
       dialCode: values.dialCode,
       phone: values.phone,
     });
@@ -247,7 +264,7 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
       </Field>
 
       {takenEmail ? (
-        <Notice tone="caution" title="That address already has an account">
+        <Notice ref={takenRef} alert tone="caution" title="That address already has an account">
           Switch to <strong>Sign in</strong> above and use {takenEmail}, or write to{" "}
           {institution.admissionsEmail} if it wasn't you.
         </Notice>
@@ -264,6 +281,11 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
 function SignInForm({ onSuccess }: { onSuccess: () => void }) {
   const state = useOnboarding();
   const [unknownEmail, setUnknownEmail] = React.useState<string | null>(null);
+  const unknownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (unknownEmail) unknownRef.current?.focus();
+  }, [unknownEmail]);
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -274,7 +296,8 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
   const { errors } = form.formState;
 
   function handleSubmit(values: SignInValues) {
-    const known = state.entry.accountCreated && values.email.trim() === state.entry.email;
+    const known =
+      state.entry.accountCreated && sameEmail(values.email.trim(), state.entry.registeredEmail);
     if (!known) {
       setUnknownEmail(values.email.trim());
       return;
@@ -319,7 +342,7 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
       </Field>
 
       {unknownEmail ? (
-        <Notice tone="caution" title="No account for that address yet">
+        <Notice ref={unknownRef} alert tone="caution" title="No account for that address yet">
           Nothing was sent and nothing was changed. Switch to <strong>Create account</strong> above
           — it keeps what you've already typed.
         </Notice>

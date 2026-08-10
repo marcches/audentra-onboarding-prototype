@@ -45,13 +45,20 @@ import {
   residencyVerificationOptions,
   studentRecord,
 } from "@/lib/fixtures";
-import { emptyEmergencyContact, patch, useOnboarding } from "@/lib/store";
+import { emptyEmergencyContact, newContactId, patch, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { type AboutYouValues, aboutYouSchema } from "@/lib/validation";
 
 type SectionId = "identity" | "residence" | "emergency" | "family";
 
 const SECTION_ORDER: SectionId[] = ["identity", "residence", "emergency", "family"];
+
+const SECTION_LABELS: Record<SectionId, string> = {
+  identity: "Who you are",
+  residence: "Where you live now",
+  emergency: "Who we call in an emergency",
+  family: "Who else can see your record",
+};
 
 /** Which accordion section owns each field, so a failed submit can open it. */
 const FIELD_SECTIONS: Record<string, SectionId> = {
@@ -119,34 +126,41 @@ export function AboutYouRoute() {
 
   const values = form.watch();
   const contacts = useFieldArray({ control: form.control, name: "emergencyContacts" });
+  const [sectionsNeedingAttention, setSectionsNeedingAttention] = React.useState<SectionId[]>([]);
 
   function handleValid() {
+    setSectionsNeedingAttention([]);
     patch("aboutYou", { submitted: true });
     navigate({ to: "/onboarding/housing" });
   }
 
   /* A collapsed section hiding a validation error is the one way this pattern
-     can go wrong. So a failed submit opens every section that has one, and
-     takes you to the first — otherwise the form just refuses to advance and
-     the reason is somewhere off screen. */
+     can go wrong. So a failed submit opens every section that has one, names
+     them in a live region, and puts the keyboard on the first — otherwise the
+     form just refuses to advance and the reason is somewhere off screen.
+
+     React Hook Form's own focus-first-error cannot do this: it runs before the
+     reopened accordion content is mounted, so it finds nothing to focus. */
   function handleInvalid(invalid: FieldErrors<AboutYouValues>) {
     const failing = new Set(openSections);
-    let first: SectionId | undefined;
+    const named: SectionId[] = [];
     for (const key of Object.keys(invalid)) {
       const section = FIELD_SECTIONS[key];
       if (!section) continue;
       failing.add(section);
-      if (!first || SECTION_ORDER.indexOf(section) < SECTION_ORDER.indexOf(first)) {
-        first = section;
-      }
+      if (!named.includes(section)) named.push(section);
     }
+    named.sort((a, b) => SECTION_ORDER.indexOf(a) - SECTION_ORDER.indexOf(b));
     setOpenSections([...failing]);
+    setSectionsNeedingAttention(named);
 
-    if (!first) return;
-    const target = first;
-    // Wait for the accordion to finish opening before scrolling to it.
+    const target = named[0];
+    if (!target) return;
+    // Wait for the accordion to finish opening before moving into it.
     window.setTimeout(() => {
-      document.getElementById(`section-${target}`)?.scrollIntoView({ block: "start" });
+      const section = document.getElementById(`section-${target}`);
+      section?.scrollIntoView({ block: "start" });
+      section?.querySelector<HTMLElement>("[data-slot=accordion-trigger]")?.focus();
     }, 260);
   }
 
@@ -485,9 +499,9 @@ export function AboutYouRoute() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() =>
-                  contacts.append(emptyEmergencyContact(`contact-${contacts.fields.length + 1}`))
-                }
+                /* An id derived from the array length collides with a
+                   surviving contact as soon as anyone removes a row. */
+                onClick={() => contacts.append(emptyEmergencyContact(newContactId()))}
               >
                 <PlusIcon weight="bold" aria-hidden className="size-4" />
                 Add another person
@@ -617,6 +631,15 @@ export function AboutYouRoute() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+
+        {sectionsNeedingAttention.length > 0 ? (
+          <Notice alert tone="caution" title="A couple of things still need you">
+            Nothing was lost. Check{" "}
+            {sectionsNeedingAttention.map((section) => SECTION_LABELS[section]).join(" and ")} — the
+            section{sectionsNeedingAttention.length > 1 ? "s are" : " is"} open above with the
+            problem marked.
+          </Notice>
+        ) : null}
 
         <StepActions>
           <Button type="submit" size="lg">

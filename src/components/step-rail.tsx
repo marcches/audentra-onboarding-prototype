@@ -61,17 +61,26 @@ export function StepRail({ current }: { current: StepId }) {
 
           <nav aria-label="Onboarding steps">
             <ol className="relative flex flex-col gap-1">
-              {/* The spine. Sits behind the dots and stops short of the last one. */}
-              <span
-                aria-hidden
-                className="absolute top-6 bottom-6 left-[0.6875rem] w-px bg-ink-100"
-              />
               {steps.map((step, index) => {
                 const isDone = done.includes(step.id);
                 const isCurrent = step.id === current;
 
                 return (
                   <li key={step.id} className="relative">
+                    {/* One connector per gap rather than a single spine down the
+                        list: the rows are not all the same height, so a spine
+                        measured from the list's own edges overshoots the last
+                        dot. Anchored to the dot instead — left-5 is its centre
+                        (8px link padding + half of the 24px dot), top-6 is the
+                        same measure vertically (10px padding + 2px mt + 12px),
+                        and -bottom-7 reaches the next dot's centre (4px gap +
+                        24px). */}
+                    {index < steps.length - 1 ? (
+                      <span
+                        aria-hidden
+                        className="absolute top-6 -bottom-7 left-5 w-px -translate-x-1/2 bg-ink-100"
+                      />
+                    ) : null}
                     <Link
                       to={step.path}
                       className={cn(
