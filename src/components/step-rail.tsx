@@ -33,15 +33,20 @@ export function StepRail({ current }: { current: StepId }) {
 
       <aside className="hidden w-[19rem] shrink-0 border-r border-ink-100 bg-surface lg:block">
         {/* One rule between every block, at one weight, from the crest at the
-            top to the platform mark at the bottom. The divider was doing that
-            job at the foot of the rail only, which made the footer look bolted
-            on and everything above it look like one undifferentiated column. */}
-        <div className="sticky top-0 flex h-dvh flex-col gap-6 divide-y divide-ink-100 overflow-y-auto p-8 [&>*+*]:pt-6">
+            top to the platform mark at the bottom.
+
+            Each rule is an explicit `border-t` with `mt-6` above and `pt-6`
+            below, so it sits exactly halfway between the two things it
+            separates. `divide-y` was doing this and getting it wrong: it draws
+            on each child's *bottom* edge, which pinned every rule flush against
+            the content above it and left the whole 48px of breathing room on
+            the far side. */}
+        <div className="sticky top-0 flex h-dvh flex-col overflow-y-auto p-8">
           {/* The institution leads. This is its portal; Audentra is the thing
               it runs on, and that goes at the foot of the rail. */}
           <InstitutionBadge />
 
-          <div className="space-y-3">
+          <div className="mt-6 space-y-3 border-t border-ink-100 pt-6">
             <div className="flex items-baseline justify-between">
               <h2 className="text-h3 text-ink-900">Your path to {institution.short}</h2>
             </div>
@@ -63,7 +68,7 @@ export function StepRail({ current }: { current: StepId }) {
             </div>
           </div>
 
-          <nav aria-label="Onboarding steps">
+          <nav aria-label="Onboarding steps" className="mt-6 border-t border-ink-100 pt-6">
             <ol className="relative flex flex-col gap-1">
               {steps.map((step, index) => {
                 const isDone = done.includes(step.id);
@@ -127,7 +132,10 @@ export function StepRail({ current }: { current: StepId }) {
 
           {/* Quiet, and one line: the platform credit is the least important
               thing in the rail and should be sized like it. */}
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          {/* `mt-8` is the floor, `mt-auto` the ceiling: on a short rail the
+              footer keeps its own 32px of clearance instead of colliding with
+              the step list; on a tall one it settles at the bottom. */}
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-ink-100 pt-6 lg:mt-auto">
             <a
               href={`mailto:${institution.admissionsEmail}`}
               className="text-small text-ink-400 transition-colors hover:text-ink-600"
