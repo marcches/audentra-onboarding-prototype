@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens — Audentra onboarding prototype
+   ---------------------------------------------------------------------------
+   Anchored on the real Audentra brand guidelines (violet #6A38FF, azure
+   #1E5BFF, mint #00C49A, navy #0A1F44, grey #6B7280, Satoshi typeface) as a
+   light constraint. The brand is the *ink and the signal*; the surface
+   language (warm-cool paper canvas, slab cards, navy-tinted elevation) is this
+   prototype's own, deliberately away from both the dark glassmorphism of the
+   marketing site and the stock shadcn/ui look.
+   ------------------------------------------------------------------------ */
+
+@theme {
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Ink — the navy family. Headings, body, borders, everything structural. */
+  --color-ink-950: #06122a;
+  --color-ink-900: #0a1f44;
+  --color-ink-800: #16294f;
+  --color-ink-700: #2b3d63;
+  --color-ink-600: #47597c;
+  --color-ink-500: #6b7280;
+  --color-ink-400: #8b95a8;
+  --color-ink-300: #aeb7c7;
+  --color-ink-200: #ced5e2;
+  --color-ink-100: #e3e8f1;
+  --color-ink-50: #f1f4fa;
+
+  /* Ground */
+  --color-canvas: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-sunken: #eaeef7;
+
+  /* Violet — the primary signal. Used sparingly: progress, primary action. */
+  --color-violet-50: #f2edff;
+  --color-violet-100: #e4daff;
+  --color-violet-200: #c9b6ff;
+  --color-violet-300: #a888ff;
+  --color-violet-400: #8a5cff;
+  --color-violet-500: #6a38ff;
+  --color-violet-600: #5726e0;
+  --color-violet-700: #441cb3;
+
+  /* Azure — the second half of the brand gradient. */
+  --color-azure-50: #eaf1ff;
+  --color-azure-100: #d3e0ff;
+  --color-azure-400: #4d80ff;
+  --color-azure-500: #1e5bff;
+  --color-azure-600: #0f45d6;
+
+  /* Mint — "done", "verified", "already on record". */
+  --color-mint-50: #e2fbf4;
+  --color-mint-100: #b9f4e5;
+  --color-mint-500: #00c49a;
+  --color-mint-600: #009e7d;
+  --color-mint-700: #04735d;
+
+  /* Danger — validation and refusal. Warm rose, not fire-engine red. */
+  --color-danger-50: #ffeef2;
+  --color-danger-100: #ffd8e0;
+  --color-danger-500: #d92651;
+  --color-danger-600: #b21c41;
+
+  /* Amber — "optional, but worth knowing". */
+  --color-amber-50: #fff6e6;
+  --color-amber-500: #e08c00;
+
+  /* Radii — deliberately larger than the shadcn default 8px. */
+  --radius-field: 10px;
+  --radius-card: 16px;
+  --radius-slab: 20px;
+  --radius-pill: 999px;
+
+  /* Elevation — navy-tinted, never neutral black. */
+  --shadow-soft: 0 1px 2px rgb(10 31 68 / 0.06), 0 1px 3px rgb(10 31 68 / 0.04);
+  --shadow-card: 0 2px 4px rgb(10 31 68 / 0.04), 0 8px 24px -8px rgb(10 31 68 / 0.12);
+  --shadow-lift: 0 4px 8px rgb(10 31 68 / 0.06), 0 20px 40px -12px rgb(10 31 68 / 0.2);
+  --shadow-modal: 0 8px 16px rgb(10 31 68 / 0.08), 0 40px 80px -24px rgb(10 31 68 / 0.4);
+
+  /* Type scale */
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1rem;
+  --text-micro--letter-spacing: 0.06em;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.6;
+  --text-lead: 1.0625rem;
+  --text-lead--line-height: 1.55;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.5rem;
+  --text-h3--letter-spacing: -0.015em;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.875rem;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h1: 2rem;
+  --text-h1--line-height: 2.375rem;
+  --text-h1--letter-spacing: -0.025em;
+  --text-display: 2.5rem;
+  --text-display--line-height: 2.75rem;
+  --text-display--letter-spacing: -0.03em;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-accordion-down: accordion-down 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-accordion-up: accordion-up 0.18s ease-in;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   shadcn/ui contract — the primitives read these names. Every one of them is
+   re-pointed at a token above, which is what keeps the primitives from
+   rendering as stock shadcn.
+   ------------------------------------------------------------------------ */
+
+:root {
+  --background: var(--color-canvas);
+  --foreground: var(--color-ink-900);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink-900);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-ink-900);
+  --primary: var(--color-violet-500);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-ink-50);
+  --secondary-foreground: var(--color-ink-800);
+  --muted: var(--color-sunken);
+  --muted-foreground: var(--color-ink-500);
+  --accent: var(--color-violet-50);
+  --accent-foreground: var(--color-violet-700);
+  --destructive: var(--color-danger-500);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-ink-100);
+  --input: var(--color-ink-200);
+  --ring: var(--color-violet-400);
+  --radius: var(--radius-field);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-ink-100);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  /* One focus treatment everywhere, including inside the shadcn primitives. */
+  :focus-visible {
+    outline: 2px solid var(--color-violet-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-violet-100);
+    color: var(--color-violet-700);
+  }
+}
+
+@layer components {
+  /* The brand gradient. Reserved for the two moments that earn it: the live
+     step marker and the accept-the-offer celebration. */
+  .brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-violet-500) 0%,
+      var(--color-azure-500) 100%
+    );
+  }
+
+  .brand-gradient-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-violet-500) 0%,
+      var(--color-azure-500) 60%,
+      var(--color-mint-500) 130%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* The entry screen's brand panel.
+     Deliberately CSS rather than one of the ReactBits WebGL backgrounds: this
+     is the first paint of the whole product, and a canvas that has to boot
+     before it draws anything is the wrong trade for a decorative panel. See
+     docs/design-research.md. */
+  .brand-panel {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-ink-950);
+    isolation: isolate;
+  }
+
+  .brand-panel::before {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    z-index: -1;
+    background-image:
+      radial-gradient(
+        45% 40% at 20% 18%,
+        color-mix(in oklab, var(--color-violet-500) 75%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 38% at 82% 34%,
+        color-mix(in oklab, var(--color-azure-500) 62%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        40% 34% at 52% 92%,
+        color-mix(in oklab, var(--color-mint-500) 42%, transparent),
+        transparent 70%
+      );
+    filter: blur(12px);
+    animation: brand-drift 22s ease-in-out infinite alternate;
+  }
+
+  @keyframes brand-drift {
+    from {
+      transform: translate3d(-2%, -1%, 0) scale(1);
+    }
+    to {
+      transform: translate3d(3%, 2%, 0) scale(1.08);
+    }
+  }
+
+  /* Field label. Small, uppercase, tracked — reads as a form system rather
+     than as body copy that happens to sit above an input. */
+  .field-label {
+    font-size: var(--text-micro);
+    line-height: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-ink-600);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

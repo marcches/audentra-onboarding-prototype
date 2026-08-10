@@ -1,0 +1,171 @@
+import {
+  CheckIcon,
+  CopyIcon,
+  LinkedinLogoIcon,
+  WhatsappLogoIcon,
+  XLogoIcon,
+} from "@phosphor-icons/react";
+import confetti from "canvas-confetti";
+import { useReducedMotion } from "motion/react";
+import * as React from "react";
+
+import SplitText from "@/components/SplitText";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { institution, offer } from "@/lib/fixtures";
+
+const CONFETTI_COLORS = ["#6a38ff", "#1e5bff", "#00c49a", "#a888ff", "#ffffff"];
+
+const SHARE_TEXT = `I'm going to ${institution.name} for ${offer.programme}. See you in ${offer.startingTerm}.`;
+const SHARE_URL = "https://aster.edu";
+
+/**
+ * The accept moment.
+ *
+ * Two things it deliberately does not do: navigate away, and demand the share.
+ * Laura's ask was a popup in the middle of the screen with confetti, so the
+ * student never loses the page they were on — and the social prompt is an
+ * offer, not a gate. Closing this dialog with the X leaves the acceptance
+ * recorded and the student exactly where they were.
+ */
+export function CelebrationDialog({
+  open,
+  onOpenChange,
+  onContinue,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onContinue: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+  const [copied, setCopied] = React.useState(false);
+  const continueRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (!open || reduceMotion) return;
+
+    const burst = (particleCount: number, spread: number, startVelocity: number) => {
+      confetti({
+        particleCount,
+        spread,
+        startVelocity,
+        origin: { y: 0.42 },
+        colors: CONFETTI_COLORS,
+        disableForReducedMotion: true,
+        scalar: 0.9,
+        zIndex: 100,
+      });
+    };
+
+    burst(80, 70, 45);
+    const second = window.setTimeout(() => burst(50, 110, 30), 220);
+    const third = window.setTimeout(() => burst(30, 130, 24), 460);
+
+    return () => {
+      window.clearTimeout(second);
+      window.clearTimeout(third);
+    };
+  }, [open, reduceMotion]);
+
+  React.useEffect(() => {
+    if (!open) setCopied(false);
+  }, [open]);
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`${SHARE_TEXT} ${SHARE_URL}`);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="text-center sm:max-w-[30rem]"
+        /* Land on the way forward, not on a share button. The share is the
+           optional thing in this dialog; the continue is the point of it. */
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          continueRef.current?.focus();
+        }}
+      >
+        <div className="flex flex-col items-center gap-5">
+          <span className="brand-gradient flex size-14 items-center justify-center rounded-full text-white shadow-lift">
+            <CheckIcon weight="bold" aria-hidden className="size-7" />
+          </span>
+
+          <div className="space-y-2">
+            <DialogTitle className="text-display font-black tracking-[-0.03em]">
+              {reduceMotion ? (
+                <span>You're in.</span>
+              ) : (
+                <SplitText
+                  text="You're in."
+                  tag="span"
+                  splitType="chars"
+                  delay={38}
+                  duration={0.7}
+                  ease="power3.out"
+                  threshold={0.05}
+                  rootMargin="0px"
+                  from={{ opacity: 0, y: 28, filter: "blur(6px)" }}
+                  to={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                />
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              Your place in {offer.programme}, {offer.startingTerm} is reserved. Admissions has your
+              answer. Accepting doesn't commit you to paying anything yet.
+            </DialogDescription>
+          </div>
+
+          <div className="w-full rounded-[var(--radius-card)] bg-ink-50 p-4">
+            <p className="text-small font-bold text-ink-700">Want to tell people? Up to you.</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <ShareLink
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SHARE_URL)}`}
+                label="X"
+                icon={<XLogoIcon weight="fill" aria-hidden className="size-4" />}
+              />
+              <ShareLink
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SHARE_URL)}`}
+                label="LinkedIn"
+                icon={<LinkedinLogoIcon weight="fill" aria-hidden className="size-4" />}
+              />
+              <ShareLink
+                href={`https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT} ${SHARE_URL}`)}`}
+                label="WhatsApp"
+                icon={<WhatsappLogoIcon weight="fill" aria-hidden className="size-4" />}
+              />
+              <Button type="button" variant="secondary" size="sm" onClick={copyLink}>
+                {copied ? (
+                  <CheckIcon weight="bold" aria-hidden className="size-4 text-mint-600" />
+                ) : (
+                  <CopyIcon aria-hidden className="size-4" />
+                )}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            </div>
+          </div>
+
+          <Button ref={continueRef} type="button" size="lg" className="w-full" onClick={onContinue}>
+            Next: about you
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ShareLink({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+  return (
+    <Button asChild variant="secondary" size="sm">
+      <a href={href} target="_blank" rel="noreferrer noopener">
+        {icon}
+        {label}
+      </a>
+    </Button>
+  );
+}
