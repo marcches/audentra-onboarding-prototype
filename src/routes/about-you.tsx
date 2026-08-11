@@ -165,27 +165,36 @@ export function AboutYouRoute() {
     }, 260);
   }
 
-  const identityDone = Boolean(values.citizenship);
-  const emergencyDone = Boolean(
-    values.emergencyContacts?.every(
-      (contact) => contact.fullName && contact.relationship && contact.phone,
-    ),
-  );
-  const residenceDone = Boolean(
-    values.street && values.city && values.state && values.postalCode && values.country,
-  );
-  const familyDone = !values.grantsFamilyAccess || Boolean(values.familyMemberName);
+  /**
+   * Which sections are done, asked of the schema rather than re-derived here.
+   *
+   * A hand-rolled copy of these rules is a second source of truth that drifts
+   * the moment either side changes, and it had already drifted: the family
+   * check tested only the name, while `superRefine` also requires a valid email
+   * and at least one disclosure area — so the panel showed a green tick and
+   * "all four sections are filled in" on a form that then refused to submit.
+   * Parsing the live values means a section is complete exactly when nothing in
+   * it would block Continue, by construction.
+   */
+  const sectionStatus = React.useMemo(() => {
+    const parsed = aboutYouSchema.safeParse(values);
+    const status: Record<SectionId, "done" | "needed"> = {
+      identity: "done",
+      residence: "done",
+      emergency: "done",
+      family: "done",
+    };
+    if (parsed.success) return status;
+    for (const issue of parsed.error.issues) {
+      const section = FIELD_SECTIONS[String(issue.path[0] ?? "")];
+      if (section) status[section] = "needed";
+    }
+    return status;
+  }, [values]);
 
   const identityNote = state.aboutYou.idExtracted
     ? "Read from the document you uploaded and checked against your application. The Registrar changes this, not you."
     : "From your application. The Registrar changes this, not you.";
-
-  const sectionStatus: Record<SectionId, "done" | "needed"> = {
-    identity: identityDone ? "done" : "needed",
-    residence: residenceDone ? "done" : "needed",
-    emergency: emergencyDone ? "done" : "needed",
-    family: familyDone ? "done" : "needed",
-  };
 
   return (
     <StepShell
@@ -229,17 +238,27 @@ export function AboutYouRoute() {
               <IdUpload
                 files={state.aboutYou.idDocuments}
                 extracted={state.aboutYou.idExtracted}
-                onChange={(files) => patch("aboutYou", { idDocuments: files })}
-                /* The one field an ID actually tells us that the application
-                   did not: everything else in this section is already on
-                   record. Filling something the student can see is the whole
-                   point of "we filled in the fields below". */
-                onExtracted={() => {
-                  patch("aboutYou", { idExtracted: true });
-                  if (!form.getValues("citizenship")) {
-                    form.setValue("citizenship", "us-citizen", { shouldValidate: true });
-                  }
-                }}
+                /* Removing the last file takes the extraction with it. The
+                   success notice and the "read from the document you uploaded"
+                   note on every locked field both claim provenance from a file
+                   that is no longer attached, and both persist. */
+                onChange={(files) =>
+                  patch("aboutYou", {
+                    idDocuments: files,
+                    ...(files.length === 0 ? { idExtracted: false } : {}),
+                  })
+                }
+                /* The extraction marks the identity fields as corroborated by
+                   the document and stops there.
+                   It emphatically does not guess at citizenship. An earlier
+                   version filled that select with "U.S. citizen" for any
+                   accepted file, which meant an international student who
+                   uploaded a foreign passport and did not scroll back could
+                   sign an agreement whose clause 3 asserted, in the bold this
+                   document uses to mark the student's own answers, a legal
+                   status they never chose. A simulated read may confirm what is
+                   already on record; it may not invent a fact about someone. */
+                onExtracted={() => patch("aboutYou", { idExtracted: true })}
               />
 
               <div className="grid gap-5 sm:grid-cols-2">

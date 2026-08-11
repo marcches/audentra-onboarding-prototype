@@ -21,13 +21,23 @@ const MAX_TOTAL_BYTES = 30 * 1024 * 1024;
  */
 const UNREADABLE_UNDER_BYTES = 20 * 1024;
 
-type UploadError = "type" | "size" | "count" | "unreadable";
+type UploadError = "type" | "size" | "total" | "count" | "unreadable";
 
-/** Every one of these is the sheet's own string (field inventory, line 18). */
+/**
+ * The first four are the sheet's own strings (field inventory, line 18).
+ *
+ * `total` is the one addition, and it exists because the sheet's size message
+ * is about a single file: reporting "this file is larger than 30 MB" when a
+ * 12 MB file is refused for pushing the *running total* past the limit tells
+ * the student something they can see is false, and leaves them retrying the
+ * same file. Written to the Inline validation rule — what is wrong, and what
+ * would be acceptable.
+ */
 const ERRORS: Record<UploadError, string> = {
   unreadable: "We could not read this document. Fill the fields in yourself, or try another file.",
   type: "This file type is not accepted. Use PDF, JPEG or PNG.",
   size: "This file is larger than 30 MB.",
+  total: "Your files come to more than 30 MB in total. Remove one, or attach a smaller file.",
   count: "You can attach up to 8 files.",
 };
 
@@ -71,8 +81,13 @@ export function IdUpload({
 
     if (files.length + list.length > MAX_FILES) return setError("count");
     if (list.some((file) => !ACCEPTED.includes(file.type))) return setError("type");
+    // One file over the limit on its own, and the running total over it, are
+    // different problems with different remedies, so they get different
+    // messages. Told the same thing, a student refused for the total retries
+    // the file they were just shown is under the limit.
+    if (list.some((file) => file.size > MAX_TOTAL_BYTES)) return setError("size");
     const nextTotal = total + list.reduce((sum, file) => sum + file.size, 0);
-    if (nextTotal > MAX_TOTAL_BYTES) return setError("size");
+    if (nextTotal > MAX_TOTAL_BYTES) return setError("total");
 
     const added = list.map((file) => ({ name: file.name, size: file.size }));
     onChange([...files, ...added]);

@@ -201,6 +201,7 @@ function AgreementSheet({
               typed={review.typedSignature.trim()}
               drawnStrokes={review.drawnStrokes}
               drawnSize={review.drawnSize}
+              drawnImage={review.drawnSignature}
               signedAt={review.submitted ? review.signedAt : null}
               reference={review.reference}
               applyToken={applyToken}
@@ -295,6 +296,7 @@ function SignPanel({
           <SignaturePad
             label={`Draw the signature for ${LEGAL_NAME}`}
             value={review.drawnSignature}
+            strokes={review.drawnStrokes}
             onChange={(drawn: DrawnSignature) =>
               patch("review", {
                 drawnSignature: drawn.dataUrl,

@@ -79,6 +79,20 @@ export function CampusLifeRoute() {
         </SectionTitle>
 
         <ClubGrid clubs={clubs} selected={campusLife.clubs} onToggle={toggle} />
+
+        {/* The running total, announced. Each card reports only its own pressed
+            state, and the Picks panel that carries the count is static text
+            that sits after the whole grid in the DOM below 1280px — so without
+            this, a screen-reader user cannot tell how many they have chosen
+            without leaving the grid to go and find out. Housing keeps the
+            equivalent announcer for its ranking. */}
+        <p aria-live="polite" className="sr-only">
+          {picked.length === 0
+            ? "No clubs chosen."
+            : `${picked.length} ${picked.length === 1 ? "club" : "clubs"} chosen: ${picked
+                .map((club) => club.name)
+                .join(", ")}.`}
+        </p>
       </section>
 
       <section className="space-y-4">

@@ -27,6 +27,7 @@ export function SignatureLine({
   typed,
   drawnStrokes,
   drawnSize,
+  drawnImage,
   signedAt,
   reference,
   /** Bumped by the parent when the student confirms, to trigger the one replay. */
@@ -37,6 +38,8 @@ export function SignatureLine({
   typed: string;
   drawnStrokes: SignaturePoint[][];
   drawnSize: { width: number; height: number };
+  /** The still form. The fallback when there are no strokes to replay. */
+  drawnImage: string;
   signedAt: string | null;
   reference: string;
   applyToken?: number;
@@ -53,12 +56,25 @@ export function SignatureLine({
         <div className="relative h-24">
           {signed ? (
             mode === "draw" ? (
-              <DrawnSignature
-                strokes={drawnStrokes}
-                size={drawnSize}
-                applyToken={applyToken}
-                label={`Signature of ${name}`}
-              />
+              /* The replay needs strokes; the still image needs only the
+                 bitmap. If the strokes are missing for any reason, the image is
+                 what gets drawn — a signed document that renders an empty line
+                 over a date and a reference number is the worst failure this
+                 screen has, and it must not be reachable by any path. */
+              drawnStrokes.length > 0 ? (
+                <DrawnSignature
+                  strokes={drawnStrokes}
+                  size={drawnSize}
+                  applyToken={applyToken}
+                  label={`Signature of ${name}`}
+                />
+              ) : drawnImage ? (
+                <img
+                  src={drawnImage}
+                  alt={`Signature of ${name}`}
+                  className="absolute bottom-0 left-1 h-24 w-auto max-w-full"
+                />
+              ) : null
             ) : (
               <TypedSignature text={typed || name} applyToken={applyToken} />
             )

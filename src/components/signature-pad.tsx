@@ -17,6 +17,9 @@ export type DrawnSignature = {
 
 const EMPTY: DrawnSignature = { dataUrl: "", strokes: [], size: { width: 0, height: 0 } };
 
+/** The pen-lift between a restored stroke and one added after a remount. */
+const STROKE_GAP_MS = 220;
+
 /**
  * Drawing a signature.
  *
@@ -36,18 +39,34 @@ const EMPTY: DrawnSignature = { dataUrl: "", strokes: [], size: { width: 0, heig
  */
 export function SignaturePad({
   value,
+  strokes: storedStrokes,
   onChange,
   label,
 }: {
   value: string;
+  /**
+   * The strokes already stored, so a remounted pad continues them instead of
+   * starting a new list beside the bitmap it just restored.
+   */
+  strokes: SignaturePoint[][];
   onChange: (signature: DrawnSignature) => void;
   label: string;
 }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const drawing = React.useRef(false);
   const lastPoint = React.useRef<{ x: number; y: number } | null>(null);
-  /** Strokes so far this session, and the one being drawn right now. */
-  const strokes = React.useRef<SignaturePoint[][]>([]);
+  /**
+   * Strokes so far, and the one being drawn right now.
+   *
+   * Seeded from what is stored, because this component is unmounted every time
+   * the student switches to the "Type it" tab and on every reload. Starting the
+   * ref empty while the effect below repaints the saved bitmap put the two out
+   * of step: the pad looked full, but the next pen-up published a list holding
+   * only that one new stroke and overwrote the rest. The bitmap stayed correct,
+   * so nothing looked wrong until the agreement replayed the strokes and drew
+   * a blank line or a stray mark on a signed document.
+   */
+  const strokes = React.useRef<SignaturePoint[][]>(storedStrokes.map((stroke) => [...stroke]));
   const current = React.useRef<SignaturePoint[]>([]);
   const startedAt = React.useRef(0);
   const [hasInk, setHasInk] = React.useState(Boolean(value));
@@ -117,9 +136,18 @@ export function SignaturePad({
     drawing.current = true;
     const point = pointFrom(event);
     lastPoint.current = point;
-    // The clock starts on the first stroke, so the replay begins immediately
-    // rather than after however long the student spent deciding.
-    if (strokes.current.length === 0) startedAt.current = performance.now();
+    /* The clock starts on the first stroke, so the replay begins immediately
+       rather than after however long the student spent deciding.
+
+       On a pad seeded with stored strokes it is instead rewound to just past
+       the last timestamp already recorded, so a stroke added after a remount
+       lands after the earlier ones on the same timeline. Left at zero, the new
+       points would carry `performance.now()` itself and the replay would draw
+       the old strokes and then wait several minutes. */
+    if (startedAt.current === 0) {
+      const lastT = strokes.current.at(-1)?.at(-1)?.t ?? 0;
+      startedAt.current = performance.now() - (lastT === 0 ? 0 : lastT + STROKE_GAP_MS);
+    }
     current.current = [{ ...point, t: performance.now() - startedAt.current }];
   };
 
@@ -157,6 +185,7 @@ export function SignaturePad({
     context.clearRect(0, 0, canvas.width, canvas.height);
     strokes.current = [];
     current.current = [];
+    startedAt.current = 0;
     setHasInk(false);
     onChange(EMPTY);
   };

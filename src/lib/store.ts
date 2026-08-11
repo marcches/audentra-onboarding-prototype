@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import type { HousingIntent } from "@/lib/fixtures";
+import { type HousingIntent, housingIntents } from "@/lib/fixtures";
 import type { StepId } from "@/lib/steps";
 
 /**
@@ -11,7 +11,19 @@ import type { StepId } from "@/lib/steps";
  * actually poke at.
  */
 
-const STORAGE_KEY = "audentra.onboarding.v1";
+/**
+ * Bumped whenever a stored value can no longer be interpreted by this build.
+ *
+ * v2, for round 3: two housing intents were removed, the review slice replaced
+ * `readDocuments` with `documentRead` and gained the signature strokes, and the
+ * deposit lost its paid flags. The shallow merge below is deliberately
+ * forgiving about *missing* keys, but it cannot help with keys whose meaning
+ * changed — a v1 blob would restore `intent: "commuting"` against a list that
+ * no longer contains it, or a drawn signature with no strokes to replay. A
+ * reviewer with the old preview open gets a clean slate instead of a subtly
+ * wrong one.
+ */
+const STORAGE_KEY = "audentra.onboarding.v2";
 
 export type EntryState = {
   activeTab: "create" | "signin";
@@ -124,15 +136,6 @@ export type ReviewState = {
 
 export type DepositState = {
   choice: "pay-now" | "pay-by-deadline" | "waiver" | "";
-  /**
-   * Nothing in this prototype can set these: the simulated card form that used
-   * to is gone, and there is no gateway behind "pay now". They stay because the
-   * completion screen's branch reads them and that branch is correct as it
-   * stands — the deposit is outstanding unless it was paid or explicitly
-   * deferred, and "paid" is simply never reachable here.
-   */
-  paid: boolean;
-  paidAt: string | null;
   waiverReason: string;
   submitted: boolean;
 };
@@ -225,8 +228,6 @@ const initialState: OnboardingState = {
   },
   deposit: {
     choice: "",
-    paid: false,
-    paidAt: null,
     waiverReason: "",
     submitted: false,
   },
@@ -240,7 +241,7 @@ function read(): OnboardingState {
     const parsed = JSON.parse(raw) as Partial<OnboardingState>;
     // Shallow-merge per slice: a stored blob written by an older shape must not
     // strip keys the current build expects.
-    return {
+    const merged: OnboardingState = {
       entry: { ...initialState.entry, ...parsed.entry },
       offer: { ...initialState.offer, ...parsed.offer },
       aboutYou: { ...initialState.aboutYou, ...parsed.aboutYou },
@@ -249,6 +250,19 @@ function read(): OnboardingState {
       review: { ...initialState.review, ...parsed.review },
       deposit: { ...initialState.deposit, ...parsed.deposit },
     };
+
+    /* A stored answer that no longer exists as an option reads as "answered"
+       to every check while the control shows nothing selected — so the step
+       renders no follow-up, the Continue button stays enabled, and the
+       agreement states an answer nobody can see. The version bump above is the
+       first line of defence; this is the one that survives a fixture edit
+       without one. */
+    if (merged.housing.intent && !housingIntents.some((o) => o.value === merged.housing.intent)) {
+      merged.housing.intent = null;
+      merged.housing.submitted = false;
+    }
+
+    return merged;
   } catch {
     return initialState;
   }
@@ -298,11 +312,22 @@ export function patch<K extends keyof OnboardingState>(
    * release could sit there presented as signed against answers that had since
    * changed. The rule belongs here rather than in the review screen because
    * this is the one place every answer is written.
+   *
+   * `documentRead` resets with the rest of it. The answers are written into the
+   * agreement's clauses, so editing one rewrites the document — and leaving the
+   * read gate satisfied would let the student re-sign text they have never seen,
+   * which is the one thing that gate exists to prevent.
    */
   if (SIGNED_OVER.includes(slice) && state.review.submitted) {
     state = {
       ...state,
-      review: { ...state.review, submitted: false, consented: false, signedAt: null },
+      review: {
+        ...state.review,
+        submitted: false,
+        consented: false,
+        signedAt: null,
+        documentRead: false,
+      },
     };
   }
 

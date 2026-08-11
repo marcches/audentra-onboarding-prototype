@@ -90,8 +90,12 @@ export function CompletionRoute() {
      greeting has had a moment to land. Reduced motion starts at the end. */
   const [beat, setBeat] = React.useState(reduceMotion ? 1 : 0);
 
-  // Paid, or explicitly deferred to the deadline, both count as handled.
-  const depositOutstanding = !state.deposit.paid && state.deposit.choice !== "pay-by-deadline";
+  /* Only one answer settles the deposit: deferring it to the deadline. There is
+     no gateway behind "pay now" and nothing in the prototype can mark the
+     deposit paid, so treating that choice as settled would be this screen
+     telling a student their place is secure on the strength of a button press
+     that took no money. */
+  const depositOutstanding = state.deposit.choice !== "pay-by-deadline";
   const nextSteps = depositOutstanding ? [OUTSTANDING_DEPOSIT, ...NEXT_STEPS] : NEXT_STEPS;
 
   React.useEffect(() => {
