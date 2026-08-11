@@ -64,7 +64,7 @@ export function EntryPanel({ className }: { className?: string }) {
        background, and it removes the hard seam where the colour used to butt
        straight against the form column. */
     <div className={cn("p-3 lg:py-4 lg:pr-0 lg:pl-4", className)}>
-      <div className="brand-panel relative isolate flex h-full flex-col justify-between gap-10 overflow-hidden rounded-[var(--radius-slab)] px-6 py-8 text-white sm:px-10 sm:py-10 lg:px-12">
+      <div className="brand-panel on-dark relative isolate flex h-full flex-col justify-between gap-10 overflow-hidden rounded-[var(--radius-slab)] px-6 py-8 text-white sm:px-10 sm:py-10 lg:px-12">
         {reduceMotion || !canRender ? null : (
           <div aria-hidden className="absolute inset-0 -z-10">
             <React.Suspense fallback={null}>

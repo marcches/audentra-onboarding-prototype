@@ -197,6 +197,18 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* The grey flash mobile WebKit paints over any tapped element. Every
+       control here already has its own pressed state, and a fair part of the
+       audience is on a phone — this is the default most likely to be seen. */
+    -webkit-tap-highlight-color: transparent;
+    /* Names the palette the browser paints its own chrome from — scrollbars,
+       form controls, the canvas behind the page. Without it, a machine set to
+       dark mode draws dark UA widgets over a light page. */
+    color-scheme: light;
+    /* Firefox's scrollbar API. Thin, in the ink family, over the sunken track
+       the rest of the surface language already uses. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-300) var(--color-sunken);
   }
 
   body {
@@ -207,6 +219,86 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* ---------------------------------------------------------------------
+     Browser defaults, brought into the system.
+
+     Everything below is a surface the UA styles for you, and every one of
+     them was leaking: a stock grey scrollbar beside slab cards and a
+     navy-tinted palette, Chrome's yellow autofill wash over a themed input,
+     a black caret, and blue system accents on native controls. They are
+     small individually and collectively they are the difference between a
+     designed product and a page with a design on it.
+     ------------------------------------------------------------------ */
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-sunken);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-300);
+    /* Inset by its own border so the thumb reads as a lozenge on the track
+       rather than as a second, thicker track. */
+    border: 2px solid var(--color-sunken);
+    border-radius: var(--radius-pill);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-400);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--color-sunken);
+  }
+
+  /* The dark surfaces — the entry panel and the arrival screen — need the
+     inverse, or they get a light grey bar down the side of a near-black page. */
+  .on-dark {
+    color-scheme: dark;
+    scrollbar-color: color-mix(in oklab, #ffffff 28%, transparent) transparent;
+  }
+
+  .on-dark ::-webkit-scrollbar-track,
+  .on-dark ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  .on-dark ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, #ffffff 24%, transparent);
+    border-color: transparent;
+  }
+
+  /* Native checkboxes, radios and the like, where any survive un-themed. */
+  html {
+    accent-color: var(--color-violet-500);
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-violet-500);
+  }
+
+  ::placeholder {
+    color: var(--color-ink-400);
+    opacity: 1; /* Firefox dims placeholders again on top of the colour. */
+  }
+
+  /* Chrome paints autofilled fields a fixed pale yellow and ignores
+     `background-color`. An inset shadow the size of the field is the one
+     property it does honour, so the fill is drawn with that instead. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-ink-900);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+    caret-color: var(--color-violet-500);
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   h1,

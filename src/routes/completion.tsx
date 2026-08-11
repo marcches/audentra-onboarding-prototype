@@ -14,6 +14,7 @@ import { Wordmark } from "@/components/wordmark";
 import { legalName } from "@/lib/agreement";
 import { formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
 import { resetOnboarding, useOnboarding } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 const LEGAL_NAME = legalName();
 
@@ -26,15 +27,34 @@ const LightRays = React.lazy(() => import("@/components/reactbits/LightRays"));
  * "nothing else is waiting on you today" over an unpaid deposit is how a
  * student misses the deadline believing their place is held.
  */
-const OUTSTANDING_DEPOSIT = {
+type ArrivalCard = {
+  icon: React.ReactNode;
+  when: string;
+  title: string;
+  detail: string;
+  /** Spans both columns. See the note on the deposit card. */
+  wide?: boolean;
+};
+
+const OUTSTANDING_DEPOSIT: ArrivalCard = {
   icon: <WalletIcon weight="duotone" aria-hidden className="size-5" />,
   when: `By ${formatDeadline(offer.responseDeadline)}`,
   title: `Your ${formatMoney(offer.depositAmount, offer.depositCurrency)} deposit`,
   detail:
     "Still outstanding. Your place is held until the deadline and not after it. Pay it, or ask for a waiver, from the Deposit step.",
+  /**
+   * Full width, which solves two things at once.
+   *
+   * Four cards make a clean 2×2; adding a fifth left it stranded beside a hole
+   * the width of a card, and a screen about arriving cannot end on a gap. It is
+   * also the only card here that asks for something, so the row of its own is
+   * the emphasis it should have had anyway — the copy above points at it as
+   * "the first card below".
+   */
+  wide: true,
 };
 
-const NEXT_STEPS = [
+const NEXT_STEPS: ArrivalCard[] = [
   {
     icon: <EnvelopeSimpleIcon weight="duotone" aria-hidden className="size-5" />,
     when: "Within 3 working days",
@@ -114,7 +134,7 @@ export function CompletionRoute() {
         };
 
   return (
-    <main className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10 text-white">
+    <main className="on-dark relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10 text-white">
       {/* Near-black ground rather than a photograph.
           A campus shot was tried here and pulled: every candidate put mid-tones
           straight behind the headline, so the biggest type on the screen had
@@ -198,12 +218,19 @@ export function CompletionRoute() {
           </motion.p>
         </div>
 
+        {/* Grid items stretch by default, so the two cards in a row already
+            share a height whatever their text runs to. Deliberately *not*
+            `auto-rows-fr`, which equalises every row against the tallest and
+            leaves the single-card deposit row padded out with empty space. */}
         <ul className="grid w-full gap-3 text-left sm:grid-cols-2">
           {nextSteps.map((entry, index) => (
             <motion.li
               key={entry.title}
               {...rise(1.55 + index * 0.09)}
-              className="flex gap-3.5 rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-4 backdrop-blur-sm"
+              className={cn(
+                "flex gap-3.5 rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-4 backdrop-blur-sm",
+                entry.wide && "sm:col-span-2",
+              )}
             >
               <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-white/12 text-white">
                 {entry.icon}
