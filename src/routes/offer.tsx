@@ -5,14 +5,13 @@ import {
   CheckCircleIcon,
   GraduationCapIcon,
   ProhibitIcon,
-  WalletIcon,
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
-import { StepActions, StepShell } from "@/components/step-shell";
+import { ContextPanel, StepShell } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,6 +47,8 @@ const CelebrationDialog = React.lazy(() =>
   })),
 );
 
+const DEPOSIT = formatMoney(offer.depositAmount, offer.depositCurrency);
+
 export function OfferRoute() {
   const state = useOnboarding();
   const navigate = useNavigate();
@@ -64,12 +65,10 @@ export function OfferRoute() {
   return (
     <StepShell
       current="offer"
-      title={`Your place at ${institution.short}`}
-      lead={
-        <>
-          Here's what {institution.name} is offering. Read it, then tell us yes or no — you can only
-          answer once.
-        </>
+      title="Your offer"
+      lead="Read it, then accept or decline. You can answer once — changing it afterwards goes through Admissions."
+      context={
+        <Decision response={response} onAccept={accept} onDecline={() => setDeclining(true)} />
       }
     >
       <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-100 bg-surface shadow-card">
@@ -88,7 +87,7 @@ export function OfferRoute() {
             className="absolute inset-0 -z-10 bg-gradient-to-tr from-ink-950/95 via-ink-950/80 to-violet-700/55"
           />
           <p className="text-micro font-bold tracking-[0.06em] text-white/70 uppercase">
-            Offer of admission
+            Offer of admission · {institution.name}
           </p>
           <h2 className="mt-2 text-h1 font-black tracking-[-0.03em] text-white">
             {offer.programme}
@@ -96,69 +95,73 @@ export function OfferRoute() {
           <p className="mt-2 max-w-[34rem] text-body text-white/80">{offer.programmeDescription}</p>
         </div>
 
+        {/* The helper text under each fact is the sheet's own, copied: it says
+            what the value is without repeating the label back. */}
         <dl className="grid gap-x-8 gap-y-6 p-6 sm:grid-cols-2 sm:p-8">
           <Detail
             icon={<GraduationCapIcon weight="duotone" />}
             label="Degree"
             value={offer.degree}
+            note="The degree awarded."
           />
           <Detail
             icon={<CalendarBlankIcon weight="duotone" />}
-            label="Starts"
+            label="Starting term"
             value={offer.startingTerm}
+            note="When you would begin."
           />
-          <Detail icon={<BuildingsIcon weight="duotone" />} label="Campus" value={offer.campus} />
           <Detail
-            icon={<WalletIcon weight="duotone" />}
-            label="Deposit to hold your place"
-            value={formatMoney(offer.depositAmount, offer.depositCurrency)}
-            note="Paid at the last step, not now."
+            icon={<BuildingsIcon weight="duotone" />}
+            label="Campus"
+            value={offer.campus}
+            note="Where you would study."
+          />
+          <Detail
+            icon={<CalendarBlankIcon weight="duotone" />}
+            label="Respond by"
+            value={formatDeadline(offer.responseDeadline)}
+            note="After this the offer closes and only Admissions can reopen it."
           />
         </dl>
+      </section>
 
-        <div className="border-t border-ink-100 bg-ink-50/60 px-6 py-4 sm:px-8">
+      {/* The deposit, out of the four-cell grid it used to be the last item of.
+          The number is on the screen either way; what it was missing was any
+          weight at all, which is what Laura noticed and could not place. */}
+      <section className="flex flex-col gap-5 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-6 shadow-card sm:flex-row sm:items-center sm:p-7">
+        <div className="sm:w-[13rem] sm:shrink-0">
+          <p className="field-label">Enrollment deposit</p>
+          <p className="text-display font-black tracking-[-0.03em] text-ink-900">{DEPOSIT}</p>
+        </div>
+        <div className="space-y-1.5 border-ink-100 sm:border-l sm:pl-7">
+          <p className="text-body font-bold text-ink-900">
+            Accepting does not commit you to payment yet.
+          </p>
           <p className="text-small text-ink-600">
-            Respond by{" "}
-            <strong className="text-ink-900">{formatDeadline(offer.responseDeadline)}</strong>.
-            After that the offer closes and only Admissions can reopen it.
+            It is asked for at the last step of enrollment, it secures your place, and it is
+            credited against your first term's tuition. Refundable up to{" "}
+            {formatDeadline(offer.responseDeadline)}.
           </p>
         </div>
       </section>
 
-      {response === null ? (
-        /* Two buttons, not a checkbox. Both are one click, and the words say
-           what happens — "Accept and continue" next to a tickbox made people
-           ask what exactly they were confirming. */
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button type="button" size="lg" className="flex-1" onClick={accept}>
-            <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
-            Yes, I'm joining {institution.short}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            className="flex-1"
-            onClick={() => setDeclining(true)}
-          >
-            <ProhibitIcon aria-hidden className="size-5" />
-            No, I won't be joining
-          </Button>
-        </div>
-      ) : (
-        <RecordedResponse />
-      )}
-
-      {response !== null ? (
-        <StepActions>
-          <Button asChild size="lg">
-            <Link to="/onboarding/about-you">
-              Next: about you
-              <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-            </Link>
-          </Button>
-        </StepActions>
-      ) : null}
+      <section className="space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-6 shadow-card sm:p-7">
+        <h2 className="text-h3 text-ink-900">What happens when you accept</h2>
+        <ol className="space-y-3">
+          <Consequence n={1} title="Your place is reserved">
+            Admissions is told the same day, and the place is held for {offer.startingTerm}.
+            Deferring to a later term is a separate request and is not automatic.
+          </Consequence>
+          <Consequence n={2} title="Five more steps open">
+            About you, housing, campus life, your document packet and the deposit. Your answers are
+            kept as you go.
+          </Consequence>
+          <Consequence n={3} title="Your answer is final here">
+            One response only. To change it afterwards, contact Admissions at{" "}
+            {institution.admissionsEmail}.
+          </Consequence>
+        </ol>
+      </section>
 
       <React.Suspense fallback={null}>
         {celebrating ? (
@@ -175,6 +178,74 @@ export function OfferRoute() {
 
       <DeclineDialog open={declining} onOpenChange={setDeclining} />
     </StepShell>
+  );
+}
+
+/**
+ * The fixed column: the decision, in view the whole way down the facts.
+ *
+ * Two buttons, not a checkbox. Both are one click and the words say what
+ * happens — "Accept and continue" next to a tickbox made people ask what
+ * exactly they were confirming.
+ */
+function Decision({
+  response,
+  onAccept,
+  onDecline,
+}: {
+  response: "accepted" | "declined" | null;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  if (response !== null) return <RecordedResponse />;
+
+  return (
+    <ContextPanel
+      title="Your answer"
+      description={`Due by ${formatDeadline(offer.responseDeadline)}.`}
+    >
+      <div className="space-y-3">
+        <Button type="button" size="lg" className="w-full" onClick={onAccept}>
+          <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
+          Yes, I'm joining
+        </Button>
+        <p className="text-small text-ink-500">
+          Your place is reserved and the rest of enrollment opens. Nothing is charged.
+        </p>
+      </div>
+
+      <div className="space-y-3 border-t border-ink-100 pt-4">
+        <Button type="button" variant="secondary" size="lg" className="w-full" onClick={onDecline}>
+          <ProhibitIcon aria-hidden className="size-5" />
+          No, I won't be joining
+        </Button>
+        <p className="text-small text-ink-500">
+          Your record closes. Telling us why is optional and helps us improve.
+        </p>
+      </div>
+    </ContextPanel>
+  );
+}
+
+function Consequence({
+  n,
+  title,
+  children,
+}: {
+  n: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-3.5">
+      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-50 text-small font-bold text-violet-600">
+        {n}
+      </span>
+      <div className="space-y-0.5">
+        <p className="text-body font-bold text-ink-900">{title}</p>
+        <p className="text-small text-ink-600">{children}</p>
+      </div>
+    </li>
   );
 }
 
@@ -207,25 +278,30 @@ function RecordedResponse() {
   const state = useOnboarding();
   const accepted = state.offer.response === "accepted";
   const reason = declineReasons.find((item) => item.value === state.offer.declineReason);
-
-  if (accepted) {
-    return (
-      <Notice
-        tone="success"
-        title={`You accepted on ${formatRespondedAt(state.offer.respondedAt)}`}
-      >
-        Your place in {offer.programme} for {offer.startingTerm} is reserved. To change your answer,
-        contact Admissions at {institution.admissionsEmail}.
-      </Notice>
-    );
-  }
+  const when = formatRespondedAt(state.offer.respondedAt);
 
   return (
-    <Notice tone="caution" title={`You declined on ${formatRespondedAt(state.offer.respondedAt)}`}>
-      Thanks for letting us know — your response is recorded.
-      {reason ? ` You told us: ${reason.label.toLowerCase()}.` : ""} To change your answer, contact
-      Admissions at {institution.admissionsEmail}.
-    </Notice>
+    <ContextPanel title="Your answer" description={`Recorded on ${when}.`}>
+      {accepted ? (
+        <Notice tone="success" title="Your place is reserved">
+          You accepted this offer on {when}. To change your response, contact Admissions at{" "}
+          {institution.admissionsEmail}.
+        </Notice>
+      ) : (
+        <Notice tone="caution" title="You declined this offer">
+          Thank you for letting us know. Your response is recorded.
+          {reason ? ` You told us: ${reason.label.toLowerCase()}.` : ""} To change it, contact
+          Admissions at {institution.admissionsEmail}.
+        </Notice>
+      )}
+
+      <Button asChild size="lg" className="w-full">
+        <Link to="/onboarding/about-you">
+          Next: about you
+          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+        </Link>
+      </Button>
+    </ContextPanel>
   );
 }
 
@@ -255,10 +331,10 @@ function DeclineDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>You won't be joining {institution.short}</DialogTitle>
+          <DialogTitle>Decline your offer from {institution.short}?</DialogTitle>
           <DialogDescription>
-            That's a real answer and we'd rather know. Telling us why is optional — skip it and your
-            decline still counts.
+            Your record closes and the place is released. Telling us why is optional and helps us
+            improve.
           </DialogDescription>
         </DialogHeader>
 
@@ -266,7 +342,7 @@ function DeclineDialog({
           <Field label="Why, roughly?" htmlFor="decline-reason" optional>
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger id="decline-reason">
-                <SelectValue placeholder="Pick one, or leave it blank" />
+                <SelectValue placeholder="Tell us why, if you would like to" />
               </SelectTrigger>
               <SelectContent>
                 {declineReasons.map((item) => (
@@ -283,7 +359,7 @@ function DeclineDialog({
             htmlFor="decline-note"
             optional
             hint={`${note.length} of 250 characters.`}
-            error={tooLong ? "That's longer than 250 characters. Trim it a little." : undefined}
+            error={tooLong ? "That is longer than 250 characters. Trim it a little." : undefined}
           >
             <Textarea
               id="decline-note"
@@ -299,6 +375,8 @@ function DeclineDialog({
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             Go back
           </Button>
+          {/* Labelled with the action, not with "Yes" — the Confirmation
+              dialogue rule from the Message Library. */}
           <Button
             type="button"
             disabled={tooLong}
@@ -312,7 +390,7 @@ function DeclineDialog({
               onOpenChange(false);
             }}
           >
-            Send my answer
+            Decline my offer
           </Button>
         </DialogFooter>
       </DialogContent>

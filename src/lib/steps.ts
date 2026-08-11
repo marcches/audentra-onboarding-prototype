@@ -37,19 +37,19 @@ export const steps: Step[] = [
     id: "campus-life",
     path: "/onboarding/campus-life",
     label: "Campus life",
-    blurb: "Clubs, people, support",
+    blurb: "Clubs and accommodations",
   },
   {
     id: "review",
     path: "/onboarding/review",
     label: "Review & sign",
-    blurb: "Your document packet",
+    blurb: "Your enrollment agreement",
   },
   {
     id: "deposit",
     path: "/onboarding/deposit",
     label: "Deposit",
-    blurb: "Secure your place",
+    blurb: "Secures your place",
   },
 ];
 

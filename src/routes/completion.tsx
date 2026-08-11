@@ -11,8 +11,11 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/wordmark";
+import { legalName } from "@/lib/agreement";
 import { formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
 import { resetOnboarding, useOnboarding } from "@/lib/store";
+
+const LEGAL_NAME = legalName();
 
 const SplitText = React.lazy(() => import("@/components/reactbits/SplitText"));
 const LightRays = React.lazy(() => import("@/components/reactbits/LightRays"));
@@ -28,7 +31,7 @@ const OUTSTANDING_DEPOSIT = {
   when: `By ${formatDeadline(offer.responseDeadline)}`,
   title: `Your ${formatMoney(offer.depositAmount, offer.depositCurrency)} deposit`,
   detail:
-    "Still outstanding — your place is held until the deadline and not after it. You can pay it, or ask for a waiver, from the Deposit step.",
+    "Still outstanding. Your place is held until the deadline and not after it. Pay it, or ask for a waiver, from the Deposit step.",
 };
 
 const NEXT_STEPS = [
@@ -43,7 +46,7 @@ const NEXT_STEPS = [
     icon: <IdentificationCardIcon weight="duotone" aria-hidden className="size-5" />,
     when: "From July",
     title: "Your student ID",
-    detail: "You'll be asked to upload a photo. That's the line on your card that's still blank.",
+    detail: "We will ask you for a photo. Nothing to do until then.",
   },
   {
     icon: <HouseLineIcon weight="duotone" aria-hidden className="size-5" />,
@@ -186,8 +189,8 @@ export function CompletionRoute() {
 
           <motion.p {...rise(1.5)} className="mx-auto max-w-[36rem] text-lead text-white/75">
             {depositOutstanding
-              ? "Your record is live. One thing is still open — the deposit — and it's the first card below."
-              : "That's everything Aster needed. Your record is live, and nothing else is waiting on you today."}
+              ? "Your record is live. One thing is still open — your deposit, in the first card below."
+              : "Your record is live. Nothing needs you right now. We will tell you when something does."}
           </motion.p>
         </div>
 
@@ -212,9 +215,51 @@ export function CompletionRoute() {
           ))}
         </ul>
 
+        {/* The signature, as a record.
+            The link here used to go back to an editable pad, which undoes the
+            feeling of having signed something: the thing you are shown when you
+            ask "what did I sign" should be the signed article, with its date and
+            its reference, not the control that made it. */}
+        {state.review.submitted ? (
+          <motion.div
+            {...rise(1.9)}
+            className="w-full rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-5 text-left backdrop-blur-sm"
+          >
+            <p className="text-micro font-bold tracking-[0.06em] text-white/55 uppercase">
+              Enrollment Agreement · signed
+            </p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+              <p
+                className="text-[2rem] leading-none text-white"
+                style={{ fontFamily: "var(--font-script)" }}
+              >
+                {state.review.signatureMode === "draw" && state.review.drawnSignature ? (
+                  <img
+                    src={state.review.drawnSignature}
+                    alt={`Signature of ${LEGAL_NAME}`}
+                    /* The pad draws in navy on a light ground; on this dark
+                       field it has to be inverted to be visible at all. */
+                    className="h-14 w-auto max-w-full invert"
+                  />
+                ) : (
+                  state.review.typedSignature.trim() || LEGAL_NAME
+                )}
+              </p>
+              <p className="text-small text-white/60">
+                {new Date(state.review.signedAt ?? Date.now()).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                {state.review.reference ? ` · ${state.review.reference}` : ""}
+              </p>
+            </div>
+          </motion.div>
+        ) : null}
+
         <motion.div {...rise(2)} className="flex flex-col items-center gap-3">
           <Button asChild size="lg" variant="secondary">
-            <Link to="/onboarding/review">Look at what I signed</Link>
+            <Link to="/onboarding/review">Read my agreement again</Link>
           </Button>
           {/* A prototype gets walked through more than once. This is the reset,
               labelled as what it is rather than dressed up as a product link. */}

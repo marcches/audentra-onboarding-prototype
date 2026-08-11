@@ -3,7 +3,7 @@ import { Link, useSearch } from "@tanstack/react-router";
 import type * as React from "react";
 
 import { StepRail } from "@/components/step-rail";
-import { type StepId, stepCount, stepIndex } from "@/lib/steps";
+import type { StepId } from "@/lib/steps";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,36 +29,74 @@ function ReturnToReview() {
   );
 }
 
+/**
+ * The step layout: rail, the step's own column, and a fixed column beside it.
+ *
+ * The single 46rem column this replaces was the root of the complaint Laura
+ * made on four consecutive screens. On a 1600px monitor it left ~232px of dead
+ * gutter on each side, and the fix is not a wider form — a long measure is
+ * tiring to read, which is why 46rem was chosen in the first place. The extra
+ * width gets its own job instead: `context` is whatever that step needs kept in
+ * view while the left column scrolls (the ranking slots, the picks so far, the
+ * amount and the deadline).
+ *
+ * Three columns need roughly 1280px to exist without squeezing any of them, so
+ * the pair collapses at `xl` and the rail at `lg`, in that order.
+ */
 export function StepShell({
   current,
   title,
   lead,
-  aside,
+  action,
+  context,
   children,
 }: {
   current: StepId;
   title: string;
   lead?: React.ReactNode;
-  aside?: React.ReactNode;
+  /**
+   * A step-level control that belongs beside the heading rather than in the
+   * flow — the skip on the two optional steps. It sits on the heading row so it
+   * costs no vertical space of its own: a right-aligned button on its own line
+   * above the content is a band of empty page the width of the column.
+   */
+  action?: React.ReactNode;
+  /** The fixed column. Omitted where a step genuinely has no second thing. */
+  context?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const index = stepIndex(current);
-
   return (
     <>
       <StepRail current={current} />
-      <main className="flex-1 px-4 pt-8 pb-24 sm:px-8 lg:px-12 lg:pt-14">
-        <div className="mx-auto flex w-full max-w-[46rem] flex-col gap-8">
+      <main className="flex-1 px-4 pt-8 pb-16 sm:px-8 lg:px-12 lg:pt-12">
+        <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-6">
           <ReturnToReview />
-          <header className="space-y-3">
-            <p className="text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
-              Step {index + 1} of {stepCount}
-            </p>
-            <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
-            {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
+          {/* No "Step N of 6" here. The trail in the rail already shows the
+              position, visually and continuously, and it was being repeated in
+              text three times besides. */}
+          <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+            <div className="max-w-[46rem] space-y-2">
+              <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
+              {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
+            </div>
+            {action ? <div className="shrink-0 pt-1">{action}</div> : null}
           </header>
-          {aside}
-          {children}
+          <div
+            className={cn(
+              "grid items-start gap-6",
+              context && "xl:grid-cols-[minmax(0,46rem)_minmax(17rem,22rem)]",
+            )}
+          >
+            <div className="flex min-w-0 max-w-[46rem] flex-col gap-6">{children}</div>
+            {context ? (
+              /* Sticky rather than fixed: it holds its place while the left
+                 column scrolls past it, and on a short viewport it can still
+                 scroll itself rather than clipping. */
+              <aside className="min-w-0 xl:sticky xl:top-12 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
+                {context}
+              </aside>
+            ) : null}
+          </div>
         </div>
       </main>
     </>
@@ -96,6 +134,38 @@ export function StepActions({
       )}
       <div className="flex flex-col gap-3 sm:ml-auto sm:flex-row sm:items-center">{children}</div>
     </div>
+  );
+}
+
+/**
+ * The fixed column's container. One shape for all six steps, so the right-hand
+ * side reads as the same piece of furniture rather than as six different cards
+ * that happen to sit in the same place.
+ */
+export function ContextPanel({
+  title,
+  description,
+  className,
+  children,
+}: {
+  title: string;
+  description?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={cn(
+        "space-y-4 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card",
+        className,
+      )}
+    >
+      <div className="space-y-1">
+        <h2 className="text-h3 text-ink-900">{title}</h2>
+        {description ? <p className="text-small text-ink-500">{description}</p> : null}
+      </div>
+      {children}
+    </section>
   );
 }
 

@@ -96,13 +96,18 @@ export function CelebrationDialog({
             <CheckIcon weight="bold" aria-hidden className="size-7" />
           </span>
 
+          {/* The sheet's approved acceptance text, split between the title and
+              the line under it: "Welcome to {institution}. Your place is
+              reserved." Its third sentence — "Next, create your account" — does
+              not apply here, because the account already exists by the time
+              anyone reaches this dialog. */}
           <div className="space-y-2">
             <DialogTitle className="text-display font-black tracking-[-0.03em]">
               {reduceMotion ? (
-                <span>You're in.</span>
+                <span>Welcome to {institution.short}.</span>
               ) : (
                 <SplitText
-                  text="You're in."
+                  text={`Welcome to ${institution.short}.`}
                   tag="span"
                   splitType="chars"
                   delay={38}
@@ -116,13 +121,13 @@ export function CelebrationDialog({
               )}
             </DialogTitle>
             <DialogDescription>
-              Your place in {offer.programme}, {offer.startingTerm} is reserved. Admissions has your
-              answer. Accepting doesn't commit you to paying anything yet.
+              Your place in {offer.programme} for {offer.startingTerm} is reserved. Accepting does
+              not commit you to payment yet.
             </DialogDescription>
           </div>
 
           <div className="w-full rounded-[var(--radius-card)] bg-ink-50 p-4">
-            <p className="text-small font-bold text-ink-700">Want to tell people? Up to you.</p>
+            <p className="text-small font-bold text-ink-700">Tell people, if you want to.</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               <ShareLink
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SHARE_URL)}`}

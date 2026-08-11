@@ -98,7 +98,7 @@ function aboutYouRows(state: OnboardingState): SummaryRow[] {
     },
     {
       label: "Permanent address",
-      value: address || "Not given (optional)",
+      value: address || NOT_ANSWERED,
       missing: !address,
     },
     {

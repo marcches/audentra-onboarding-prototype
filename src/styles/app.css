@@ -17,6 +17,8 @@
 @theme {
   --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Signatures only. Not a third voice in the type system. */
+  --font-script: "Caveat", "Segoe Script", cursive;
 
   /* Ink — the navy family. Headings, body, borders, everything structural. */
   --color-ink-950: #06122a;
@@ -252,11 +254,11 @@
     color: transparent;
   }
 
-  /* The entry screen's brand panel.
-     Deliberately CSS rather than one of the ReactBits WebGL backgrounds: this
-     is the first paint of the whole product, and a canvas that has to boot
-     before it draws anything is the wrong trade for a decorative panel. See
-     docs/design-research.md. */
+  /* The entry screen's brand panel — and the floor under `Grainient`.
+     It is what the panel is on the first frame, before the canvas boots; what
+     it stays as under `prefers-reduced-motion`; and what it falls back to on a
+     machine with no WebGL2 context. Violet → azure only: the mint moved to the
+     form's accents when the gradient became two-stop (ADR-0006). */
   .brand-panel {
     position: relative;
     overflow: hidden;
@@ -282,7 +284,7 @@
       ),
       radial-gradient(
         40% 34% at 52% 92%,
-        color-mix(in oklab, var(--color-mint-500) 42%, transparent),
+        color-mix(in oklab, var(--color-violet-700) 55%, transparent),
         transparent 70%
       );
     filter: blur(12px);
@@ -295,48 +297,6 @@
     }
     to {
       transform: translate3d(3%, 2%, 0) scale(1.08);
-    }
-  }
-
-  /* The offer invitation on the entry screen. Sits slightly off-square and
-     drifts, so it reads as a physical card resting on the panel rather than as
-     another <section> in the layout. */
-  /* Square on a phone: the panel clips its overflow, and a rotated card at
-     390px loses a corner to that clip. The tilt is a desktop affordance. */
-  @media (min-width: 640px) {
-    .invitation {
-      transform: rotate(-1.1deg);
-    }
-  }
-
-  .invitation::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    /* Paper grain: fine diagonal fibres, barely there. Enough to stop the card
-       reading as a flat white rectangle under the aurora. */
-    background-image: repeating-linear-gradient(
-      58deg,
-      rgb(10 31 68 / 0.022) 0 1px,
-      transparent 1px 4px
-    );
-    mix-blend-mode: multiply;
-  }
-
-  @media (min-width: 640px) {
-    .invitation-float {
-      animation: invitation-float 9s ease-in-out infinite alternate;
-    }
-  }
-
-  @keyframes invitation-float {
-    from {
-      transform: rotate(-1.1deg) translate3d(0, 0, 0);
-    }
-    to {
-      transform: rotate(0.4deg) translate3d(0, -10px, 0);
     }
   }
 

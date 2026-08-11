@@ -44,8 +44,23 @@ export type EmergencyContact = {
   phone: string;
 };
 
+/**
+ * One attached identity document. The file itself is never kept — this state is
+ * mirrored to localStorage and a `File` does not survive that trip, nor should
+ * it. What is kept is what the list needs to render and what the size limit
+ * needs to add up.
+ */
+export type UploadedFile = {
+  name: string;
+  size: number;
+};
+
 export type AboutYouState = {
   openSections: string[];
+  /** Identity documents attached. Optional — the sheet marks this field `n`. */
+  idDocuments: UploadedFile[];
+  /** True once a document has been "read". The extraction itself is simulated. */
+  idExtracted: boolean;
   preferredName: string;
   pronouns: string;
   dialCode: string;
@@ -80,24 +95,44 @@ export type CampusLifeState = {
   submitted: boolean;
 };
 
+/**
+ * One sampled point of a drawn signature, with the moment it was made.
+ *
+ * The timestamp is what makes the replay the student's own hand rather than a
+ * generic line-drawing animation: the pauses, the fast strokes and the slow
+ * ones all come back at the speed they were made.
+ */
+export type SignaturePoint = { x: number; y: number; t: number };
+
 export type ReviewState = {
-  /** Ids of the documents scrolled to the end — consent unlocks per document. */
-  readDocuments: string[];
+  /** True once the agreement has been scrolled to the end. Consent unlocks with it. */
+  documentRead: boolean;
   signatureMode: "type" | "draw";
   typedSignature: string;
-  /** PNG data URL of the drawn signature. */
+  /** PNG data URL of the drawn signature — the still form of it. */
   drawnSignature: string;
+  /** The same signature as strokes, for replaying it onto the document. */
+  drawnStrokes: SignaturePoint[][];
+  /** The pad's CSS size when it was drawn, so the replay can scale to the line. */
+  drawnSize: { width: number; height: number };
   consented: boolean;
   signedAt: string | null;
+  /** The reference the student can quote. Issued at signing, never regenerated. */
+  reference: string;
   submitted: boolean;
 };
 
 export type DepositState = {
   choice: "pay-now" | "pay-by-deadline" | "waiver" | "";
+  /**
+   * Nothing in this prototype can set these: the simulated card form that used
+   * to is gone, and there is no gateway behind "pay now". They stay because the
+   * completion screen's branch reads them and that branch is correct as it
+   * stands — the deposit is outstanding unless it was paid or explicitly
+   * deferred, and "paid" is simply never reachable here.
+   */
   paid: boolean;
   paidAt: string | null;
-  /** Last four typed into the simulated card form. No gateway, no real number. */
-  cardLast4: string;
   waiverReason: string;
   submitted: boolean;
 };
@@ -143,6 +178,8 @@ const initialState: OnboardingState = {
   },
   aboutYou: {
     openSections: ["identity"],
+    idDocuments: [],
+    idExtracted: false,
     preferredName: "",
     pronouns: "",
     dialCode: "+1",
@@ -175,19 +212,21 @@ const initialState: OnboardingState = {
     submitted: false,
   },
   review: {
-    readDocuments: [],
+    documentRead: false,
     signatureMode: "type",
     typedSignature: "",
     drawnSignature: "",
+    drawnStrokes: [],
+    drawnSize: { width: 0, height: 0 },
     consented: false,
     signedAt: null,
+    reference: "",
     submitted: false,
   },
   deposit: {
     choice: "",
     paid: false,
     paidAt: null,
-    cardLast4: "",
     waiverReason: "",
     submitted: false,
   },

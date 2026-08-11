@@ -1,15 +1,15 @@
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { ClubGrid } from "@/components/club-grid";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
-import { SectionTitle, StepActions, StepShell } from "@/components/step-shell";
+import { ContextPanel, SectionTitle, StepActions, StepShell } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { clubs, institution } from "@/lib/fixtures";
+import { type Club, clubs, institution } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
 
 /**
@@ -22,6 +22,12 @@ import { patch, useOnboarding } from "@/lib/store";
  * screen along. What survives is the part with a consequence (accommodations)
  * and the part that is actually a pleasure to answer (clubs).
  *
+ * This was the fourth and last screen where Laura complained about the space,
+ * and the only one where she said she had no solution: "está muito esparramada,
+ * muito espaçada, eu não sei o que a gente pode fazer." The grid answers it the
+ * same way as the other three — the picks accumulate in the fixed column while
+ * the grid of photographs scrolls.
+ *
  * Note for the demo: Laura never mentioned this step. This reduction is an
  * extrapolation of her argument, and has to be presented as a proposal.
  */
@@ -29,6 +35,17 @@ export function CampusLifeRoute() {
   const state = useOnboarding();
   const navigate = useNavigate();
   const campusLife = state.campusLife;
+
+  const picked = campusLife.clubs
+    .map((id) => clubs.find((club) => club.id === id))
+    .filter((club): club is Club => Boolean(club));
+
+  const toggle = (id: string) =>
+    patch("campusLife", {
+      clubs: campusLife.clubs.includes(id)
+        ? campusLife.clubs.filter((current) => current !== id)
+        : [...campusLife.clubs, id],
+    });
 
   /**
    * Skipping is not answering. Both buttons used to write `submitted: true`,
@@ -44,35 +61,28 @@ export function CampusLifeRoute() {
   return (
     <StepShell
       current="campus-life"
-      title="What you'd show up for"
-      lead="None of this blocks your enrollment, and you can change all of it later. Skip the whole step if you'd rather."
+      title="Campus life"
+      lead="None of this blocks your enrollment and you can change it later. Skip the whole step if you would rather."
+      context={<Picks picked={picked} onRemove={toggle} />}
+      /* Reachable from the top without costing a row of its own: nothing here
+         is required, and burying the way past it under a grid of nine cards is
+         how an optional step starts to feel mandatory. */
+      action={
+        <Button type="button" variant="secondary" size="sm" onClick={() => goNext(false)}>
+          Skip this step
+        </Button>
+      }
     >
       <section className="space-y-4">
-        <SectionTitle description="Pick as many as you like. We'll introduce you to the people who run them before term starts.">
+        <SectionTitle description="We introduce you to the people who run them before term starts.">
           Clubs and interests
         </SectionTitle>
 
-        <ClubGrid
-          clubs={clubs}
-          selected={campusLife.clubs}
-          onToggle={(id) =>
-            patch("campusLife", {
-              clubs: campusLife.clubs.includes(id)
-                ? campusLife.clubs.filter((current) => current !== id)
-                : [...campusLife.clubs, id],
-            })
-          }
-        />
-
-        <p aria-live="polite" className="text-small text-ink-500">
-          {campusLife.clubs.length === 0
-            ? "Nothing picked yet."
-            : `${campusLife.clubs.length} picked.`}
-        </p>
+        <ClubGrid clubs={clubs} selected={campusLife.clubs} onToggle={toggle} />
       </section>
 
       <section className="space-y-4">
-        <SectionTitle description="The only question on this screen that changes what someone does about it.">
+        <SectionTitle description="Ask Disability Services to contact you. Do not upload medical records here.">
           Do you need any accommodations?
         </SectionTitle>
 
@@ -83,8 +93,8 @@ export function CampusLifeRoute() {
           <OptionCard
             value="yes"
             id="accommodations-yes"
-            label="Yes, I'd like someone to get in touch"
-            hint="Accessibility Services will contact you before term starts"
+            label="Yes, contact me"
+            hint="Disability Services will contact you by email within 3 working days"
           />
           <OptionCard
             value="no"
@@ -98,17 +108,16 @@ export function CampusLifeRoute() {
           <div className="space-y-4">
             {/* This warning is load-bearing, not boilerplate: this box is not a
                 medical record and is not stored like one. */}
-            <Notice tone="caution" title="Don't put medical details here">
-              A sentence about what would help is enough — "I need a note-taker", "I need step-free
-              access". Accessibility Services will ask for documentation separately, over a channel
-              built for it.
+            <Notice tone="caution" title="Do not put medical details here">
+              A sentence about what would help is enough. Disability Services will tell you what
+              they need, over a channel built for it.
             </Notice>
 
             <Field
               label="What would help?"
               htmlFor="accommodation-note"
               optional
-              hint="Skip it if you'd rather talk to a person first."
+              hint="Skip it if you would rather talk to a person first."
             >
               <Textarea
                 id="accommodation-note"
@@ -121,9 +130,8 @@ export function CampusLifeRoute() {
         ) : null}
 
         {campusLife.accommodations === "no" ? (
-          <Notice tone="info" title="That's fine">
-            Nothing is recorded and nobody will chase you. Ask {institution.housingOffice} or
-            Accessibility Services whenever you need to.
+          <Notice tone="info" title="Nothing is recorded">
+            Ask {institution.housingOffice} or Disability Services whenever you need to.
           </Notice>
         ) : null}
       </section>
@@ -138,5 +146,46 @@ export function CampusLifeRoute() {
         </Button>
       </StepActions>
     </StepShell>
+  );
+}
+
+/**
+ * The fixed column: what the student has chosen, accumulating.
+ *
+ * A grid of nine cards with a selected state on some of them answers "which one
+ * is this" but not "what have I picked" — and the second question is the one
+ * being asked after the third scroll.
+ */
+function Picks({ picked, onRemove }: { picked: Club[]; onRemove: (id: string) => void }) {
+  return (
+    <ContextPanel
+      title="Your picks"
+      description={picked.length > 0 ? `${picked.length} chosen so far.` : undefined}
+    >
+      {picked.length === 0 ? (
+        /* Empty state, per the Message Library rule: say why it is empty and
+           what would fill it. "Nothing picked yet." said the first half only. */
+        <p className="text-small text-ink-500">
+          Nothing picked yet. Choose a club on the left and it appears here. Picking none is a fine
+          answer — nothing on this step blocks your enrollment.
+        </p>
+      ) : (
+        <ul className="flex flex-wrap gap-2">
+          {picked.map((club) => (
+            <li key={club.id}>
+              <button
+                type="button"
+                onClick={() => onRemove(club.id)}
+                className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-violet-200 bg-violet-50 py-1.5 pr-2 pl-3 text-small font-bold text-violet-700 transition-colors hover:border-violet-300 hover:bg-violet-100"
+              >
+                {club.name}
+                <XIcon weight="bold" aria-hidden className="size-3.5" />
+                <span className="sr-only">Remove {club.name} from your picks</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </ContextPanel>
   );
 }

@@ -2,8 +2,20 @@ import { EraserIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import type { SignaturePoint } from "@/lib/store";
 
 const INK = "#0a1f44";
+
+export type DrawnSignature = {
+  /** The still form: a PNG data URL. */
+  dataUrl: string;
+  /** The same signature as strokes, timestamped, for replaying it. */
+  strokes: SignaturePoint[][];
+  /** The pad's CSS size when it was drawn, so a replay can scale to its target. */
+  size: { width: number; height: number };
+};
+
+const EMPTY: DrawnSignature = { dataUrl: "", strokes: [], size: { width: 0, height: 0 } };
 
 /**
  * Drawing a signature.
@@ -12,6 +24,12 @@ const INK = "#0a1f44";
  * typing your name into a box is a text field, but drawing it is the gesture
  * people recognise as signing. Pointer events cover mouse, trackpad, pen and
  * touch in one path.
+ *
+ * The points are kept, not just the bitmap. That is what lets the agreement
+ * replay the signature onto its line at the speed it was actually made — the
+ * pauses, the fast strokes and the slow ones — instead of animating a generic
+ * line drawing. It is the student's own hand, which is the entire difference
+ * between a signature being applied and a field being filled.
  *
  * Legal validity and audit trails are explicitly out of scope — see the ticket.
  * What is being prototyped is the interaction.
@@ -22,12 +40,16 @@ export function SignaturePad({
   label,
 }: {
   value: string;
-  onChange: (dataUrl: string) => void;
+  onChange: (signature: DrawnSignature) => void;
   label: string;
 }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const drawing = React.useRef(false);
   const lastPoint = React.useRef<{ x: number; y: number } | null>(null);
+  /** Strokes so far this session, and the one being drawn right now. */
+  const strokes = React.useRef<SignaturePoint[][]>([]);
+  const current = React.useRef<SignaturePoint[]>([]);
+  const startedAt = React.useRef(0);
   const [hasInk, setHasInk] = React.useState(Boolean(value));
 
   /**
@@ -81,10 +103,24 @@ export function SignaturePad({
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
+  const publish = (canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    onChange({
+      dataUrl: canvas.toDataURL("image/png"),
+      strokes: strokes.current.map((stroke) => [...stroke]),
+      size: { width: rect.width, height: rect.height },
+    });
+  };
+
   const start = (event: React.PointerEvent<HTMLCanvasElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     drawing.current = true;
-    lastPoint.current = pointFrom(event);
+    const point = pointFrom(event);
+    lastPoint.current = point;
+    // The clock starts on the first stroke, so the replay begins immediately
+    // rather than after however long the student spent deciding.
+    if (strokes.current.length === 0) startedAt.current = performance.now();
+    current.current = [{ ...point, t: performance.now() - startedAt.current }];
   };
 
   const move = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -98,6 +134,7 @@ export function SignaturePad({
     context.lineTo(to.x, to.y);
     context.stroke();
     lastPoint.current = to;
+    current.current.push({ ...to, t: performance.now() - startedAt.current });
     setHasInk(true);
   };
 
@@ -106,8 +143,11 @@ export function SignaturePad({
     event.currentTarget.releasePointerCapture(event.pointerId);
     drawing.current = false;
     lastPoint.current = null;
+    // A tap with no movement is not a stroke, and replaying it draws nothing.
+    if (current.current.length > 1) strokes.current.push(current.current);
+    current.current = [];
     const canvas = canvasRef.current;
-    if (canvas) onChange(canvas.toDataURL("image/png"));
+    if (canvas) publish(canvas);
   };
 
   const clear = () => {
@@ -115,8 +155,10 @@ export function SignaturePad({
     const context = canvas?.getContext("2d");
     if (!canvas || !context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
+    strokes.current = [];
+    current.current = [];
     setHasInk(false);
-    onChange("");
+    onChange(EMPTY);
   };
 
   return (
@@ -129,7 +171,7 @@ export function SignaturePad({
           onPointerMove={move}
           onPointerUp={end}
           onPointerCancel={end}
-          className="h-40 w-full touch-none"
+          className="h-36 w-full touch-none"
         />
         {hasInk ? null : (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-small text-ink-400">
@@ -138,7 +180,7 @@ export function SignaturePad({
         )}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-6 bottom-8 border-b border-ink-200"
+          className="pointer-events-none absolute inset-x-6 bottom-7 border-b border-ink-200"
         />
       </div>
       <div className="flex justify-end">

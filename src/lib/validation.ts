@@ -8,6 +8,11 @@ import { z } from "zod";
  * ^\+[1-9][0-9]{7,14}$`. Here the country code is a separate select, the
  * number field accepts the spaces, dashes and brackets people actually type,
  * and the failure message says what a good answer looks like.
+ *
+ * Wording follows the *Inline validation* rule from the client's Message
+ * Library: name the field, say what is wrong, say what is acceptable. Where the
+ * field inventory ships an approved string it is copied rather than rewritten —
+ * the phone and email messages below are the sheet's own words.
  */
 
 export const PHONE_DIGITS_MIN = 7;
@@ -34,10 +39,10 @@ function phoneRule({ required }: { required: boolean }) {
     .string()
     .trim()
     .refine((value) => value === "" || PHONE_CHARSET.test(value), {
-      message: "Use digits only. Spaces, dashes and brackets are fine — letters are not.",
+      message: "Enter a valid phone number, including the country code.",
     })
     .refine((value) => !required || value !== "", {
-      message: "Enter your mobile number.",
+      message: "Enter your mobile number, including the country code.",
     })
     .refine((value) => value === "" || phoneDigits(value).length >= PHONE_DIGITS_MIN, {
       message: "That number is too short. It should be 7 to 14 digits after the country code.",
@@ -55,16 +60,11 @@ export const emailAddress = z
   .string()
   .trim()
   .min(1, { message: "Enter your email address." })
-  .pipe(
-    z.email({
-      message:
-        "That doesn't look like an email address. It needs an @ and a domain, like you@mail.com.",
-    }),
-  );
+  .pipe(z.email({ message: "Enter a valid email address." }));
 
 export const password = z
   .string()
-  .min(12, { message: "Passwords need at least 12 characters. Yours is shorter than that." })
+  .min(12, { message: "Your password needs at least 12 characters." })
   .refine((value) => /[a-zA-Z]/.test(value), {
     message: "Add at least one letter.",
   })
@@ -82,7 +82,7 @@ export const createAccountSchema = z
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ["confirmPassword"],
-    message: "These two don't match. Retype the same password in both fields.",
+    message: "These do not match. Type the same password in both fields.",
   });
 
 export type CreateAccountValues = z.infer<typeof createAccountSchema>;
@@ -116,12 +116,23 @@ export const aboutYouSchema = z
     dialCode: z.string().min(1),
     phone: optionalPhoneNumber,
     citizenship: z.string().min(1, { message: "Choose the one that applies to you." }),
-    street: z.string().trim(),
+    /**
+     * The permanent address is required, and the whole block is.
+     *
+     * An earlier version of the spec had this optional, which was the reverse
+     * of the primary source: Laura said it three times, twice on the call and
+     * again in the second Jam — "Onde você vive agora? Não é opcional, isso
+     * aqui é obrigatório. Então tudo isso é obrigatório." It decides the
+     * residency classification, which decides tuition, and it is where official
+     * post goes. The unit line stays optional because plenty of addresses do
+     * not have one.
+     */
+    street: z.string().trim().min(1, { message: "Enter your street address." }),
     unit: z.string().trim(),
-    city: z.string().trim(),
-    state: z.string().trim(),
-    postalCode: z.string().trim(),
-    country: z.string(),
+    city: z.string().trim().min(1, { message: "Enter your city or town." }),
+    state: z.string().trim().min(1, { message: "Enter your state or province." }),
+    postalCode: z.string().trim().min(1, { message: "Enter your ZIP or postal code." }),
+    country: z.string().min(1, { message: "Choose the country you live in." }),
     residencyVerification: z.string(),
     emergencyContacts: z.array(emergencyContactSchema).min(1),
     grantsFamilyAccess: z.boolean(),

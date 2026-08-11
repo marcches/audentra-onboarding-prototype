@@ -33,7 +33,7 @@ export function EntryRoute() {
   return (
     /* Form first in the DOM, panel second and pulled left on desktop.
        On a phone that puts the email field at the top of the page instead of
-       behind a full screen of brand — the invitation becomes the closing note.
+       behind a full screen of brand — the panel becomes the closing note.
 
        On desktop the split is exactly one viewport tall and neither half moves
        the page: whichever column overflows scrolls inside itself. A whole-page
@@ -45,20 +45,25 @@ export function EntryRoute() {
           cannot go negative — so on a short laptop the heading and the tab bar
           sit above the top edge with no way to reach them. Letting the wrapper
           grow past `min-h-full` turns that into ordinary downward scroll. */}
-      <div className="flex w-full items-start justify-center px-4 py-10 sm:px-8 lg:w-[46%] lg:shrink-0 lg:overflow-y-auto lg:py-12">
-        <div className="flex min-h-full w-full max-w-[clamp(28rem,26vw,34rem)] flex-col justify-center gap-6">
+      {/* Sized to the form rather than to a percentage of the window. A 46%
+          column holding a 28rem form left ~144px of dead gutter on each side of
+          it at 1600px — the same defect as the step layout, mirrored. The panel
+          takes every pixel this column does not need. */}
+      <div className="flex w-full items-start justify-center px-4 py-10 sm:px-8 lg:w-[36rem] lg:shrink-0 lg:overflow-y-auto lg:px-14 lg:py-12">
+        <div className="flex min-h-full w-full flex-col justify-center gap-6">
           <div className="space-y-2 lg:hidden">
             <Wordmark />
           </div>
 
+          {/* Names the portal, not the visitor. The heading here used to guess
+              at the person's situation — "Welcome back" for someone with no
+              account — and the tabs below already carry the two actions, so a
+              heading repeating one of them would be the third thing on screen
+              saying the same word. */}
           <div className="space-y-1.5">
-            <h1 className="text-h1 text-ink-900">
-              {state.entry.accountCreated ? "Welcome back" : "Let's get you in"}
-            </h1>
+            <h1 className="text-h1 text-ink-900">{institution.name} enrollment</h1>
             <p className="text-body text-ink-600">
-              {state.entry.accountCreated
-                ? `Sign in and pick up where you left off at ${institution.short}.`
-                : `You'll need an account to answer your offer. It takes about a minute.`}
+              Your account holds your offer, your checklist and your documents.
             </p>
           </div>
 
@@ -94,9 +99,8 @@ export function EntryRoute() {
             </TabsPanels>
           </Tabs>
 
-          <Notice tone="info" title="About that verification email">
-            Email and text delivery aren't switched on in this preview, so nothing will land in your
-            inbox. Your account works anyway — this is a setting, not a fault.
+          <Notice tone="info" title="Email and text messages are switched off in this preview">
+            Nothing will arrive in your inbox. Your account still works.
           </Notice>
         </div>
       </div>
@@ -185,7 +189,7 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
       <Field
         label="Mobile number"
         htmlFor="create-phone"
-        hint="Only used for enrollment reminders, and only if you ask for them."
+        hint="We use this for reminders only if you choose text."
         error={errors.phone?.message ?? undefined}
       >
         <PhoneInput
@@ -205,7 +209,7 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
       <Field
         label="Password"
         htmlFor="create-password"
-        hint="At least 12 characters, with a letter and a number in there."
+        hint="At least 12 characters, including a letter and a number."
         error={errors.password?.message ?? undefined}
       >
         <div className="relative">
@@ -247,9 +251,9 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
       </Field>
 
       {takenEmail ? (
-        <Notice ref={takenRef} alert tone="caution" title="That address already has an account">
-          Switch to <strong>Sign in</strong> above and use {takenEmail}, or write to{" "}
-          {institution.admissionsEmail} if it wasn't you.
+        <Notice ref={takenRef} alert tone="caution" title="Nothing was created">
+          An account already exists for {takenEmail}. Sign in instead, or contact Admissions at{" "}
+          {institution.admissionsEmail}.
         </Notice>
       ) : null}
 
@@ -325,9 +329,9 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
       </Field>
 
       {unknownEmail ? (
-        <Notice ref={unknownRef} alert tone="caution" title="No account for that address yet">
-          Nothing was sent and nothing was changed. Switch to <strong>Create account</strong> above
-          — it keeps what you've already typed.
+        <Notice ref={unknownRef} alert tone="caution" title="Nothing was sent">
+          There is no account for {unknownEmail}. Create one above — what you have typed here is
+          kept.
         </Notice>
       ) : null}
 
@@ -350,11 +354,11 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
           >
             Ask Admissions to reset it
           </a>
-          . Self-service reset isn't switched on in this preview.
+          . Self-service reset is switched off in this preview.
         </p>
         <p className="text-small text-ink-600">
-          No account yet? Use <strong className="text-ink-800">Create account</strong> above — it
-          takes about a minute, and it keeps whatever you've already typed here.
+          No account yet? Use <strong className="text-ink-800">Create account</strong> above. What
+          you have typed here is kept.
         </p>
       </div>
     </form>

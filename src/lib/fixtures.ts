@@ -246,6 +246,17 @@ export const clubs: Club[] = [
   },
 ];
 
+/**
+ * Three options, not five.
+ *
+ * An earlier version of the spec claimed none of the five had been criticised
+ * in the primary source. The opposite is true: Laura removed two of them on the
+ * 2026-08-10 call — "Aí é on campus e off campus. Esses outros três enfia no
+ * não", corrected to "on campus, off campus, I'm not sure yet", then "Isso. Os
+ * outros dois" — and repeated it in the second Jam. Commuting and family or
+ * dependent housing are gone. The three that remain are also exactly the three
+ * the client's field inventory lists for this field.
+ */
 export const housingIntents = [
   {
     value: "on-campus",
@@ -259,18 +270,8 @@ export const housingIntents = [
   },
   {
     value: "not-sure",
-    label: "Not sure yet",
-    hint: "You can decide later",
-  },
-  {
-    value: "commuting",
-    label: "Commuting",
-    hint: "Living at home and travelling in",
-  },
-  {
-    value: "family-housing",
-    label: "Family or dependent housing",
-    hint: "You'll be living with family or dependents",
+    label: "Not decided yet",
+    hint: "You can settle it later",
   },
 ] as const;
 

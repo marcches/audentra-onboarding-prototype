@@ -21,14 +21,24 @@ export function StepRail({ current }: { current: StepId }) {
 
   return (
     <>
-      {/* Phone: a single line of progress, no step list competing with the form. */}
+      {/* Phone: the institution, and a bar for where you are. The counter that
+          used to sit here said in words what the bar says in shape, and it was
+          the third place on the screen saying it. */}
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-ink-100 bg-canvas/85 px-4 py-3 backdrop-blur lg:hidden">
         <InstitutionBadge size="compact" className="min-w-0" />
-        {/* Just the counter — the page heading right below already names the
-            step, and repeating it twice on a 390px screen is noise. */}
-        <p className="ml-auto shrink-0 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
-          Step {currentIndex + 1} of {stepCount}
-        </p>
+        <div
+          className="ml-auto h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-ink-100"
+          role="progressbar"
+          aria-valuenow={currentIndex + 1}
+          aria-valuemin={1}
+          aria-valuemax={stepCount}
+          aria-label={`Step ${currentIndex + 1} of ${stepCount}`}
+        >
+          <div
+            className="brand-gradient h-full rounded-full transition-[width] duration-500 ease-[var(--ease-out-expo)]"
+            style={{ width: `${((currentIndex + 1) / stepCount) * 100}%` }}
+          />
+        </div>
       </header>
 
       <aside className="hidden w-[19rem] shrink-0 border-r border-ink-100 bg-surface lg:block">
@@ -51,7 +61,7 @@ export function StepRail({ current }: { current: StepId }) {
               <h2 className="text-h3 text-ink-900">Your path to {institution.short}</h2>
             </div>
             <p className="text-small text-ink-500">
-              {done.length} of {stepCount} saved. We keep your answers as you go.
+              {done.length} of {stepCount} saved. Your answers are kept as you go.
             </p>
             <div
               className="h-1.5 overflow-hidden rounded-full bg-ink-100"

@@ -110,7 +110,7 @@ export function StyleGuideRoute() {
               Lead 17 · One question, and then at most one more.
             </p>
             <p className="text-body text-ink-700">
-              Body 15 · All optional. It only matters for post that has to reach you.
+              Body 15 · Persistent helper text sits under the field it belongs to.
             </p>
             <p className="text-small text-ink-500">Small 13 · Saved automatically</p>
             <p className="field-label">Field label 12 · Mobile number</p>

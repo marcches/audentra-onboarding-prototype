@@ -15,10 +15,11 @@ import * as React from "react";
 import { type FieldErrors, useFieldArray, useForm } from "react-hook-form";
 
 import { Field, ReadOnlyField } from "@/components/field";
+import { IdUpload } from "@/components/id-upload";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
 import { PhoneInput } from "@/components/phone-input";
-import { StepActions, StepShell } from "@/components/step-shell";
+import { ContextPanel, StepActions, StepShell } from "@/components/step-shell";
 import {
   Accordion,
   AccordionContent,
@@ -165,19 +166,42 @@ export function AboutYouRoute() {
   }
 
   const identityDone = Boolean(values.citizenship);
-  const emergencyDone = values.emergencyContacts?.every(
-    (contact) => contact.fullName && contact.relationship && contact.phone,
+  const emergencyDone = Boolean(
+    values.emergencyContacts?.every(
+      (contact) => contact.fullName && contact.relationship && contact.phone,
+    ),
   );
+  const residenceDone = Boolean(
+    values.street && values.city && values.state && values.postalCode && values.country,
+  );
+  const familyDone = !values.grantsFamilyAccess || Boolean(values.familyMemberName);
+
+  const identityNote = state.aboutYou.idExtracted
+    ? "Read from the document you uploaded and checked against your application. The Registrar changes this, not you."
+    : "From your application. The Registrar changes this, not you.";
+
+  const sectionStatus: Record<SectionId, "done" | "needed"> = {
+    identity: identityDone ? "done" : "needed",
+    residence: residenceDone ? "done" : "needed",
+    emergency: emergencyDone ? "done" : "needed",
+    family: familyDone ? "done" : "needed",
+  };
 
   return (
     <StepShell
       current="about-you"
       title="About you"
-      lead={
-        <>
-          Four things in one place: who you are, where you live, who we call in an emergency, and
-          who else may see your record. Open what you need — the rest can wait.
-        </>
+      lead="Who you are, where you live, who we call in an emergency, and who else may see your record. Open a section to fill it in."
+      context={
+        <SectionIndex
+          status={sectionStatus}
+          onOpen={(section) => {
+            if (!openSections.includes(section)) setOpenSections([...openSections, section]);
+            window.setTimeout(() => {
+              document.getElementById(`section-${section}`)?.scrollIntoView({ block: "start" });
+            }, 60);
+          }}
+        />
       }
     >
       <form
@@ -198,29 +222,36 @@ export function AboutYouRoute() {
                 icon={<IdentificationCardIcon weight="duotone" />}
                 title="Who you are"
                 summary="Legal name · date of birth · what we call you · citizenship"
-                status={identityDone ? "done" : "needed"}
+                status={sectionStatus.identity}
               />
             </AccordionTrigger>
             <AccordionContent className="space-y-6">
-              <Notice tone="info" title="Quick fill from your ID">
-                Upload a passport, national ID or driver's licence and EDward reads it, finds the
-                portrait, and prepares a private preview for you to check.{" "}
-                <em className="text-ink-500 not-italic">
-                  Not wired up in this prototype — the fields below are already filled from your
-                  application.
-                </em>
-              </Notice>
+              <IdUpload
+                files={state.aboutYou.idDocuments}
+                extracted={state.aboutYou.idExtracted}
+                onChange={(files) => patch("aboutYou", { idDocuments: files })}
+                /* The one field an ID actually tells us that the application
+                   did not: everything else in this section is already on
+                   record. Filling something the student can see is the whole
+                   point of "we filled in the fields below". */
+                onExtracted={() => {
+                  patch("aboutYou", { idExtracted: true });
+                  if (!form.getValues("citizenship")) {
+                    form.setValue("citizenship", "us-citizen", { shouldValidate: true });
+                  }
+                }}
+              />
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <ReadOnlyField
                   label="Legal first name"
                   value={studentRecord.legalFirstName}
-                  note="From your application. The Registrar changes this, not you."
+                  note={identityNote}
                 />
                 <ReadOnlyField
                   label="Legal last name"
                   value={studentRecord.legalLastName}
-                  note="From your application. The Registrar changes this, not you."
+                  note={identityNote}
                 />
               </div>
 
@@ -231,6 +262,7 @@ export function AboutYouRoute() {
                     "en-US",
                     { month: "long", day: "numeric", year: "numeric" },
                   )}
+                  note={identityNote}
                 />
                 <ReadOnlyField
                   label="Email on record"
@@ -241,10 +273,10 @@ export function AboutYouRoute() {
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field
-                  label="What should we call you?"
+                  label="Preferred name"
                   htmlFor="preferred-name"
                   optional
-                  hint={`Defaults to ${studentRecord.legalFirstName}.`}
+                  hint={`What you would like us to call you. Defaults to ${studentRecord.legalFirstName}.`}
                   error={errors.preferredName?.message}
                 >
                   <Input
@@ -274,7 +306,7 @@ export function AboutYouRoute() {
                 label="Mobile number"
                 htmlFor="about-phone"
                 optional
-                hint="Only used for enrollment reminders, and only if you ask for them."
+                hint="We use this for reminders only if you choose text."
                 error={errors.phone?.message}
               >
                 <PhoneInput
@@ -291,7 +323,7 @@ export function AboutYouRoute() {
               <Field
                 label="Citizenship or student status"
                 htmlFor="citizenship"
-                hint="This decides which financial aid and visa steps show up later."
+                hint="This decides which financial aid and visa steps open later."
                 error={errors.citizenship?.message}
               >
                 <Select
@@ -322,18 +354,28 @@ export function AboutYouRoute() {
                 icon={<HouseLineIcon weight="duotone" />}
                 title="Where you live now"
                 summary="Permanent address · how we check your residency"
-                status="optional"
+                status={sectionStatus.residence}
               />
             </AccordionTrigger>
             <AccordionContent className="space-y-6">
+              {/* Required, and this line is why. The address decides your
+                  residency classification, which decides what you are charged,
+                  and it is where official post goes — the reason survived the
+                  rewrite even though the "all optional" claim above it did
+                  not. */}
               <p className="text-body text-ink-600">
-                All optional. It only matters for post that has to reach you and for your residency
-                classification, which affects tuition.
+                Your permanent address decides your residency classification, which affects your
+                tuition, and it is where official post goes.
               </p>
 
               <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
-                <Field label="Street address" htmlFor="street" optional>
-                  <Input id="street" autoComplete="address-line1" {...form.register("street")} />
+                <Field label="Street address" htmlFor="street" error={errors.street?.message}>
+                  <Input
+                    id="street"
+                    autoComplete="address-line1"
+                    aria-invalid={Boolean(errors.street)}
+                    {...form.register("street")}
+                  />
                 </Field>
                 <Field label="Apartment or unit" htmlFor="unit" optional>
                   <Input id="unit" autoComplete="address-line2" {...form.register("unit")} />
@@ -341,27 +383,49 @@ export function AboutYouRoute() {
               </div>
 
               <div className="grid gap-5 sm:grid-cols-3">
-                <Field label="City" htmlFor="city" optional>
-                  <Input id="city" autoComplete="address-level2" {...form.register("city")} />
+                <Field label="City" htmlFor="city" error={errors.city?.message}>
+                  <Input
+                    id="city"
+                    autoComplete="address-level2"
+                    aria-invalid={Boolean(errors.city)}
+                    {...form.register("city")}
+                  />
                 </Field>
-                <Field label="State or province" htmlFor="state" optional>
-                  <Input id="state" autoComplete="address-level1" {...form.register("state")} />
+                <Field label="State or province" htmlFor="state" error={errors.state?.message}>
+                  <Input
+                    id="state"
+                    autoComplete="address-level1"
+                    aria-invalid={Boolean(errors.state)}
+                    {...form.register("state")}
+                  />
                 </Field>
-                <Field label="ZIP or postal code" htmlFor="postal-code" optional>
+                <Field
+                  label="ZIP or postal code"
+                  htmlFor="postal-code"
+                  error={errors.postalCode?.message}
+                >
                   <Input
                     id="postal-code"
                     autoComplete="postal-code"
+                    aria-invalid={Boolean(errors.postalCode)}
                     {...form.register("postalCode")}
                   />
                 </Field>
               </div>
 
-              <Field label="Country" htmlFor="country" optional className="sm:max-w-xs">
+              <Field
+                label="Country"
+                htmlFor="country"
+                className="sm:max-w-xs"
+                error={errors.country?.message}
+              >
                 <Select
                   value={values.country}
-                  onValueChange={(value) => form.setValue("country", value)}
+                  onValueChange={(value) =>
+                    form.setValue("country", value, { shouldValidate: true })
+                  }
                 >
-                  <SelectTrigger id="country">
+                  <SelectTrigger id="country" aria-invalid={Boolean(errors.country)}>
                     <SelectValue placeholder="Choose one" />
                   </SelectTrigger>
                   <SelectContent>
@@ -375,7 +439,9 @@ export function AboutYouRoute() {
               </Field>
 
               <fieldset className="space-y-3">
-                <legend className="field-label mb-2">How should we check your residency?</legend>
+                <legend className="field-label mb-2">
+                  How Enrollment Services should review your residency classification
+                </legend>
                 <RadioGroup
                   value={values.residencyVerification}
                   onValueChange={(value) => form.setValue("residencyVerification", value)}
@@ -390,8 +456,12 @@ export function AboutYouRoute() {
                     />
                   ))}
                 </RadioGroup>
+                {/* Empty state, per the Message Library rule: why it is empty,
+                    and what fills it. */}
                 <p className="text-small text-ink-500">
-                  Leave it blank and Enrollment Services will pick a path and tell you.
+                  {values.residencyVerification
+                    ? "Enrollment Services will review this and contact you if anything is needed."
+                    : "Review path not selected. Choose one, or leave it and Enrollment Services will pick a path and tell you."}
                 </p>
               </fieldset>
             </AccordionContent>
@@ -406,13 +476,12 @@ export function AboutYouRoute() {
                 summary={`${values.emergencyContacts?.length ?? 1} ${
                   (values.emergencyContacts?.length ?? 1) === 1 ? "person" : "people"
                 } · name, relationship, number`}
-                status={emergencyDone ? "done" : "needed"}
+                status={sectionStatus.emergency}
               />
             </AccordionTrigger>
             <AccordionContent className="space-y-6">
               <p className="text-body text-ink-600">
-                One person is enough. They aren't given access to anything — that's the next
-                section.
+                One person is enough. They get no access to your record — that is the next section.
               </p>
 
               {contacts.fields.map((contactField, index) => (
@@ -520,14 +589,13 @@ export function AboutYouRoute() {
                     ? `${values.familyMemberName || "One person"} · ${values.disclosureScope?.length ?? 0} area(s)`
                     : "Nobody, unless you say so"
                 }
-                status="optional"
+                status={sectionStatus.family}
               />
             </AccordionTrigger>
             <AccordionContent className="space-y-6">
               <p className="text-body text-ink-600">
-                Right now nobody but you can see your record. If you want a parent, guardian or
-                supporter to see part of it, name them here. You pick exactly what they get, and you
-                can take it back at any time.
+                Choose who can see your record and what they can see. You can change or remove this
+                at any time.
               </p>
 
               <label
@@ -623,9 +691,8 @@ export function AboutYouRoute() {
                   </fieldset>
                 </div>
               ) : (
-                <Notice tone="success" title="Nobody else has access">
-                  That's the default and it's a perfectly good answer. You can grant access later
-                  from your profile.
+                <Notice tone="success" title="No one else has access to your record">
+                  You can grant access any time from your profile.
                 </Notice>
               )}
             </AccordionContent>
@@ -647,13 +714,73 @@ export function AboutYouRoute() {
             <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
           </Button>
         </StepActions>
-
-        <p className="text-small text-ink-500">
-          Anything wrong on a locked field? Write to {institution.admissionsEmail} and the Registrar
-          will fix it.
-        </p>
       </form>
     </StepShell>
+  );
+}
+
+/**
+ * The fixed column: the four sections and which of them still need you.
+ *
+ * Not a duplicate of the accordion headers — it is the one view of the step
+ * that survives scrolling past section three, and it answers "how much of this
+ * is left" without collapsing anything to find out.
+ */
+function SectionIndex({
+  status,
+  onOpen,
+}: {
+  status: Record<SectionId, "done" | "needed">;
+  onOpen: (section: SectionId) => void;
+}) {
+  const remaining = SECTION_ORDER.filter((section) => status[section] === "needed").length;
+
+  return (
+    <ContextPanel
+      title="This step"
+      description={
+        remaining === 0
+          ? "All four sections are filled in."
+          : `${remaining} of 4 sections still need you.`
+      }
+    >
+      <ol className="space-y-1">
+        {SECTION_ORDER.map((section, index) => {
+          const done = status[section] === "done";
+          return (
+            <li key={section}>
+              <button
+                type="button"
+                onClick={() => onOpen(section)}
+                className="flex w-full items-center gap-3 rounded-[var(--radius-field)] px-2 py-2 text-left transition-colors hover:bg-ink-50"
+              >
+                <span
+                  className={cn(
+                    "flex size-6 shrink-0 items-center justify-center rounded-full border text-micro font-bold",
+                    done
+                      ? "border-mint-500 bg-mint-500 text-white"
+                      : "border-ink-200 bg-surface text-ink-400",
+                  )}
+                >
+                  {done ? <CheckIcon weight="bold" aria-hidden className="size-3.5" /> : index + 1}
+                </span>
+                <span className="flex-1 text-body text-ink-800">{SECTION_LABELS[section]}</span>
+                {done ? null : (
+                  <span className="text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
+                    Needs you
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="border-t border-ink-100 pt-4 text-small text-ink-500">
+        Anything wrong on a locked field? Write to {institution.admissionsEmail} and the Registrar
+        will fix it.
+      </p>
+    </ContextPanel>
   );
 }
 
@@ -666,7 +793,7 @@ function SectionHeader({
   icon: React.ReactNode;
   title: string;
   summary: string;
-  status: "done" | "needed" | "optional";
+  status: "done" | "needed";
 }) {
   return (
     <span className="flex flex-1 items-start gap-4">
@@ -691,20 +818,12 @@ function SectionHeader({
   );
 }
 
-function StatusPill({ status }: { status: "done" | "needed" | "optional" }) {
+function StatusPill({ status }: { status: "done" | "needed" }) {
   if (status === "done") {
     return (
       <span className="inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-mint-50 px-2 py-0.5 text-micro font-bold tracking-[0.06em] text-mint-700 uppercase">
         <CheckIcon weight="bold" aria-hidden className="size-3" />
         Done
-      </span>
-    );
-  }
-
-  if (status === "optional") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink-100 px-2 py-0.5 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
-        Optional
       </span>
     );
   }
