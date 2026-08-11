@@ -47,20 +47,12 @@ export function StepShell({
   current,
   title,
   lead,
-  action,
   context,
   children,
 }: {
   current: StepId;
   title: string;
   lead?: React.ReactNode;
-  /**
-   * A step-level control that belongs beside the heading rather than in the
-   * flow — the skip on the two optional steps. It sits on the heading row so it
-   * costs no vertical space of its own: a right-aligned button on its own line
-   * above the content is a band of empty page the width of the column.
-   */
-  action?: React.ReactNode;
   /** The fixed column. Omitted where a step genuinely has no second thing. */
   context?: React.ReactNode;
   children: React.ReactNode;
@@ -69,25 +61,33 @@ export function StepShell({
     <>
       <StepRail current={current} />
       <main className="flex-1 px-4 pt-8 pb-16 sm:px-8 lg:px-12 lg:pt-12">
-        <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-6">
+        {/* The container is exactly as wide as the two columns plus the gap
+            between them — see the tokens in app.css.
+
+            It used to be 84rem while the tracks came to 69.5rem, and grid does
+            not stretch fixed tracks to fill their container: the leftover
+            14.5rem piled up at the right-hand end, so `mx-auto` centred a box
+            whose contents sat left inside it. The page read as though the rail
+            had shoved everything sideways. Two numbers that have to agree,
+            written in two places, is the whole bug — so now there is one
+            number and the other is derived from it. */}
+        <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-6">
           <ReturnToReview />
           {/* No "Step N of 6" here. The trail in the rail already shows the
               position, visually and continuously, and it was being repeated in
               text three times besides. */}
-          <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-            <div className="max-w-[46rem] space-y-2">
-              <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
-              {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
-            </div>
-            {action ? <div className="shrink-0 pt-1">{action}</div> : null}
+          <header className="max-w-[var(--step-column)] space-y-2">
+            <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
+            {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
           </header>
           <div
             className={cn(
               "grid items-start gap-6",
-              context && "xl:grid-cols-[minmax(0,46rem)_minmax(17rem,22rem)]",
+              context &&
+                "xl:grid-cols-[minmax(0,var(--step-column))_minmax(17rem,var(--step-context))]",
             )}
           >
-            <div className="flex min-w-0 max-w-[46rem] flex-col gap-6">{children}</div>
+            <div className="flex min-w-0 max-w-[var(--step-column)] flex-col gap-6">{children}</div>
             {context ? (
               /* Sticky rather than fixed: it holds its place while the left
                  column scrolls past it, and on a short viewport it can still

@@ -60,13 +60,6 @@ export function DepositRoute() {
       title="Your enrollment deposit"
       lead={`This secures your place and is credited against your balance. Refundable up to ${formatDeadline(offer.responseDeadline)}.`}
       context={<AmountPanel />}
-      /* On the heading row, not on a line of its own: a right-aligned button
-         above the content is a band of empty page the width of the column. */
-      action={
-        <Button type="button" variant="secondary" size="sm" onClick={() => finish(false)}>
-          Skip this step
-        </Button>
-      }
     >
       <section className="space-y-4">
         <SectionTitle>How would you like to handle it?</SectionTitle>

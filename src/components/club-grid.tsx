@@ -58,8 +58,17 @@ export function ClubGrid({
             onClick={() => onToggle(club.id)}
             className={cn(
               "group relative overflow-hidden rounded-[var(--radius-card)] border-2 text-left transition-[border-color,box-shadow,transform] duration-200",
+              /* `z-10` is what keeps a chosen club out of the spotlight's
+                 grayscale wash. The wash is a single layer painted over the
+                 whole grid, so it was desaturating the cards the student had
+                 already picked along with everything else — the violet ring and
+                 the tick both went grey the moment the pointer moved away, and
+                 you lost track of your own selection while making it. Lifting
+                 the selected cards above that layer turns the effect into what
+                 it should always have said: colour is what you have chosen, or
+                 what you are pointing at. */
               isSelected
-                ? "border-violet-500 shadow-card"
+                ? "z-10 border-violet-500 shadow-lift ring-4 ring-violet-500/25"
                 : "border-transparent hover:shadow-card focus-visible:border-violet-300",
             )}
           >
@@ -83,7 +92,7 @@ export function ClubGrid({
                 className={cn(
                   "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                   isSelected
-                    ? "border-violet-400 bg-violet-500 text-white"
+                    ? "border-white bg-violet-500 text-white"
                     : "border-white/60 bg-white/10 text-transparent",
                 )}
               >

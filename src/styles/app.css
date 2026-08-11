@@ -107,6 +107,16 @@
   --text-display--line-height: 2.75rem;
   --text-display--letter-spacing: -0.03em;
 
+  /* The step layout's measures.
+     `--step-measure` is derived, never typed by hand: a container wider than
+     its tracks does not stretch them, it leaves the difference stranded at one
+     end, and the page then reads as if the rail had pushed everything
+     sideways. One number changes, the other follows. */
+  --step-column: 46rem; /* the reading column — long lines are tiring */
+  --step-context: 24rem; /* the fixed column beside it */
+  --step-gap: 1.5rem; /* matches gap-6 on the grid */
+  --step-measure: calc(var(--step-column) + var(--step-gap) + var(--step-context));
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --animate-accordion-down: accordion-down 0.24s cubic-bezier(0.16, 1, 0.3, 1);
@@ -209,6 +219,13 @@
        the rest of the surface language already uses. */
     scrollbar-width: thin;
     scrollbar-color: var(--color-ink-300) var(--color-sunken);
+    /* Hold the scrollbar's width whether or not the page needs one.
+       Without it, moving from a step that scrolls to one that does not widens
+       the viewport by ~15px and every centred thing on the page jumps
+       sideways — a flick on each navigation, on a flow that is nothing but
+       navigation. Reserving the gutter costs those pixels once, permanently,
+       and nothing ever moves. */
+    scrollbar-gutter: stable;
   }
 
   body {

@@ -64,14 +64,6 @@ export function CampusLifeRoute() {
       title="Campus life"
       lead="None of this blocks your enrollment and you can change it later. Skip the whole step if you would rather."
       context={<Picks picked={picked} onRemove={toggle} />}
-      /* Reachable from the top without costing a row of its own: nothing here
-         is required, and burying the way past it under a grid of nine cards is
-         how an optional step starts to feel mandatory. */
-      action={
-        <Button type="button" variant="secondary" size="sm" onClick={() => goNext(false)}>
-          Skip this step
-        </Button>
-      }
     >
       <section className="space-y-4">
         <SectionTitle description="We introduce you to the people who run them before term starts.">

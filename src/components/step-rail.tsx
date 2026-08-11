@@ -152,8 +152,10 @@ export function StepRail({ current }: { current: StepId }) {
             >
               Need a hand?
             </a>
+            {/* The mark alone. "by" was doing no work the placement does not
+                already do — a platform credit at the foot of the rail, at the
+                size a platform belongs at, is read as a platform credit. */}
             <span className="flex items-center gap-1.5 text-ink-400">
-              <span className="text-micro tracking-[0.06em] uppercase">by</span>
               <AudentraMark className="size-4" />
               <span className="text-micro font-bold tracking-[0.12em] uppercase">Audentra</span>
             </span>
