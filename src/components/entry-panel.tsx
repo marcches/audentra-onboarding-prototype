@@ -1,16 +1,14 @@
 import { useReducedMotion } from "motion/react";
 import * as React from "react";
 
-import { InstitutionCrest } from "@/components/institution-badge";
-import { AudentraMark } from "@/components/wordmark";
-import { institution } from "@/lib/fixtures";
+import { AudentraMark, Wordmark } from "@/components/wordmark";
 import { cn } from "@/lib/utils";
 
 /* WebGL and a shader compile, for a background. Splitting it out of the entry
    chunk keeps the email field interactive while it arrives. */
 const Grainient = React.lazy(() => import("@/components/reactbits/Grainient"));
 
-/** Violet → azure, from the brand guidelines. Mint has moved to the form. */
+/** Violet → azure, from the brand guidelines. */
 const GRADIENT = {
   color1: "#6A38FF",
   color2: "#1E5BFF",
@@ -38,49 +36,54 @@ function detectWebgl2() {
 /**
  * The entry screen's left-hand panel.
  *
- * Institutional identity and nothing else. Two elaborate treatments died here —
- * a 3D lanyard that read as a technology demo, then a printed invitation that
- * stated the student's programme, campus and application number on a screen
- * where the system does not yet know who is looking at it. See
- * `docs/adr/0006-…`: this panel carries the mark and at most one line, and any
- * proposal that puts student data back before the login is revoking that
- * decision rather than interpreting it.
+ * Four treatments have died here and each one narrowed what this panel may be.
+ * A 3D lanyard read as a technology demo. A printed invitation stated a
+ * programme, campus and application number on a screen where the system does not
+ * know who is looking (ADR-0006). An institutional lockup went for the same
+ * reason one step out: if the link carries no identity it carries no *tenant*
+ * either, so Aster is something this screen learns at authentication, exactly
+ * like the student's name. And a headline of my own — "One place for your
+ * enrollment / documents / payments", with the last word rotating — went because
+ * the brand had already supplied the line it was competing with.
  *
- * It absorbs every spare pixel (`flex-1`) while the form column stays fixed, so
- * a wider monitor grows the panel instead of the gutter around the form.
+ * What is here is the signature the identity actually ships:
  *
- * Two fallbacks, not one. Reduced motion drops the canvas for the CSS gradient
- * underneath, and so does the absence of a WebGL2 context. Both matter as demo
- * insurance before they matter as accessibility: a reviewer opening the link
- * has to see a finished panel, never an empty rectangle where an effect was.
+ *     AUDENTRA
+ *     Institutional intelligence for what's next.
+ *
+ * presented at a size that makes it the subject of the panel, with the mark used
+ * once more as material. No invented marketing copy, no mocked-up product
+ * surface, no tenant, no person. Everything on this screen is either the
+ * platform's own identity or a form field.
  */
 export function EntryPanel({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion();
   const [canRender] = React.useState(detectWebgl2);
+  const showCanvas = !reduceMotion && canRender;
 
   return (
-    /* Inset with a radius rather than bled to the edge. It makes the gradient
-       read as a deliberate object sitting on the page instead of as the page's
-       background, and it removes the hard seam where the colour used to butt
-       straight against the form column. */
+    /* Inset with a radius rather than bled to the edge, so the gradient reads as
+       a deliberate object on the page instead of as the page's background. */
     <div className={cn("p-3 lg:py-4 lg:pr-0 lg:pl-4", className)}>
-      <div className="brand-panel on-dark relative isolate flex h-full flex-col justify-between gap-10 overflow-hidden rounded-[var(--radius-slab)] px-6 py-8 text-white sm:px-10 sm:py-10 lg:px-12">
-        {reduceMotion || !canRender ? null : (
+      {/* `items-start`, because a flex column stretches its children across the
+          cross axis by default — which took the lockup, an image told to keep its
+          own width, and stretched it to the full width of the panel at the height
+          it had been given. */}
+      {/* Centred on the vertical axis, flush to the left on the horizontal one.
+          The wordmark is pinned to the top of the same left axis, so the panel
+          reads as one column: mark at the head, statement at the optical centre,
+          both starting at the same x. */}
+      <div className="brand-panel on-dark relative isolate flex h-full items-center justify-start overflow-hidden rounded-[var(--radius-slab)] px-6 py-16 text-white sm:px-10 lg:px-14">
+        {showCanvas ? (
           <div aria-hidden className="absolute inset-0 -z-10">
             <React.Suspense fallback={null}>
-              {/* The grain is the point, not a texture over the top of one: a
-                  panel this size shows banding in any smooth two-stop gradient,
-                  and the noise both kills it and makes the surface read as
-                  something printed rather than as SaaS chrome. */}
+              {/* Enough grain to kill the banding a panel this size shows in any
+                  smooth two-stop gradient, and no more. */}
               <Grainient
                 color1={GRADIENT.color1}
                 color2={GRADIENT.color2}
                 color3={GRADIENT.color3}
                 timeSpeed={0.1}
-                /* Enough grain to kill the banding a panel this size shows in
-                   any smooth two-stop gradient, and no more. The default 0.1
-                   reads as noise over the colour rather than as the colour
-                   having a surface. */
                 grainAmount={0.035}
                 grainScale={3.2}
                 warpAmplitude={80}
@@ -90,54 +93,73 @@ export function EntryPanel({ className }: { className?: string }) {
               />
             </React.Suspense>
           </div>
-        )}
+        ) : null}
 
-        {/* The gradient is bright where the mark sits, and a white wordmark on
-            violet at full chroma is legible but not clean. A scrim weighted to
-            the two corners that carry type — top-left and bottom-left — buys
-            the contrast back without flattening the middle of the panel. */}
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-[radial-gradient(70%_55%_at_0%_0%,rgb(6_18_42/0.62),transparent_72%),radial-gradient(85%_60%_at_0%_100%,rgb(6_18_42/0.72),transparent_75%)]"
+        {/* The mark again, oversized and cropped against the corner. Masked to a
+            flat white at a few per cent rather than drawn in its own gradient,
+            which at this size would fight the ground it lies on. */}
+        <AudentraMark
+          tone="mono"
+          className="pointer-events-none absolute -right-[16%] -bottom-[20%] -z-10 w-[64%] text-white/[0.06]"
         />
 
-        {/* The institution leads, and Audentra sits at the foot at the size a
-            platform belongs at — the same order the step rail uses. The panel
-            carrying only the vendor's wordmark was the version of "institutional
-            identity" that names the wrong institution. */}
-        <span className="flex items-center gap-3">
-          <InstitutionCrest className="size-10 shrink-0" />
-          <span className="font-display text-h3 font-black tracking-[-0.015em] text-white">
-            {institution.name}
-          </span>
-        </span>
+        {/* The signature, at the head of the same left axis the statement sits on.
+            Out of the flow, so the statement is centred on the panel rather than
+            on the space the signature leaves over.
 
-        {/* Two lines, and the break is structural rather than whatever the
-            column width happens to produce: the claim in black weight, the
-            enumeration under it in a light one. Setting it as one wrapping
-            sentence put the bold half across both lines and the weight change
-            landed mid-line, which is the opposite of the shape intended.
-            `block` on each half is what holds the break; the claim is short
-            enough to stay on one line down to the narrowest the panel gets.
+            Knockout white: the coloured mark's left stroke is brand violet and so
+            is this panel, so at chrome size it read as a smudge on its own
+            ground. */}
+        <Wordmark
+          tone="knockout"
+          className="absolute top-10 left-6 h-7 sm:left-10 sm:h-8 lg:left-14"
+        />
 
-            Still one statement — ADR-0006 allows the mark and at most one line
-            of institutional copy, and the centre of the panel stays empty
-            because filling it is how the last two versions ended up asserting
-            things about a student the screen has not met yet. */}
-        <div className="space-y-5">
-          <p className="text-[clamp(1.6rem,2.4vw,2.5rem)] leading-[1.14] tracking-[-0.03em] text-white">
-            <span className="block font-black">All of {institution.short}, in one place.</span>
-            <span className="block font-medium text-white/60">
-              Enrollment, documents and payments.
-            </span>
-          </p>
-          {/* The platform credit, at the size a platform belongs at. */}
-          <span className="flex items-center gap-1.5 text-white/45">
-            <span className="text-micro tracking-[0.06em] uppercase">Runs on</span>
-            <AudentraMark className="size-3.5" />
-            <span className="text-micro font-bold tracking-[0.12em] uppercase">Audentra</span>
+        {/* The brand's own line, and the panel's subject.
+            Not invented copy — this is the tagline the identity ships with, and it
+            is where the tone of voice is set: institutional, exact,
+            forward-looking.
+
+            One type size, with weight carrying the hierarchy. The previous
+            arrangement set the first line small and the second three times
+            larger, which made a wedge rather than a block and read as two
+            unrelated things. Holding the size and letting weight do the work is
+            also the device the rest of the product already uses — the deposit
+            figure beside its explanation, the bold runs inside the agreement's
+            clauses — so the panel speaks in the system's voice instead of
+            introducing a scale of its own.
+
+            Two lines, and exactly two on every screen. Letting a measure do the
+            breaking gave three at some widths and two at others — the shape of
+            the panel's one statement is not something to leave to the viewport.
+            So the break is explicit, line one is held on a single line, and its
+            size is capped low enough to fit the narrowest panel it has to live
+            in.
+
+            The second line is derived from the first with `calc`, not given its
+            own clamp: two independent clamps cross over between breakpoints and
+            the ratio between the lines drifts as the window changes. One
+            variable, one multiplier, and the proportion holds everywhere. */}
+        <p
+          className="leading-[1.06] tracking-[-0.035em]"
+          style={{ ["--statement" as string]: "clamp(1.15rem, 2.4vw, 2.75rem)" }}
+        >
+          <span
+            className="block font-normal whitespace-nowrap text-white/55"
+            style={{ fontSize: "var(--statement)" }}
+          >
+            Institutional intelligence for
           </span>
-        </div>
+          <span
+            className="block font-black text-white"
+            style={{ fontSize: "calc(var(--statement) * 1.42)" }}
+          >
+            what&rsquo;s next
+            {/* The brand punctuates its own tagline in colour. Mint rather than
+                the printed violet, which would vanish into a violet ground. */}
+            <span className="text-mint-500">.</span>
+          </span>
+        </p>
       </div>
     </div>
   );

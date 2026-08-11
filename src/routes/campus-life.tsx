@@ -165,6 +165,7 @@ export function CampusLifeRoute() {
 function Picks({ picked, onRemove }: { picked: Club[]; onRemove: (id: string) => void }) {
   return (
     <ContextPanel
+      sticky
       title="Your picks"
       description={picked.length > 0 ? `${picked.length} chosen so far.` : undefined}
     >

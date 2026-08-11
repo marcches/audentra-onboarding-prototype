@@ -1,6 +1,8 @@
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import * as React from "react";
 
+import { Button } from "@/components/ui/button";
 import type { SignaturePoint } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -110,41 +112,70 @@ export function SignatureLine({
   );
 }
 
-const SplitFlapText = React.lazy(() => import("@/components/reactbits/SplitFlapText"));
-
 /**
- * The provenance strip: the reference, on a split-flap board.
+ * The provenance strip: what was signed, when, and the reference to quote.
  *
- * Small and bureaucratic here, large and celebratory on the completion screen —
- * the same idiom at two scales, which is how an idiom becomes a system. Unlike
- * confetti, which belongs to accepting the offer and dilutes if reused.
+ * This was a split-flap board — an airport-departures flip animation on the
+ * reference number. It went, and the reason is worth keeping: the reference is
+ * not a thing to be impressed by, it is a thing you have to *use*. Someone
+ * quoting it in an email needs to select it, or better, copy it in one action.
+ * A flip animation makes it briefly unreadable and never makes it usable, and
+ * dressing a record up as a mechanical toy works against the one property this
+ * block is here to carry, which is credibility.
+ *
+ * So: a record, set like a record. Tabular figures, a real copy control, and the
+ * Result statement rule from the Message Library — the date and the reference,
+ * persistent, on the page rather than in a toast.
  */
 function Provenance({ reference }: { reference: string }) {
+  const [copied, setCopied] = React.useState(false);
+  const timer = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    };
+  }, []);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(reference);
+      setCopied(true);
+      if (timer.current !== null) window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setCopied(false), 2400);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[var(--radius-card)] bg-ink-50 px-4 py-3">
-      <p className="text-small text-ink-600">
-        Reference. Quote it if you contact anyone about this agreement.
-      </p>
-      <div className="ml-auto">
-        <React.Suspense
-          fallback={<span className="font-mono text-small font-bold">{reference}</span>}
-        >
-          {/* The component only animates with more than one phrase, so it is
-              given a run of blanks to flip *from*. `loop={false}` makes it a
-              one-shot arrival rather than a departures board cycling forever. */}
-          <SplitFlapText
-            words={[" ".repeat(reference.length), reference]}
-            loop={false}
-            padTo={reference.length}
-            fontSize={14}
-            gap={2}
-            tileRadius={3}
-            tileColor="#16294f"
-            cycleDelay={400}
-            flipsPerChar={5}
-          />
-        </React.Suspense>
+    <div className="rounded-[var(--radius-card)] border border-ink-100 bg-ink-50/70 px-4 py-3.5">
+      {/* The reference and nothing else. The date is already under the
+          signature line, with the time on it, and saying it twice on one page
+          is the habit this flow has been pulling out everywhere else. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <div className="min-w-0">
+          <p className="field-label">Reference</p>
+          {/* Tabular, tracked, selectable. It is an identifier, so it is set
+              like one — a character cannot be misread when it is retyped. */}
+          <code className="font-mono text-body font-bold tracking-[0.04em] text-ink-900 tabular-nums select-all">
+            {reference}
+          </code>
+        </div>
+        <Button type="button" variant="secondary" size="sm" onClick={copy} className="shrink-0">
+          {copied ? (
+            <CheckIcon weight="bold" aria-hidden className="size-4 text-mint-600" />
+          ) : (
+            <CopyIcon aria-hidden className="size-4" />
+          )}
+          {copied ? "Copied" : "Copy"}
+          <span className="sr-only"> the reference {reference}</span>
+        </Button>
       </div>
+
+      <p className="mt-2.5 border-t border-ink-100 pt-2.5 text-small text-ink-500">
+        Quote this reference if you contact anyone about this agreement. A copy is in My Documents.
+      </p>
     </div>
   );
 }

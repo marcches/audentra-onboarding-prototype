@@ -26,7 +26,6 @@ import type { StepId } from "@/lib/steps";
 const STORAGE_KEY = "audentra.onboarding.v2";
 
 export type EntryState = {
-  activeTab: "create" | "signin";
   /** Live draft of the create-account email field — changes on every keystroke. */
   email: string;
   /**
@@ -39,6 +38,18 @@ export type EntryState = {
   phone: string;
   signInEmail: string;
   accountCreated: boolean;
+  /**
+   * Has this device ever got someone in — created an account or signed in?
+   *
+   * This is the whole of the entry screen's memory, and it decides which tab
+   * opens and which words the heading uses. It exists because the premise the
+   * screen was built on turned out to be false: it assumed everyone arrived
+   * from an invitation link and therefore had no account, so it always opened
+   * on Create account and always addressed a stranger. A returning student
+   * opening the portal for the fifth time is the ordinary case, not the edge
+   * one.
+   */
+  hasAuthenticated: boolean;
 };
 
 export type OfferState = {
@@ -165,13 +176,13 @@ export const emptyEmergencyContact = (id: string): EmergencyContact => ({
 
 const initialState: OnboardingState = {
   entry: {
-    activeTab: "create",
     email: "",
     registeredEmail: "",
     dialCode: "+1",
     phone: "",
     signInEmail: "",
     accountCreated: false,
+    hasAuthenticated: false,
   },
   offer: {
     response: null,

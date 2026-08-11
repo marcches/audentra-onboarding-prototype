@@ -19,6 +19,10 @@
   --font-display: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Signatures only. Not a third voice in the type system. */
   --font-script: "Caveat", "Segoe Script", cursive;
+  /* Identifiers — reference numbers, and nothing else. Named rather than left
+     to Tailwind's default stack so the one place the product shows a string
+     someone has to retype is the same face on every machine. */
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
 
   /* Ink — the navy family. Headings, body, borders, everything structural. */
   --color-ink-950: #06122a;

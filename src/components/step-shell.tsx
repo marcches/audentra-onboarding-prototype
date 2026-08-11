@@ -82,19 +82,26 @@ export function StepShell({
           </header>
           <div
             className={cn(
-              "grid items-start gap-6",
+              /* Rows stretch — deliberately not `items-start`. A sticky panel
+                 can only travel inside its own container, so an `aside` sized
+                 to its content has nowhere to stick to and simply scrolls away
+                 with the page. Stretching the column to the row's height is
+                 what gives it the distance. */
+              "grid gap-6",
               context &&
                 "xl:grid-cols-[minmax(0,var(--step-column))_minmax(17rem,var(--step-context))]",
             )}
           >
             <div className="flex min-w-0 max-w-[var(--step-column)] flex-col gap-6">{children}</div>
             {context ? (
-              /* Sticky rather than fixed: it holds its place while the left
-                 column scrolls past it, and on a short viewport it can still
-                 scroll itself rather than clipping. */
-              <aside className="min-w-0 xl:sticky xl:top-12 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
-                {context}
-              </aside>
+              /* No scroller of its own, and no sticky of its own.
+                 Both used to live here, which put a second scrollbar beside the
+                 page's on any step whose context column ran long, and a third
+                 on Review & sign — wheel over one and it scrolled until it hit
+                 its end, then the page lurched. Whether the panel should stick
+                 depends on how tall that step's panel is, which only the step
+                 knows, so each one now asks for it on the panel itself. */
+              <aside className="min-w-0">{context}</aside>
             ) : null}
           </div>
         </div>
@@ -145,11 +152,21 @@ export function StepActions({
 export function ContextPanel({
   title,
   description,
+  sticky = false,
   className,
   children,
 }: {
   title: string;
   description?: React.ReactNode;
+  /**
+   * Holds position while the step's column scrolls past it.
+   *
+   * Opt-in, and only for a panel that comfortably fits the viewport: a sticky
+   * element taller than the screen pins its top and puts its own bottom out of
+   * reach, and the fix for that — giving it its own scrollbar — is what put
+   * three of them on Review & sign.
+   */
+  sticky?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -157,6 +174,7 @@ export function ContextPanel({
     <section
       className={cn(
         "space-y-4 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card",
+        sticky && "xl:sticky xl:top-12",
         className,
       )}
     >

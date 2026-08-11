@@ -201,6 +201,7 @@ function Decision({
 
   return (
     <ContextPanel
+      sticky
       title="Your answer"
       description={`Due by ${formatDeadline(offer.responseDeadline)}.`}
     >
@@ -281,7 +282,7 @@ function RecordedResponse() {
   const when = formatRespondedAt(state.offer.respondedAt);
 
   return (
-    <ContextPanel title="Your answer" description={`Recorded on ${when}.`}>
+    <ContextPanel sticky title="Your answer" description={`Recorded on ${when}.`}>
       {accepted ? (
         <Notice tone="success" title="Your place is reserved">
           You accepted this offer on {when}. To change your response, contact Admissions at{" "}

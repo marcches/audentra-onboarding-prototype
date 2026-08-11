@@ -132,7 +132,7 @@ function AmountPanel() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <ContextPanel title="What is owed">
+    <ContextPanel sticky title="What is owed">
       <div className="flex items-center gap-3">
         <span className="brand-gradient flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-card)] text-white">
           <SealCheckIcon weight="fill" aria-hidden className="size-5" />

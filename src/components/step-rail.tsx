@@ -2,7 +2,7 @@ import { CheckIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
 import { InstitutionBadge } from "@/components/institution-badge";
-import { AudentraMark } from "@/components/wordmark";
+import { Wordmark } from "@/components/wordmark";
 import { institution } from "@/lib/fixtures";
 import { type StepId, stepCount, stepIndex, steps } from "@/lib/steps";
 import { completedSteps, useOnboarding } from "@/lib/store";
@@ -152,13 +152,11 @@ export function StepRail({ current }: { current: StepId }) {
             >
               Need a hand?
             </a>
-            {/* The mark alone. "by" was doing no work the placement does not
-                already do — a platform credit at the foot of the rail, at the
-                size a platform belongs at, is read as a platform credit. */}
-            <span className="flex items-center gap-1.5 text-ink-400">
-              <AudentraMark className="size-4" />
-              <span className="text-micro font-bold tracking-[0.12em] uppercase">Audentra</span>
-            </span>
+            {/* The real lockup, rather than the mark beside the name set in
+                Satoshi: the mark *is* the A of AUDENTRA, so pairing them in CSS
+                spelled the letter twice. Small, because a platform credit at the
+                foot of the rail belongs at a platform's size. */}
+            <Wordmark className="h-4 opacity-70" />
           </div>
         </div>
       </aside>

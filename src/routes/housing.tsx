@@ -248,7 +248,7 @@ function HousingContext({
   }
 
   return (
-    <ContextPanel title="Your housing plan">
+    <ContextPanel sticky title="Your housing plan">
       <p className="text-small text-ink-600">
         {intent === "off-campus"
           ? `Nothing else is needed here. ${institution.housingOffice} does not assign rooms to students living off campus.`
@@ -278,6 +278,7 @@ function RankingSlots({
 
   return (
     <ContextPanel
+      sticky
       title="Your ranking"
       description="First choice at the top. Housing considers this, it does not guarantee it — rooms are assigned after the deadline."
     >

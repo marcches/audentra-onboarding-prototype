@@ -89,16 +89,19 @@ export function ReviewRoute() {
       current="review"
       title="Read it, then sign it"
       lead="Your answers are written into the agreement below. Read to the end — signing unlocks when you have."
+      /* The context column holds one short panel, and it is the one thing that
+         has to be reachable at every scroll position: signing.
+         The summary moved out of it and into the column below the document,
+         where it reads as the appendix it is — and, more to the point, a sticky
+         panel with a sibling below it gets scrolled into, so the two had to stop
+         sharing a column. */
       context={
-        <div className="space-y-6">
-          <SignPanel
-            canSign={canSign}
-            typedMatches={typedMatches}
-            onSign={sign}
-            onContinue={() => navigate({ to: "/onboarding/deposit" })}
-          />
-          <SummaryPanel summary={summary} />
-        </div>
+        <SignPanel
+          canSign={canSign}
+          typedMatches={typedMatches}
+          onSign={sign}
+          onContinue={() => navigate({ to: "/onboarding/deposit" })}
+        />
       }
     >
       <AgreementSheet
@@ -108,6 +111,7 @@ export function ReviewRoute() {
         review={review}
         applyToken={applyToken}
       />
+      <SummaryPanel summary={summary} />
     </StepShell>
   );
 }
@@ -132,22 +136,55 @@ function AgreementSheet({
   review: ReturnType<typeof useOnboarding>["review"];
   applyToken: number;
 }) {
-  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const endRef = React.useRef<HTMLDivElement>(null);
 
+  /**
+   * "Read to the end", observed rather than measured.
+   *
+   * This used to be a scroll handler on a 34rem box inside the page. Three
+   * scroll containers ended up stacked on this screen — the page, the context
+   * column and the document — so a wheel gesture scrolled whichever one the
+   * pointer happened to be over, ran to its end, and then handed the rest to
+   * the page in a lurch. A legal document read through a 34rem window was the
+   * lesser problem.
+   *
+   * Now the document is simply as tall as it is and the page is the only thing
+   * that scrolls. An observer on a sentinel after the last clause is what marks
+   * it read, which is both simpler and more honest than a scroll arithmetic
+   * check: it fires when the end of the text has actually been on screen.
+   */
   React.useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
+    const end = endRef.current;
+    if (!end) return;
 
-    const check = () => {
-      // 24px of slack: a sheet that demands the exact last pixel can be
-      // impossible to satisfy on a trackpad with rubber-band scrolling.
-      const atEnd = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 24;
-      if (atEnd) onRead();
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          /* Reached, or already gone past.
+             `isIntersecting` alone is not enough: a jump — End, a scrollbar
+             drag, a fragment link, or arriving back on an already-scrolled
+             page — can take the sentinel from below the fold to above it
+             without it ever being sampled on screen, and the gate would then
+             refuse to open for someone who had read the whole document.
 
-    check();
-    scroller.addEventListener("scroll", check, { passive: true });
-    return () => scroller.removeEventListener("scroll", check);
+             "Past" is tested against the *top* of the viewport, not the bottom:
+             the sentinel has to be genuinely above the fold. Measuring against
+             the bottom instead also matches the first observation on a page
+             whose layout has not settled — everything reports near zero for a
+             frame — which opened the gate on arrival, before a word was read. */
+          const viewportTop = entry.rootBounds?.top ?? 0;
+          if (entry.isIntersecting || entry.boundingClientRect.bottom < viewportTop) {
+            onRead();
+            return;
+          }
+        }
+      },
+      // A little short of the true bottom edge, so the last line has to be
+      // properly on screen rather than clipped against it.
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    observer.observe(end);
+    return () => observer.disconnect();
   }, [onRead]);
 
   return (
@@ -159,17 +196,7 @@ function AgreementSheet({
         </p>
       </header>
 
-      <div
-        ref={scrollerRef}
-        className="max-h-[34rem] overflow-y-auto px-6 py-7 sm:px-9"
-        /* A labelled region, and focusable, because it scrolls. Consent unlocks
-           at the end of this box, so anyone who cannot put a pointer on it has
-           to be able to reach it with the keyboard and page down. */
-        role="region"
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-focusable or its content is unreachable without a pointer (WCAG 2.1.1), and here that content gates the consent checkbox. Labelled and given a role so it announces as a region, not as a stray tab stop.
-        tabIndex={0}
-        aria-label="Enrollment Agreement"
-      >
+      <div className="px-6 py-7 sm:px-9">
         <div className="space-y-6">
           {clauses.map((clause) => (
             <article key={clause.number} className="space-y-1.5">
@@ -194,6 +221,11 @@ function AgreementSheet({
             </article>
           ))}
 
+          {/* The end of the text. Crossing it is what marks the agreement read
+              — placed before the signature block, because the block is a
+              control and the clauses are the thing to have read. */}
+          <div ref={endRef} aria-hidden className="h-px" />
+
           <div ref={signatureRef}>
             <SignatureLine
               name={LEGAL_NAME}
@@ -213,14 +245,14 @@ function AgreementSheet({
       {review.documentRead ? null : (
         <p className="flex items-center gap-2 border-t border-ink-100 bg-ink-50/60 px-6 py-3 text-small text-ink-600">
           <WarningCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-amber-500" />
-          Scroll to the end of the agreement. Signing unlocks when you have.
+          Read to the end of the agreement. Signing unlocks when you have.
         </p>
       )}
     </section>
   );
 }
 
-/** The fixed column, upper half: sign the thing. */
+/** The context column: sign the thing, reachable from anywhere on the page. */
 function SignPanel({
   canSign,
   typedMatches,
@@ -237,7 +269,7 @@ function SignPanel({
 
   if (review.submitted) {
     return (
-      <ContextPanel title="Signed">
+      <ContextPanel sticky title="Signed">
         <Notice tone="success" title="Your agreement is signed">
           Signed on{" "}
           {new Date(review.signedAt ?? Date.now()).toLocaleDateString("en-US", {
@@ -257,7 +289,11 @@ function SignPanel({
   }
 
   return (
-    <ContextPanel title="Sign" description="Type your name or draw it. Both count the same here.">
+    <ContextPanel
+      sticky
+      title="Sign"
+      description="Type your name or draw it. Both count the same here."
+    >
       <Tabs
         value={review.signatureMode}
         onValueChange={(value) => patch("review", { signatureMode: value as "type" | "draw" })}
@@ -336,32 +372,43 @@ function SignPanel({
   );
 }
 
-/** The fixed column, lower half: what is in the document, and how to fix it. */
+/**
+ * What the agreement says, and how to fix it.
+ *
+ * Below the document rather than beside it: it is an appendix to the thing being
+ * signed, it is long, and the two columns it sits between are the document and
+ * the one control that has to stay put.
+ */
 function SummaryPanel({ summary }: { summary: ReturnType<typeof buildSummary> }) {
   return (
-    <ContextPanel
-      title="Your answers"
-      description="These are what the agreement says. If a line is wrong, edit takes you to it and brings you back."
-    >
-      <div className="space-y-4">
+    <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-200 bg-surface shadow-card">
+      <header className="space-y-1 border-b border-ink-100 px-6 py-4">
+        <h2 className="text-h3 text-ink-900">Your answers</h2>
+        <p className="text-small text-ink-500">
+          These are what the agreement above says. If a line is wrong, edit takes you to it and
+          brings you back.
+        </p>
+      </header>
+
+      <div className="divide-y divide-ink-50">
         {summary.map((group) => (
-          <div key={group.id} className="space-y-1.5">
+          <div key={group.id} className="px-6 py-4">
             <header className="flex items-center gap-2">
-              <h3 className="flex-1 text-small font-bold text-ink-900">{group.label}</h3>
-              <Button asChild variant="ghost" size="sm" className="h-7 px-2">
+              <h3 className="flex-1 text-body font-bold text-ink-900">{group.label}</h3>
+              <Button asChild variant="ghost" size="sm">
                 {/* `from=review` is what the destination step reads to offer
                     the way back — see ReturnToReview in step-shell.tsx. */}
                 <Link to={group.path} search={{ from: "review" as const }}>
-                  <PencilSimpleIcon aria-hidden className="size-3.5" />
+                  <PencilSimpleIcon aria-hidden className="size-4" />
                   Edit
                   <span className="sr-only"> {group.label}</span>
                 </Link>
               </Button>
             </header>
-            <dl className="space-y-1">
+            <dl className="mt-1.5 space-y-1">
               {group.rows.map((row) => (
-                <div key={row.label} className="flex gap-3 text-small">
-                  <dt className="w-[7.5rem] shrink-0 text-ink-500">{row.label}</dt>
+                <div key={row.label} className="flex gap-4 text-small">
+                  <dt className="w-[11rem] shrink-0 text-ink-500">{row.label}</dt>
                   <dd
                     className={cn("flex-1", row.missing ? "text-ink-400 italic" : "text-ink-800")}
                   >
@@ -373,6 +420,6 @@ function SummaryPanel({ summary }: { summary: ReturnType<typeof buildSummary> })
           </div>
         ))}
       </div>
-    </ContextPanel>
+    </section>
   );
 }

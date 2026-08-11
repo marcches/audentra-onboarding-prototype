@@ -9,6 +9,19 @@
  * concern, not a UX question this prototype is asking.
  */
 
+/**
+ * The platform, as distinct from the tenant.
+ *
+ * Needed because the entry screen cannot route anyone to an institution's
+ * Admissions office: it does not know which institution they belong to until
+ * they authenticate, exactly as it does not know who they are. Before the login
+ * the only party on the screen is Audentra, so the only help route is Audentra's.
+ */
+export const platform = {
+  name: "Audentra",
+  supportEmail: "support@audentra.com",
+} as const;
+
 export const institution = {
   name: "Aster University",
   short: "Aster",

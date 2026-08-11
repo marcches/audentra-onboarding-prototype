@@ -756,6 +756,7 @@ function SectionIndex({
 
   return (
     <ContextPanel
+      sticky
       title="This step"
       description={
         remaining === 0
