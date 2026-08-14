@@ -60,7 +60,7 @@ export function StepShell({
   return (
     <>
       <StepRail current={current} />
-      <main className="flex-1 px-4 pt-8 pb-16 sm:px-8 lg:px-12 lg:pt-12">
+      <main className="flex-1 px-4 pt-6 pb-12 sm:px-8 lg:px-10 lg:pt-9">
         {/* The container is exactly as wide as the two columns plus the gap
             between them — see the tokens in app.css.
 
@@ -71,12 +71,12 @@ export function StepShell({
             had shoved everything sideways. Two numbers that have to agree,
             written in two places, is the whole bug — so now there is one
             number and the other is derived from it. */}
-        <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-6">
+        <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-5">
           <ReturnToReview />
-          {/* No "Step N of 6" here. The trail in the rail already shows the
+          {/* No "Step N of 7" here. The trail in the rail already shows the
               position, visually and continuously, and it was being repeated in
               text three times besides. */}
-          <header className="max-w-[var(--step-column)] space-y-2">
+          <header className="max-w-[var(--step-column)] space-y-1.5">
             <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
             {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
           </header>
@@ -87,12 +87,12 @@ export function StepShell({
                  to its content has nowhere to stick to and simply scrolls away
                  with the page. Stretching the column to the row's height is
                  what gives it the distance. */
-              "grid gap-6",
+              "grid gap-5",
               context &&
                 "xl:grid-cols-[minmax(0,var(--step-column))_minmax(17rem,var(--step-context))]",
             )}
           >
-            <div className="flex min-w-0 max-w-[var(--step-column)] flex-col gap-6">{children}</div>
+            <div className="flex min-w-0 max-w-[var(--step-column)] flex-col gap-5">{children}</div>
             {context ? (
               /* No scroller of its own, and no sticky of its own.
                  Both used to live here, which put a second scrollbar beside the
@@ -127,7 +127,7 @@ export function StepActions({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse gap-4 border-t border-ink-100 pt-6 sm:flex-row sm:items-center",
+        "flex flex-col-reverse gap-4 border-t border-ink-100 pt-5 sm:flex-row sm:items-center",
         className,
       )}
     >
@@ -173,8 +173,8 @@ export function ContextPanel({
   return (
     <section
       className={cn(
-        "space-y-4 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card",
-        sticky && "xl:sticky xl:top-12",
+        "space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-4 shadow-card",
+        sticky && "xl:sticky xl:top-9",
         className,
       )}
     >

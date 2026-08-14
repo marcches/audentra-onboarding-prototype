@@ -1,4 +1,5 @@
 import {
+  citiesByState,
   citizenshipOptions,
   clubs,
   disclosureScopeOptions,
@@ -8,6 +9,8 @@ import {
   residences,
   residencyVerificationOptions,
   studentRecord,
+  type UsStateCode,
+  usStates,
 } from "@/lib/fixtures";
 import { type Step, type StepId, steps } from "@/lib/steps";
 import type { OnboardingState } from "@/lib/store";
@@ -31,6 +34,10 @@ export type SummaryGroup = {
   id: StepId;
   label: string;
   path: string;
+  /** Read from `steps.ts` — the one place these can be changed. */
+  timeEstimateMinutes: number;
+  required: boolean;
+  points: number;
   rows: SummaryRow[];
 };
 
@@ -43,6 +50,23 @@ function labelFor(
   return options.find((option) => option.value === value)?.label ?? null;
 }
 
+/**
+ * The permanent address, in the words a person reads rather than the values a
+ * `<select>` stores. State and city are cascading selects now (see About
+ * you's residence section), so what's in `aboutYou.state`/`.city` is a postal
+ * abbreviation and a slug — "CA", "los-angeles" — never what the agreement or
+ * the summary should print.
+ */
+export function formatAddress(about: OnboardingState["aboutYou"]): string {
+  const stateLabel = labelFor(usStates, about.state) ?? about.state;
+  const cityLabel =
+    citiesByState[about.state as UsStateCode]?.find((option) => option.value === about.city)
+      ?.label ?? about.city;
+  return [about.street, about.unit, cityLabel, stateLabel, about.postalCode]
+    .filter(Boolean)
+    .join(", ");
+}
+
 function step(id: StepId): Step | undefined {
   return steps.find((candidate) => candidate.id === id);
 }
@@ -50,7 +74,15 @@ function step(id: StepId): Step | undefined {
 function group(id: StepId, rows: SummaryRow[]): SummaryGroup | null {
   const found = step(id);
   if (!found) return null;
-  return { id, label: found.label, path: found.path, rows };
+  return {
+    id,
+    label: found.label,
+    path: found.path,
+    timeEstimateMinutes: found.timeEstimateMinutes,
+    required: found.required,
+    points: found.points,
+    rows,
+  };
 }
 
 function offerRows(state: OnboardingState): SummaryRow[] {
@@ -67,15 +99,15 @@ function offerRows(state: OnboardingState): SummaryRow[] {
 
 function aboutYouRows(state: OnboardingState): SummaryRow[] {
   const about = state.aboutYou;
-  const address = [about.street, about.unit, about.city, about.state, about.postalCode]
-    .filter(Boolean)
-    .join(", ");
+  const international = about.citizenship === "international";
+  const address = formatAddress(about);
 
   const contacts = about.emergencyContacts.filter((contact) => contact.fullName.trim());
   const scopes = about.disclosureScope
     .map((value) => labelFor(disclosureScopeOptions, value))
     .filter(Boolean)
     .join(", ");
+  const familyRelationship = labelFor(relationshipOptions, about.familyMemberRelationship);
 
   return [
     {
@@ -98,13 +130,15 @@ function aboutYouRows(state: OnboardingState): SummaryRow[] {
     },
     {
       label: "Permanent address",
-      value: address || NOT_ANSWERED,
-      missing: !address,
+      value: international ? "Not applicable — international student" : address || NOT_ANSWERED,
+      missing: !international && !address,
     },
     {
       label: "Residency check",
-      value: labelFor(residencyVerificationOptions, about.residencyVerification) ?? NOT_ANSWERED,
-      missing: !about.residencyVerification,
+      value: international
+        ? "Not applicable — international student"
+        : (labelFor(residencyVerificationOptions, about.residencyVerification) ?? NOT_ANSWERED),
+      missing: !international && !about.residencyVerification,
     },
     {
       label: "Emergency contact",
@@ -121,7 +155,7 @@ function aboutYouRows(state: OnboardingState): SummaryRow[] {
     {
       label: "Family access",
       value: about.grantsFamilyAccess
-        ? `${about.familyMemberName || "Someone"} — ${scopes || "no categories picked"}`
+        ? `${about.familyMemberName || "Someone"}${familyRelationship ? ` (${familyRelationship})` : ""} — ${scopes || "no categories picked"}`
         : "Nobody has access",
     },
   ];
@@ -170,26 +204,49 @@ function campusLifeRows(state: OnboardingState): SummaryRow[] {
   const life = state.campusLife;
   const picked = life.clubs.map((id) => clubs.find((club) => club.id === id)?.name).filter(Boolean);
 
-  const rows: SummaryRow[] = [
+  return [
     {
       label: "Clubs and interests",
       value: picked.length ? picked.join(", ") : "Nothing picked",
       missing: picked.length === 0,
     },
+  ];
+}
+
+function healthRows(state: OnboardingState): SummaryRow[] {
+  const health = state.health;
+
+  const rows: SummaryRow[] = [
     {
       label: "Accommodations",
       value:
-        life.accommodations === "yes"
+        health.accommodations === "yes"
           ? "Yes — Accessibility Services will be in touch"
-          : life.accommodations === "no"
+          : health.accommodations === "no"
             ? "Not needed right now"
-            : NOT_ANSWERED,
-      missing: life.accommodations === "",
+            : "Skipped in onboarding",
+      missing: false,
     },
   ];
 
-  if (life.accommodations === "yes" && life.accommodationNote.trim()) {
-    rows.push({ label: "What would help", value: life.accommodationNote.trim() });
+  if (health.accommodations === "yes") {
+    if (health.accommodationNote.trim()) {
+      rows.push({ label: "What would help", value: health.accommodationNote.trim() });
+    }
+    rows.push({
+      label: "Medical documentation",
+      value: health.medicalDocuments.length
+        ? `${health.medicalDocuments.length} ${health.medicalDocuments.length === 1 ? "file" : "files"} attached`
+        : "Nothing attached",
+      missing: health.medicalDocuments.length === 0,
+    });
+    rows.push({
+      label: "Immunization record",
+      value: health.immunizationDocuments.length
+        ? `${health.immunizationDocuments.length} ${health.immunizationDocuments.length === 1 ? "file" : "files"} attached`
+        : "Nothing attached",
+      missing: health.immunizationDocuments.length === 0,
+    });
   }
 
   return rows;
@@ -201,5 +258,6 @@ export function buildSummary(state: OnboardingState): SummaryGroup[] {
     group("about-you", aboutYouRows(state)),
     group("housing", housingRows(state)),
     group("campus-life", campusLifeRows(state)),
+    group("health", healthRows(state)),
   ].filter((entry): entry is SummaryGroup => entry !== null);
 }

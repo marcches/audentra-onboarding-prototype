@@ -10,6 +10,7 @@ import {
   studentRecord,
 } from "@/lib/fixtures";
 import type { OnboardingState } from "@/lib/store";
+import { formatAddress } from "@/lib/summary";
 
 /**
  * The Enrollment Agreement.
@@ -59,10 +60,7 @@ export function buildAgreement(state: OnboardingState): Clause[] {
   const about = state.aboutYou;
   const housing = state.housing;
 
-  const address =
-    [about.street, about.unit, about.city, about.state, about.postalCode]
-      .filter(Boolean)
-      .join(", ") || NOT_GIVEN;
+  const address = formatAddress(about) || NOT_GIVEN;
 
   const deposit = formatMoney(offer.depositAmount, offer.depositCurrency);
   const deadline = formatDeadline(offer.responseDeadline);

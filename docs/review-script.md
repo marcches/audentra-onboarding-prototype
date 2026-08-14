@@ -6,6 +6,14 @@ olhar. Rode em desktop **e** em 390px de largura.
 
 Comece limpo: `localStorage.clear()` no console, depois recarregue.
 
+## Densidade e chrome compartilhado (rodada 3)
+
+- [ ] Rail, page shell, context panel e o cartão do acordeão usam a mesma
+      escala de espaçamento mais densa em **todos** os sete passos — nenhum
+      passo destoa visualmente do outro.
+- [ ] Offer: a grade de fatos e o card do depósito cabem numa rolagem mais
+      curta que antes, tanto em desktop quanto em 390px.
+
 ## Entry — `/entry`
 
 - [ ] Abre com **Create account** ativo, não "Welcome back"/Sign in.
@@ -55,6 +63,18 @@ Comece limpo: `localStorage.clear()` no console, depois recarregue.
 - [ ] Com `prefers-reduced-motion: reduce` ligado no SO: sem confete, sem animação
       de letra, o popup ainda funciona.
 
+### Aceite do offer — momento maior (rodada 3)
+
+- [ ] O popup do aceite está **maior** que antes e mantém o confete e o headline
+      letra a letra.
+- [ ] O prompt de compartilhamento inclui **Facebook e LinkedIn** (além de X e
+      WhatsApp) com um texto que convida a "tornar público", não um "compartilhe
+      se quiser" neutro.
+- [ ] O popup continua **dispensável sem compartilhar** — X ou clique fora fecha
+      normalmente, sem forçar nada.
+- [ ] Clicar em qualquer opção de compartilhamento (ou "Copy") soma pontos uma
+      vez, visivelmente ("+20 points added"), e o total no rail sobe junto.
+
 ## About you — `/onboarding/about-you`
 
 - [ ] É **um passo só**, com quatro seções — não três telas.
@@ -66,10 +86,41 @@ Comece limpo: `localStorage.clear()` no console, depois recarregue.
       com cadeado e a nota de quem muda — não como input cinza.
 - [ ] Contato de emergência está **aqui**, não como passo da sidebar.
 - [ ] Autorização familiar está **aqui**, não como passo da sidebar.
-- [ ] Marcar "dar acesso a alguém" revela nome, e-mail e escopo; desmarcar volta
-      pro estado "ninguém tem acesso" com texto que não parece erro.
+- [ ] Marcar "dar acesso a alguém" revela nome, e-mail, escopo **e relacionamento**
+      (rodada 3 — mesmas opções do contato de emergência); desmarcar volta pro
+      estado "ninguém tem acesso" com texto que não parece erro.
 - [ ] Recolher todas as seções e clicar "Next: housing" com campo obrigatório vazio:
       **a seção com erro abre sozinha**.
+
+### Citizenship-conditional (rodada 3)
+
+- [ ] Citizenship é a **primeira** pergunta da seção "Who you are", antes do
+      upload de documento.
+- [ ] O texto de documento exigido no upload muda com a resposta: U.S. citizen
+      → passport; permanent resident → driver's license; international student
+      → passport of country of citizenship.
+- [ ] Escolher **International student** esconde o bloco inteiro de endereço
+      (rua, unidade, cidade, estado, CEP, país, verificação de residência) e
+      mostra uma linha explicando por quê — a seção continua no acordeão, só
+      não pede nada.
+- [ ] Trocar de International student **de volta** para um status doméstico
+      (U.S. citizen, permanent resident, eligible noncitizen) reabre o bloco de
+      endereço vazio — nenhum valor antigo reaparece por engano.
+- [ ] Preencher o endereço, trocar pra International student e voltar: o
+      endereço some e volta vazio (foi limpo, não só escondido).
+- [ ] Estado é um select; cidade é um select **desabilitado até escolher o
+      estado**, e a lista de cidades muda para bater com o estado escolhido.
+- [ ] Trocar de estado depois de já ter escolhido uma cidade: a cidade antiga
+      é limpa se não pertencer ao novo estado.
+- [ ] U.S. citizen / permanent resident / eligible noncitizen continuam
+      exigindo o bloco de endereço pra avançar — igual ao comportamento antigo.
+
+### Telefone compactado (rodada 3)
+
+- [ ] O campo de celular em "Who you are" é **uma linha só** (select de código +
+      número) com uma linha de texto de ajuda abaixo — sem um rótulo em bloco
+      separado acima.
+- [ ] A 390px o campo não recorta nem quebra de forma estranha.
 - [ ] Preencher metade, dar F5: valores e o estado aberto/fechado do acordeão voltam.
 - [ ] "+ Add another person" adiciona contato; "Remove" tira.
 
@@ -101,16 +152,21 @@ Comece limpo: `localStorage.clear()` no console, depois recarregue.
       aparece **inteiro** em toda tela, inclusive nas que mostram a marca duas
       vezes (entry no desktop, passos no mobile).
 - [ ] **Rodada 2 — filetes** separando os blocos do rail, todos no mesmo peso.
-- [ ] A sidebar lista **6 passos**, não 8.
+- [ ] A sidebar lista **7 passos** (rodada 3 — Health information entrou depois
+      de Campus life), não 6 nem 8.
 - [ ] Emergency contacts e Family permissions **não** aparecem como passos.
-- [ ] O cabeçalho de cada passo diz "Step N of 6".
-- [ ] Concluir Offer → o contador sobe pra "1 of 6 saved" e a barra anda.
+- [ ] O cabeçalho de cada passo diz "Step N of 7".
+- [ ] Concluir Offer → o contador sobe pra "1 of 7 saved" e a barra anda.
 - [ ] **Rodada 2:** nenhum passo diz "unchanged this round" — o conceito saiu.
-      Os seis passos são telas reais.
+      Os sete passos são telas reais.
+- [ ] **Rodada 3 — pontos.** O rail mostra um total de pontos ao lado de "Your
+      path to Aster", que só aparece depois do primeiro ponto ganho. Cada passo
+      concluído ganha um selo "+N" ao lado do nome — só nos concluídos, não nos
+      pendentes.
 
 ## Mobile (390px)
 
-- [ ] Sidebar vira um cabeçalho fixo com marca e "Step N of 6".
+- [ ] Sidebar vira um cabeçalho fixo com marca e "Step N of 7".
 - [ ] Nenhuma tela rola na horizontal.
 - [ ] Os cards de opção do Housing são tocáveis no card inteiro, não só no radio.
 - [ ] Os botões de Accept/Decline empilham e continuam com 44px+ de altura.
@@ -123,21 +179,67 @@ Comece limpo: `localStorage.clear()` no console, depois recarregue.
 - [ ] Passar o ponteiro pela grade: o card sob o cursor fica colorido e o resto
       dessatura (holofote). Com movimento reduzido, o holofote não aparece e as
       fotos ficam todas em cor.
-- [ ] Clicar marca e desmarca; o contador embaixo acompanha.
+- [ ] Clicar no **emblema no canto** do card marca e desmarca; o contador
+      embaixo acompanha.
 - [ ] **Não existem** mais: social settings, "what would you love to find",
       support topics.
-- [ ] Acomodações continua, com o aviso explícito de **não** escrever dados médicos.
 - [ ] O passo continua **skippable** ("Skip for now").
+
+### Filtro e detalhe do clube (rodada 3)
+
+- [ ] A pergunta de acomodações **não está mais aqui** — mudou pro passo Health
+      information.
+- [ ] Um filtro de categoria aparece acima da grade (Sport, Arts, Outdoors,
+      Social, Service, Making), multi-seleção.
+- [ ] Marcar uma ou mais categorias **estreita** a grade; "Clear filter" volta a
+      mostrar os nove.
+- [ ] Escolher um clube e depois filtrar ele pra fora da vista: ele continua
+      marcado no painel "Your picks" — o filtro não desmarca nada.
+- [ ] Clicar na **foto ou no texto** do card (não no emblema) abre um modal de
+      detalhe com foto maior, cadência de encontros e uma descrição mais longa —
+      independente do filtro estar ativo.
+- [ ] A 390px, nomes de clube com "&" (Robotics & making, Tabletop & games,
+      Debate & speaking) quebram em duas linhas **sem cortar a primeira linha**
+      no topo do card.
+
+## Health information — `/onboarding/health` (rodada 3)
+
+- [ ] A pergunta de acomodações e o aviso "não escreva dados médicos aqui" são
+      os mesmos que existiam em Campus life, agora num passo próprio.
+- [ ] Respondendo "Yes": aparecem dois uploads — documentação médica e registro
+      de imunização — cada um se comportando como o upload de identidade
+      (adicionar, remover, sem quebrar com a lista vazia).
+- [ ] O passo é **opcional**: "Skip for now" não marca como concluído; "Next:
+      review & sign" marca.
+- [ ] O texto do passo deixa claro que onboarding não exige isso, mas o portal
+      do aluno pode pedir de novo depois.
+- [ ] Trocar de "Yes" pra "No" e voltar: os uploads ainda funcionam (o estado
+      não quebra ao esconder/mostrar a seção).
 
 ## Review & sign — `/onboarding/review` (rodada 2)
 
 > **Ao apresentar:** a fonte primária não cobre este passo. É **proposta**.
 
 - [ ] O resumo lista o que você realmente respondeu nos passos anteriores —
-      inclusive Campus life. Nada de campo fantasma.
+      inclusive Campus life e Health information. Nada de campo fantasma.
 - [ ] O que ficou em branco aparece como "Not answered" em itálico apagado, não
       como se fosse uma resposta.
+- [ ] O endereço permanente aparece com os **nomes por extenso** (ex.: "Los
+      Angeles, California"), nunca o valor cru do select ("los-angeles", "CA").
+      Isso vale tanto no resumo quanto no texto do acordo em cima.
 - [ ] Cada bloco tem **"Edit"** e vai direto pro passo correspondente.
+
+### Tempo, obrigatório/opcional e pontos (rodada 3)
+
+- [ ] Cada bloco do resumo mostra um tempo estimado ("~N min") e uma etiqueta
+      Required/Optional, lidos de `steps.ts` — sem duplicar o valor em outro
+      lugar.
+- [ ] Trocar um valor em `steps.ts` (tempo, obrigatório, pontos) muda o resumo
+      sem precisar tocar em mais nada.
+- [ ] O topo do painel mostra um total de pontos ("N points earned") que bate
+      com a soma dos passos realmente concluídos — nunca um máximo fixo.
+- [ ] Compartilhar no popup do aceite (Offer) soma ao total mesmo sem ser um
+      passo enviado.
 - [ ] Os dois documentos são lidos **na tela**, num painel rolável. Nenhum PDF em
       outra aba.
 - [ ] Antes de rolar até o fim dos dois: a caixa de aceite está **desabilitada** e

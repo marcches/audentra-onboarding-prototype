@@ -57,6 +57,8 @@ export type OfferState = {
   respondedAt: string | null;
   declineReason: string;
   declineNote: string;
+  /** Whether the celebration's share prompt has been used. Awards points once — see `lib/points.ts`. */
+  shared: boolean;
 };
 
 export type EmergencyContact = {
@@ -100,6 +102,7 @@ export type AboutYouState = {
   grantsFamilyAccess: boolean;
   familyMemberName: string;
   familyMemberEmail: string;
+  familyMemberRelationship: string;
   disclosureScope: string[];
   submitted: boolean;
 };
@@ -113,8 +116,15 @@ export type HousingState = {
 
 export type CampusLifeState = {
   clubs: string[];
+  submitted: boolean;
+};
+
+/** Split out of Campus life — see `steps.ts`. Optional throughout: it never blocks Review & sign or Deposit. */
+export type HealthState = {
   accommodations: "yes" | "no" | "";
   accommodationNote: string;
+  medicalDocuments: UploadedFile[];
+  immunizationDocuments: UploadedFile[];
   submitted: boolean;
 };
 
@@ -157,6 +167,7 @@ export type OnboardingState = {
   aboutYou: AboutYouState;
   housing: HousingState;
   campusLife: CampusLifeState;
+  health: HealthState;
   review: ReviewState;
   deposit: DepositState;
 };
@@ -189,6 +200,7 @@ const initialState: OnboardingState = {
     respondedAt: null,
     declineReason: "",
     declineNote: "",
+    shared: false,
   },
   aboutYou: {
     openSections: ["identity"],
@@ -210,6 +222,7 @@ const initialState: OnboardingState = {
     grantsFamilyAccess: false,
     familyMemberName: "",
     familyMemberEmail: "",
+    familyMemberRelationship: "",
     disclosureScope: [],
     submitted: false,
   },
@@ -221,8 +234,13 @@ const initialState: OnboardingState = {
   },
   campusLife: {
     clubs: [],
+    submitted: false,
+  },
+  health: {
     accommodations: "",
     accommodationNote: "",
+    medicalDocuments: [],
+    immunizationDocuments: [],
     submitted: false,
   },
   review: {
@@ -258,6 +276,7 @@ function read(): OnboardingState {
       aboutYou: { ...initialState.aboutYou, ...parsed.aboutYou },
       housing: { ...initialState.housing, ...parsed.housing },
       campusLife: { ...initialState.campusLife, ...parsed.campusLife },
+      health: { ...initialState.health, ...parsed.health },
       review: { ...initialState.review, ...parsed.review },
       deposit: { ...initialState.deposit, ...parsed.deposit },
     };
@@ -306,7 +325,13 @@ function getSnapshot() {
 }
 
 /** The slices the Review & sign summary reads back and the packet covers. */
-const SIGNED_OVER: (keyof OnboardingState)[] = ["offer", "aboutYou", "housing", "campusLife"];
+const SIGNED_OVER: (keyof OnboardingState)[] = [
+  "offer",
+  "aboutYou",
+  "housing",
+  "campusLife",
+  "health",
+];
 
 export function patch<K extends keyof OnboardingState>(
   slice: K,
@@ -367,6 +392,7 @@ export function completedSteps(current: OnboardingState): StepId[] {
   if (current.aboutYou.submitted) done.push("about-you");
   if (current.housing.submitted) done.push("housing");
   if (current.campusLife.submitted) done.push("campus-life");
+  if (current.health.submitted) done.push("health");
   if (current.review.submitted) done.push("review");
   if (current.deposit.submitted) done.push("deposit");
   return done;

@@ -168,10 +168,31 @@ export const campusPhotos = {
   },
 } as const satisfies Record<string, Photo>;
 
+/**
+ * Broad enough to sort nine clubs into more than one useful pile, not a
+ * taxonomy of student life. "Making" earns its own bucket because robotics and
+ * tabletop are both hands-on-a-table activities that neither "arts" nor
+ * "social" describes honestly.
+ */
+export const clubCategories = [
+  { value: "sport", label: "Sport" },
+  { value: "arts", label: "Arts" },
+  { value: "outdoors", label: "Outdoors" },
+  { value: "social", label: "Social" },
+  { value: "service", label: "Service" },
+  { value: "making", label: "Making" },
+] as const;
+
+export type ClubCategory = (typeof clubCategories)[number]["value"];
+
 export type Club = {
   id: string;
   name: string;
   blurb: string;
+  category: ClubCategory;
+  /** The longer read, once a student opens the detail view rather than just glancing at the grid. */
+  detail: string;
+  cadence: string;
   image: Photo;
 };
 
@@ -180,6 +201,10 @@ export const clubs: Club[] = [
     id: "robotics",
     name: "Robotics & making",
     blurb: "Build something that moves. Nobody starts knowing how.",
+    category: "making",
+    detail:
+      "A shared workshop with soldering stations, a laser cutter and a parts wall anyone can raid. Most terms run one long build — last year's was a line-following rover — alongside whatever smaller thing you show up wanting to make. No electronics background assumed; half the club started here.",
+    cadence: "Open workshop Tuesday and Thursday evenings, plus a Saturday build day once a month.",
     image: {
       src: "/images/clubs/robotics.webp",
       alt: "Three students wiring a small robot together at a workbench",
@@ -189,6 +214,10 @@ export const clubs: Club[] = [
     id: "music",
     name: "Live music",
     blurb: "Bands, open mics, rehearsal rooms you can book by the hour.",
+    category: "arts",
+    detail:
+      "Four soundproofed rehearsal rooms you can book online, a backline of amps and a kit so you don't have to haul your own gear across campus. The open mic is unauditioned — sign-up sheet goes up an hour before. A handful of bands form out of it most years; nobody's required to join one.",
+    cadence: "Open mic every other Friday night; rehearsal rooms bookable any day.",
     image: {
       src: "/images/clubs/music.webp",
       alt: "Four people with guitars and a microphone stand mid-rehearsal in a bright room",
@@ -198,6 +227,10 @@ export const clubs: Club[] = [
     id: "football",
     name: "Football",
     blurb: "Kickabouts on Wednesdays, a league if you want one.",
+    category: "sport",
+    detail:
+      "The Wednesday kickabout is genuinely casual — turn up, get put on a side, no boots required for the first few weeks. A more competitive five-a-side league runs each term for anyone who wants to keep score, with sign-up separate from the open sessions.",
+    cadence: "Casual kickabout every Wednesday evening; league matches on weekends in-term.",
     image: {
       src: "/images/clubs/football.webp",
       alt: "Two players challenging for the ball in front of the goal on a green pitch",
@@ -207,6 +240,10 @@ export const clubs: Club[] = [
     id: "outdoors",
     name: "Outdoors",
     blurb: "Weekend hikes and two camping trips a term. Kit is lent, not bought.",
+    category: "outdoors",
+    detail:
+      "Day hikes leave from the quad most weekends, graded easy to hard so nobody's stuck choosing between staying home and being in over their head. The two termly camping trips cover transport and shared kit — tents, stoves, the works — so the only thing you need to bring is yourself.",
+    cadence: "Day hikes most Saturdays; overnight camping trips twice a term.",
     image: {
       src: "/images/clubs/outdoors.webp",
       alt: "A line of students in walking gear coming down a hillside track",
@@ -216,6 +253,10 @@ export const clubs: Club[] = [
     id: "art",
     name: "Studio art",
     blurb: "Open studio hours. Materials are on the department.",
+    category: "arts",
+    detail:
+      "A shared studio with easels, a print press and a materials cupboard the department restocks — paint, paper and clay are covered, so showing up empty-handed is the normal way to start. No critique sessions unless you ask for one; most people are just there to work.",
+    cadence: "Open studio hours every weekday afternoon; no sign-up needed.",
     image: {
       src: "/images/clubs/art.webp",
       alt: "Two students working at easels in a studio hung with paintings",
@@ -225,6 +266,10 @@ export const clubs: Club[] = [
     id: "photography",
     name: "Photography",
     blurb: "Photo walks, darkroom nights, one print show each term.",
+    category: "arts",
+    detail:
+      "Photo walks are themed and casual — golden hour on the quad, the town market, whatever someone proposes. The darkroom is open to anyone who's had the one, ten-minute safety briefing, film and paper included. The end-of-term print show hangs a handful of pieces from anyone who wants to submit.",
+    cadence: "Photo walks every other weekend; darkroom nights weekly.",
     image: {
       src: "/images/clubs/photography.webp",
       alt: "A student in a red hoodie raising a camera to their eye on a campus lawn",
@@ -234,6 +279,10 @@ export const clubs: Club[] = [
     id: "tabletop",
     name: "Tabletop & games",
     blurb: "Board games on Thursdays and campaigns that run all year.",
+    category: "making",
+    detail:
+      "Thursday nights are drop-in board games from the club's own shelf — nothing to bring, nothing to learn in advance. A handful of longer campaigns (tabletop RPGs, mostly) run alongside it for anyone who wants a standing weekly seat instead of a one-off game.",
+    cadence: "Drop-in games every Thursday night; campaign groups meet weekly by arrangement.",
     image: {
       src: "/images/clubs/tabletop.webp",
       alt: "A long table of students leaning over a board game covered in tiles and pieces",
@@ -243,6 +292,10 @@ export const clubs: Club[] = [
     id: "debate",
     name: "Debate & speaking",
     blurb: "Argue for the practice. Compete only if you feel like it.",
+    category: "social",
+    detail:
+      "Weekly sessions are a mix of short-notice topics and practice for anyone building up to competing. Competing is genuinely optional — plenty of members come purely for the practice of thinking on their feet in front of a room. Intervarsity tournaments run a few times a year for the ones who want them.",
+    cadence: "Weekly practice sessions; intervarsity tournaments a few times a year.",
     image: {
       src: "/images/clubs/debate.webp",
       alt: "Two students sharing a handheld microphone outdoors, one of them mid-sentence",
@@ -252,6 +305,10 @@ export const clubs: Club[] = [
     id: "volunteering",
     name: "Volunteering",
     blurb: "Local projects, a few hours whenever you actually have them.",
+    category: "service",
+    detail:
+      "A rotating list of local projects — food bank shifts, park clean-ups, a reading programme at a nearby school — posted a few weeks out so you can pick what fits your week. Nothing is a standing commitment; showing up once counts as much as showing up every time.",
+    cadence: "New project postings every few weeks; individual shifts are a few hours each.",
     image: {
       src: "/images/clubs/volunteering.webp",
       alt: "Volunteers in matching blue shirts collecting litter into bags among trees",
@@ -359,6 +416,322 @@ export const countries = [
   { value: "NG", label: "Nigeria" },
   { value: "other", label: "Somewhere else" },
 ] as const;
+
+/**
+ * States and a representative slice of cities per state — not exhaustive, a
+ * plausible pass so the cascading select has real options to show. Values are
+ * the USPS abbreviation and a lowercase slug respectively, neither of which a
+ * student ever sees.
+ */
+export const usStates = [
+  { value: "AL", label: "Alabama" },
+  { value: "AK", label: "Alaska" },
+  { value: "AZ", label: "Arizona" },
+  { value: "AR", label: "Arkansas" },
+  { value: "CA", label: "California" },
+  { value: "CO", label: "Colorado" },
+  { value: "CT", label: "Connecticut" },
+  { value: "DE", label: "Delaware" },
+  { value: "DC", label: "District of Columbia" },
+  { value: "FL", label: "Florida" },
+  { value: "GA", label: "Georgia" },
+  { value: "HI", label: "Hawaii" },
+  { value: "ID", label: "Idaho" },
+  { value: "IL", label: "Illinois" },
+  { value: "IN", label: "Indiana" },
+  { value: "IA", label: "Iowa" },
+  { value: "KS", label: "Kansas" },
+  { value: "KY", label: "Kentucky" },
+  { value: "LA", label: "Louisiana" },
+  { value: "ME", label: "Maine" },
+  { value: "MD", label: "Maryland" },
+  { value: "MA", label: "Massachusetts" },
+  { value: "MI", label: "Michigan" },
+  { value: "MN", label: "Minnesota" },
+  { value: "MS", label: "Mississippi" },
+  { value: "MO", label: "Missouri" },
+  { value: "MT", label: "Montana" },
+  { value: "NE", label: "Nebraska" },
+  { value: "NV", label: "Nevada" },
+  { value: "NH", label: "New Hampshire" },
+  { value: "NJ", label: "New Jersey" },
+  { value: "NM", label: "New Mexico" },
+  { value: "NY", label: "New York" },
+  { value: "NC", label: "North Carolina" },
+  { value: "ND", label: "North Dakota" },
+  { value: "OH", label: "Ohio" },
+  { value: "OK", label: "Oklahoma" },
+  { value: "OR", label: "Oregon" },
+  { value: "PA", label: "Pennsylvania" },
+  { value: "RI", label: "Rhode Island" },
+  { value: "SC", label: "South Carolina" },
+  { value: "SD", label: "South Dakota" },
+  { value: "TN", label: "Tennessee" },
+  { value: "TX", label: "Texas" },
+  { value: "UT", label: "Utah" },
+  { value: "VT", label: "Vermont" },
+  { value: "VA", label: "Virginia" },
+  { value: "WA", label: "Washington" },
+  { value: "WV", label: "West Virginia" },
+  { value: "WI", label: "Wisconsin" },
+  { value: "WY", label: "Wyoming" },
+] as const;
+
+export type UsStateCode = (typeof usStates)[number]["value"];
+
+export const citiesByState: Record<UsStateCode, { value: string; label: string }[]> = {
+  AL: [
+    { value: "birmingham", label: "Birmingham" },
+    { value: "montgomery", label: "Montgomery" },
+    { value: "huntsville", label: "Huntsville" },
+  ],
+  AK: [
+    { value: "anchorage", label: "Anchorage" },
+    { value: "fairbanks", label: "Fairbanks" },
+    { value: "juneau", label: "Juneau" },
+  ],
+  AZ: [
+    { value: "phoenix", label: "Phoenix" },
+    { value: "tucson", label: "Tucson" },
+    { value: "mesa", label: "Mesa" },
+  ],
+  AR: [
+    { value: "little-rock", label: "Little Rock" },
+    { value: "fayetteville", label: "Fayetteville" },
+    { value: "fort-smith", label: "Fort Smith" },
+  ],
+  CA: [
+    { value: "los-angeles", label: "Los Angeles" },
+    { value: "san-francisco", label: "San Francisco" },
+    { value: "san-diego", label: "San Diego" },
+  ],
+  CO: [
+    { value: "denver", label: "Denver" },
+    { value: "colorado-springs", label: "Colorado Springs" },
+    { value: "boulder", label: "Boulder" },
+  ],
+  CT: [
+    { value: "hartford", label: "Hartford" },
+    { value: "new-haven", label: "New Haven" },
+    { value: "stamford", label: "Stamford" },
+  ],
+  DE: [
+    { value: "wilmington", label: "Wilmington" },
+    { value: "dover", label: "Dover" },
+    { value: "newark-de", label: "Newark" },
+  ],
+  DC: [{ value: "washington", label: "Washington" }],
+  FL: [
+    { value: "miami", label: "Miami" },
+    { value: "orlando", label: "Orlando" },
+    { value: "tampa", label: "Tampa" },
+  ],
+  GA: [
+    { value: "atlanta", label: "Atlanta" },
+    { value: "savannah", label: "Savannah" },
+    { value: "augusta", label: "Augusta" },
+  ],
+  HI: [
+    { value: "honolulu", label: "Honolulu" },
+    { value: "hilo", label: "Hilo" },
+    { value: "kailua", label: "Kailua" },
+  ],
+  ID: [
+    { value: "boise", label: "Boise" },
+    { value: "idaho-falls", label: "Idaho Falls" },
+    { value: "nampa", label: "Nampa" },
+  ],
+  IL: [
+    { value: "chicago", label: "Chicago" },
+    { value: "springfield-il", label: "Springfield" },
+    { value: "naperville", label: "Naperville" },
+  ],
+  IN: [
+    { value: "indianapolis", label: "Indianapolis" },
+    { value: "fort-wayne", label: "Fort Wayne" },
+    { value: "bloomington-in", label: "Bloomington" },
+  ],
+  IA: [
+    { value: "des-moines", label: "Des Moines" },
+    { value: "cedar-rapids", label: "Cedar Rapids" },
+    { value: "iowa-city", label: "Iowa City" },
+  ],
+  KS: [
+    { value: "wichita", label: "Wichita" },
+    { value: "topeka", label: "Topeka" },
+    { value: "overland-park", label: "Overland Park" },
+  ],
+  KY: [
+    { value: "louisville", label: "Louisville" },
+    { value: "lexington", label: "Lexington" },
+    { value: "bowling-green", label: "Bowling Green" },
+  ],
+  LA: [
+    { value: "new-orleans", label: "New Orleans" },
+    { value: "baton-rouge", label: "Baton Rouge" },
+    { value: "shreveport", label: "Shreveport" },
+  ],
+  ME: [
+    { value: "portland-me", label: "Portland" },
+    { value: "augusta-me", label: "Augusta" },
+    { value: "bangor", label: "Bangor" },
+  ],
+  MD: [
+    { value: "baltimore", label: "Baltimore" },
+    { value: "annapolis", label: "Annapolis" },
+    { value: "rockville", label: "Rockville" },
+  ],
+  MA: [
+    { value: "boston", label: "Boston" },
+    { value: "cambridge-ma", label: "Cambridge" },
+    { value: "worcester", label: "Worcester" },
+  ],
+  MI: [
+    { value: "detroit", label: "Detroit" },
+    { value: "ann-arbor", label: "Ann Arbor" },
+    { value: "grand-rapids", label: "Grand Rapids" },
+  ],
+  MN: [
+    { value: "minneapolis", label: "Minneapolis" },
+    { value: "saint-paul", label: "Saint Paul" },
+    { value: "duluth", label: "Duluth" },
+  ],
+  MS: [
+    { value: "jackson-ms", label: "Jackson" },
+    { value: "gulfport", label: "Gulfport" },
+    { value: "hattiesburg", label: "Hattiesburg" },
+  ],
+  MO: [
+    { value: "kansas-city", label: "Kansas City" },
+    { value: "st-louis", label: "St. Louis" },
+    { value: "springfield-mo", label: "Springfield" },
+  ],
+  MT: [
+    { value: "billings", label: "Billings" },
+    { value: "missoula", label: "Missoula" },
+    { value: "helena", label: "Helena" },
+  ],
+  NE: [
+    { value: "omaha", label: "Omaha" },
+    { value: "lincoln-ne", label: "Lincoln" },
+    { value: "bellevue-ne", label: "Bellevue" },
+  ],
+  NV: [
+    { value: "las-vegas", label: "Las Vegas" },
+    { value: "reno", label: "Reno" },
+    { value: "henderson", label: "Henderson" },
+  ],
+  NH: [
+    { value: "manchester-nh", label: "Manchester" },
+    { value: "concord-nh", label: "Concord" },
+    { value: "nashua", label: "Nashua" },
+  ],
+  NJ: [
+    { value: "newark-nj", label: "Newark" },
+    { value: "jersey-city", label: "Jersey City" },
+    { value: "trenton", label: "Trenton" },
+  ],
+  NM: [
+    { value: "albuquerque", label: "Albuquerque" },
+    { value: "santa-fe", label: "Santa Fe" },
+    { value: "las-cruces", label: "Las Cruces" },
+  ],
+  NY: [
+    { value: "new-york-city", label: "New York City" },
+    { value: "buffalo", label: "Buffalo" },
+    { value: "albany", label: "Albany" },
+  ],
+  NC: [
+    { value: "charlotte", label: "Charlotte" },
+    { value: "raleigh", label: "Raleigh" },
+    { value: "durham", label: "Durham" },
+  ],
+  ND: [
+    { value: "fargo", label: "Fargo" },
+    { value: "bismarck", label: "Bismarck" },
+    { value: "grand-forks", label: "Grand Forks" },
+  ],
+  OH: [
+    { value: "columbus", label: "Columbus" },
+    { value: "cleveland", label: "Cleveland" },
+    { value: "cincinnati", label: "Cincinnati" },
+  ],
+  OK: [
+    { value: "oklahoma-city", label: "Oklahoma City" },
+    { value: "tulsa", label: "Tulsa" },
+    { value: "norman", label: "Norman" },
+  ],
+  OR: [
+    { value: "portland-or", label: "Portland" },
+    { value: "eugene", label: "Eugene" },
+    { value: "salem-or", label: "Salem" },
+  ],
+  PA: [
+    { value: "philadelphia", label: "Philadelphia" },
+    { value: "pittsburgh", label: "Pittsburgh" },
+    { value: "harrisburg", label: "Harrisburg" },
+  ],
+  RI: [
+    { value: "providence", label: "Providence" },
+    { value: "warwick", label: "Warwick" },
+    { value: "newport-ri", label: "Newport" },
+  ],
+  SC: [
+    { value: "charleston-sc", label: "Charleston" },
+    { value: "columbia-sc", label: "Columbia" },
+    { value: "greenville", label: "Greenville" },
+  ],
+  SD: [
+    { value: "sioux-falls", label: "Sioux Falls" },
+    { value: "rapid-city", label: "Rapid City" },
+    { value: "pierre", label: "Pierre" },
+  ],
+  TN: [
+    { value: "nashville", label: "Nashville" },
+    { value: "memphis", label: "Memphis" },
+    { value: "knoxville", label: "Knoxville" },
+  ],
+  TX: [
+    { value: "houston", label: "Houston" },
+    { value: "austin", label: "Austin" },
+    { value: "dallas", label: "Dallas" },
+  ],
+  UT: [
+    { value: "salt-lake-city", label: "Salt Lake City" },
+    { value: "provo", label: "Provo" },
+    { value: "ogden", label: "Ogden" },
+  ],
+  VT: [
+    { value: "burlington", label: "Burlington" },
+    { value: "montpelier", label: "Montpelier" },
+    { value: "rutland", label: "Rutland" },
+  ],
+  VA: [
+    { value: "richmond", label: "Richmond" },
+    { value: "virginia-beach", label: "Virginia Beach" },
+    { value: "arlington", label: "Arlington" },
+  ],
+  WA: [
+    { value: "seattle", label: "Seattle" },
+    { value: "spokane", label: "Spokane" },
+    { value: "tacoma", label: "Tacoma" },
+  ],
+  WV: [
+    { value: "charleston-wv", label: "Charleston" },
+    { value: "huntington", label: "Huntington" },
+    { value: "morgantown", label: "Morgantown" },
+  ],
+  WI: [
+    { value: "milwaukee", label: "Milwaukee" },
+    { value: "madison", label: "Madison" },
+    { value: "green-bay", label: "Green Bay" },
+  ],
+  WY: [
+    { value: "cheyenne", label: "Cheyenne" },
+    { value: "casper", label: "Casper" },
+    { value: "laramie", label: "Laramie" },
+  ],
+};
 
 /** Country calling codes, so nobody has to guess whether "+1 555…" parses. */
 export const dialCodes = [

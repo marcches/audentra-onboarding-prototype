@@ -9,6 +9,7 @@ import {
   ShieldCheckIcon,
   SparkleIcon,
   TrashIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
@@ -38,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  citiesByState,
   citizenshipOptions,
   countries,
   disclosureScopeOptions,
@@ -45,6 +47,8 @@ import {
   relationshipOptions,
   residencyVerificationOptions,
   studentRecord,
+  type UsStateCode,
+  usStates,
 } from "@/lib/fixtures";
 import { emptyEmergencyContact, newContactId, patch, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -78,8 +82,25 @@ const FIELD_SECTIONS: Record<string, SectionId> = {
   grantsFamilyAccess: "family",
   familyMemberName: "family",
   familyMemberEmail: "family",
+  familyMemberRelationship: "family",
   disclosureScope: "family",
 };
+
+/** What to ask for, given what the student just told us about their status. */
+function idDocumentHint(citizenship: string) {
+  switch (citizenship) {
+    case "us-citizen":
+      return "Passport.";
+    case "permanent-resident":
+      return "Driver's license (state-issued).";
+    case "eligible-noncitizen":
+      return "Permanent resident card, or other government-issued photo ID.";
+    case "international":
+      return "Passport of your country of citizenship.";
+    default:
+      return "Passport, national ID or driver's licence.";
+  }
+}
 
 export function AboutYouRoute() {
   const state = useOnboarding();
@@ -105,6 +126,7 @@ export function AboutYouRoute() {
       grantsFamilyAccess: state.aboutYou.grantsFamilyAccess,
       familyMemberName: state.aboutYou.familyMemberName,
       familyMemberEmail: state.aboutYou.familyMemberEmail,
+      familyMemberRelationship: state.aboutYou.familyMemberRelationship,
       disclosureScope: state.aboutYou.disclosureScope,
     },
   });
@@ -128,6 +150,35 @@ export function AboutYouRoute() {
   const values = form.watch();
   const contacts = useFieldArray({ control: form.control, name: "emergencyContacts" });
   const [sectionsNeedingAttention, setSectionsNeedingAttention] = React.useState<SectionId[]>([]);
+
+  /* International students have no U.S. permanent address to give — the whole
+     block hides for that branch (below), and any address already typed before
+     switching to it has to go with it. Otherwise a student who tries "U.S.
+     citizen", fills the block in, then corrects to "International student"
+     would carry a stale U.S. address into a step that no longer shows it, and
+     it would resurface in the agreement. */
+  const citizenship = values.citizenship;
+  React.useEffect(() => {
+    if (citizenship !== "international") return;
+    form.setValue("street", "");
+    form.setValue("unit", "");
+    form.setValue("city", "");
+    form.setValue("state", "");
+    form.setValue("postalCode", "");
+    form.setValue("residencyVerification", "");
+  }, [citizenship, form.setValue]);
+
+  /* The city select is scoped to the chosen state. A state change that leaves
+     the previously chosen city off the new list has to clear it — otherwise
+     the field keeps showing a city that belongs to whichever state used to be
+     selected. */
+  const selectedState = values.state;
+  React.useEffect(() => {
+    const validCities = citiesByState[selectedState as UsStateCode] ?? [];
+    if (values.city && !validCities.some((city) => city.value === values.city)) {
+      form.setValue("city", "");
+    }
+  }, [selectedState, values.city, form.setValue]);
 
   function handleValid() {
     setSectionsNeedingAttention([]);
@@ -216,7 +267,7 @@ export function AboutYouRoute() {
       <form
         onSubmit={form.handleSubmit(handleValid, handleInvalid)}
         noValidate
-        className="space-y-8"
+        className="space-y-6"
       >
         <Accordion
           type="multiple"
@@ -230,14 +281,44 @@ export function AboutYouRoute() {
               <SectionHeader
                 icon={<IdentificationCardIcon weight="duotone" />}
                 title="Who you are"
-                summary="Legal name · date of birth · what we call you · citizenship"
+                summary="Citizenship · legal name · date of birth · what we call you"
                 status={sectionStatus.identity}
               />
             </AccordionTrigger>
-            <AccordionContent className="space-y-6">
+            <AccordionContent className="space-y-5">
+              {/* Citizenship leads the section now: it decides what document to
+                  ask for below and whether the next section's address block
+                  applies at all, so it has to be answered before either of the
+                  things it gates renders. */}
+              <Field
+                label="Citizenship or student status"
+                htmlFor="citizenship"
+                hint="This decides which financial aid and visa steps open later, and what we ask for below."
+                error={errors.citizenship?.message}
+              >
+                <Select
+                  value={values.citizenship}
+                  onValueChange={(value) =>
+                    form.setValue("citizenship", value, { shouldValidate: true })
+                  }
+                >
+                  <SelectTrigger id="citizenship" aria-invalid={Boolean(errors.citizenship)}>
+                    <SelectValue placeholder="Choose one" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {citizenshipOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
               <IdUpload
                 files={state.aboutYou.idDocuments}
                 extracted={state.aboutYou.idExtracted}
+                documentHint={idDocumentHint(values.citizenship)}
                 /* Removing the last file takes the extraction with it. The
                    success notice and the "read from the document you uploaded"
                    note on every locked field both claim provenance from a file
@@ -321,15 +402,15 @@ export function AboutYouRoute() {
                 </Field>
               </div>
 
-              <Field
-                label="Mobile number"
-                htmlFor="about-phone"
-                optional
-                hint="We use this for reminders only if you choose text."
-                error={errors.phone?.message}
-              >
+              {/* Compacted to one row plus one line of helper text — no
+                  standing label block above it. The dial code and number sit
+                  side by side, exactly as `PhoneInput` already lays them out;
+                  what changed is only what wraps them. */}
+              <div className="flex flex-col gap-1.5">
                 <PhoneInput
                   id="about-phone"
+                  aria-label="Mobile number"
+                  aria-describedby="about-phone-hint"
                   dialCode={values.dialCode}
                   onDialCodeChange={(value) =>
                     form.setValue("dialCode", value, { shouldDirty: true })
@@ -337,32 +418,20 @@ export function AboutYouRoute() {
                   invalid={Boolean(errors.phone)}
                   {...form.register("phone")}
                 />
-              </Field>
-
-              <Field
-                label="Citizenship or student status"
-                htmlFor="citizenship"
-                hint="This decides which financial aid and visa steps open later."
-                error={errors.citizenship?.message}
-              >
-                <Select
-                  value={values.citizenship}
-                  onValueChange={(value) =>
-                    form.setValue("citizenship", value, { shouldValidate: true })
-                  }
-                >
-                  <SelectTrigger id="citizenship" aria-invalid={Boolean(errors.citizenship)}>
-                    <SelectValue placeholder="Choose one" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {citizenshipOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+                <p id="about-phone-hint" className="text-small text-ink-500">
+                  Mobile number, optional — we use this for reminders only if you choose text.
+                </p>
+                {errors.phone?.message ? (
+                  <p className="flex items-start gap-1.5 text-small font-medium text-danger-600">
+                    <WarningCircleIcon
+                      weight="fill"
+                      aria-hidden
+                      className="mt-0.5 size-4 shrink-0"
+                    />
+                    <span>{errors.phone.message}</span>
+                  </p>
+                ) : null}
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -376,113 +445,151 @@ export function AboutYouRoute() {
                 status={sectionStatus.residence}
               />
             </AccordionTrigger>
-            <AccordionContent className="space-y-6">
-              {/* Required, and this line is why. The address decides your
-                  residency classification, which decides what you are charged,
-                  and it is where official post goes — the reason survived the
-                  rewrite even though the "all optional" claim above it did
-                  not. */}
-              <p className="text-body text-ink-600">
-                Your permanent address decides your residency classification, which affects your
-                tuition, and it is where official post goes.
-              </p>
-
-              <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
-                <Field label="Street address" htmlFor="street" error={errors.street?.message}>
-                  <Input
-                    id="street"
-                    autoComplete="address-line1"
-                    aria-invalid={Boolean(errors.street)}
-                    {...form.register("street")}
-                  />
-                </Field>
-                <Field label="Apartment or unit" htmlFor="unit" optional>
-                  <Input id="unit" autoComplete="address-line2" {...form.register("unit")} />
-                </Field>
-              </div>
-
-              <div className="grid gap-5 sm:grid-cols-3">
-                <Field label="City" htmlFor="city" error={errors.city?.message}>
-                  <Input
-                    id="city"
-                    autoComplete="address-level2"
-                    aria-invalid={Boolean(errors.city)}
-                    {...form.register("city")}
-                  />
-                </Field>
-                <Field label="State or province" htmlFor="state" error={errors.state?.message}>
-                  <Input
-                    id="state"
-                    autoComplete="address-level1"
-                    aria-invalid={Boolean(errors.state)}
-                    {...form.register("state")}
-                  />
-                </Field>
-                <Field
-                  label="ZIP or postal code"
-                  htmlFor="postal-code"
-                  error={errors.postalCode?.message}
-                >
-                  <Input
-                    id="postal-code"
-                    autoComplete="postal-code"
-                    aria-invalid={Boolean(errors.postalCode)}
-                    {...form.register("postalCode")}
-                  />
-                </Field>
-              </div>
-
-              <Field
-                label="Country"
-                htmlFor="country"
-                className="sm:max-w-xs"
-                error={errors.country?.message}
-              >
-                <Select
-                  value={values.country}
-                  onValueChange={(value) =>
-                    form.setValue("country", value, { shouldValidate: true })
-                  }
-                >
-                  <SelectTrigger id="country" aria-invalid={Boolean(errors.country)}>
-                    <SelectValue placeholder="Choose one" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <fieldset className="space-y-3">
-                <legend className="field-label mb-2">
-                  How Enrollment Services should review your residency classification
-                </legend>
-                <RadioGroup
-                  value={values.residencyVerification}
-                  onValueChange={(value) => form.setValue("residencyVerification", value)}
-                >
-                  {residencyVerificationOptions.map((option) => (
-                    <OptionCard
-                      key={option.value}
-                      value={option.value}
-                      id={`residency-${option.value}`}
-                      label={option.label}
-                      hint={option.hint}
-                    />
-                  ))}
-                </RadioGroup>
-                {/* Empty state, per the Message Library rule: why it is empty,
-                    and what fills it. */}
-                <p className="text-small text-ink-500">
-                  {values.residencyVerification
-                    ? "Enrollment Services will review this and contact you if anything is needed."
-                    : "Review path not selected. Choose one, or leave it and Enrollment Services will pick a path and tell you."}
+            <AccordionContent className="space-y-5">
+              {values.citizenship === "international" ? (
+                /* No U.S. permanent address to give, so nothing to ask for.
+                   The section stays in the accordion rather than disappearing
+                   outright — it still has to say why it's short. */
+                <p className="text-body text-ink-600">
+                  International students skip this section. Enrollment Services uses your visa and
+                  passport details instead of a U.S. permanent address — there's nothing to fill in
+                  here.
                 </p>
-              </fieldset>
+              ) : (
+                <>
+                  {/* Required, and this line is why. The address decides your
+                      residency classification, which decides what you are charged,
+                      and it is where official post goes — the reason survived the
+                      rewrite even though the "all optional" claim above it did
+                      not. */}
+                  <p className="text-body text-ink-600">
+                    Your permanent address decides your residency classification, which affects your
+                    tuition, and it is where official post goes.
+                  </p>
+
+                  <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
+                    <Field label="Street address" htmlFor="street" error={errors.street?.message}>
+                      <Input
+                        id="street"
+                        autoComplete="address-line1"
+                        aria-invalid={Boolean(errors.street)}
+                        {...form.register("street")}
+                      />
+                    </Field>
+                    <Field label="Apartment or unit" htmlFor="unit" optional>
+                      <Input id="unit" autoComplete="address-line2" {...form.register("unit")} />
+                    </Field>
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-3">
+                    <Field label="State" htmlFor="state" error={errors.state?.message}>
+                      <Select
+                        value={values.state}
+                        onValueChange={(value) =>
+                          form.setValue("state", value, { shouldValidate: true })
+                        }
+                      >
+                        <SelectTrigger id="state" aria-invalid={Boolean(errors.state)}>
+                          <SelectValue placeholder="Choose one" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {usStates.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="City" htmlFor="city" error={errors.city?.message}>
+                      <Select
+                        value={values.city}
+                        disabled={!values.state}
+                        onValueChange={(value) =>
+                          form.setValue("city", value, { shouldValidate: true })
+                        }
+                      >
+                        <SelectTrigger id="city" aria-invalid={Boolean(errors.city)}>
+                          <SelectValue
+                            placeholder={values.state ? "Choose one" : "Choose a state first"}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(citiesByState[values.state as UsStateCode] ?? []).map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field
+                      label="ZIP or postal code"
+                      htmlFor="postal-code"
+                      error={errors.postalCode?.message}
+                    >
+                      <Input
+                        id="postal-code"
+                        autoComplete="postal-code"
+                        aria-invalid={Boolean(errors.postalCode)}
+                        {...form.register("postalCode")}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field
+                    label="Country"
+                    htmlFor="country"
+                    className="sm:max-w-xs"
+                    error={errors.country?.message}
+                  >
+                    <Select
+                      value={values.country}
+                      onValueChange={(value) =>
+                        form.setValue("country", value, { shouldValidate: true })
+                      }
+                    >
+                      <SelectTrigger id="country" aria-invalid={Boolean(errors.country)}>
+                        <SelectValue placeholder="Choose one" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((country) => (
+                          <SelectItem key={country.value} value={country.value}>
+                            {country.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <fieldset className="space-y-3">
+                    <legend className="field-label mb-2">
+                      How Enrollment Services should review your residency classification
+                    </legend>
+                    <RadioGroup
+                      value={values.residencyVerification}
+                      onValueChange={(value) => form.setValue("residencyVerification", value)}
+                    >
+                      {residencyVerificationOptions.map((option) => (
+                        <OptionCard
+                          key={option.value}
+                          value={option.value}
+                          id={`residency-${option.value}`}
+                          label={option.label}
+                          hint={option.hint}
+                        />
+                      ))}
+                    </RadioGroup>
+                    {/* Empty state, per the Message Library rule: why it is empty,
+                        and what fills it. */}
+                    <p className="text-small text-ink-500">
+                      {values.residencyVerification
+                        ? "Enrollment Services will review this and contact you if anything is needed."
+                        : "Review path not selected. Choose one, or leave it and Enrollment Services will pick a path and tell you."}
+                    </p>
+                  </fieldset>
+                </>
+              )}
             </AccordionContent>
           </AccordionItem>
 
@@ -498,7 +605,7 @@ export function AboutYouRoute() {
                 status={sectionStatus.emergency}
               />
             </AccordionTrigger>
-            <AccordionContent className="space-y-6">
+            <AccordionContent className="space-y-5">
               <p className="text-body text-ink-600">
                 One person is enough. They get no access to your record — that is the next section.
               </p>
@@ -611,7 +718,7 @@ export function AboutYouRoute() {
                 status={sectionStatus.family}
               />
             </AccordionTrigger>
-            <AccordionContent className="space-y-6">
+            <AccordionContent className="space-y-5">
               <p className="text-body text-ink-600">
                 Choose who can see your record and what they can see. You can change or remove this
                 at any time.
@@ -669,6 +776,39 @@ export function AboutYouRoute() {
                         aria-invalid={Boolean(errors.familyMemberEmail)}
                         {...form.register("familyMemberEmail")}
                       />
+                    </Field>
+                    {/* Same options as an emergency contact's relationship —
+                        one vocabulary for "how you know them" everywhere it's
+                        asked, rather than a second list that can say something
+                        slightly different. */}
+                    <Field
+                      label="Their relationship to you"
+                      htmlFor="family-relationship"
+                      error={errors.familyMemberRelationship?.message}
+                      className="sm:col-span-2 sm:max-w-xs"
+                    >
+                      <Select
+                        value={values.familyMemberRelationship}
+                        onValueChange={(value) =>
+                          form.setValue("familyMemberRelationship", value, {
+                            shouldValidate: true,
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          id="family-relationship"
+                          aria-invalid={Boolean(errors.familyMemberRelationship)}
+                        >
+                          <SelectValue placeholder="Choose one" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {relationshipOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </div>
 

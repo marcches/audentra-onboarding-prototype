@@ -18,15 +18,23 @@ import { cn } from "@/lib/utils";
  *
  * Without the photographs this is a grid of coloured rectangles, which is what
  * the step looked like before.
+ *
+ * Two separate controls per card, on purpose: the photo and copy open the
+ * detail view (Housing's "See the room" pattern, reused), and a badge in the
+ * corner is the pick. Round one made the whole card the pick action, which
+ * meant there was nowhere left to click that meant "tell me more" — a name and
+ * one line of blurb was the entire case for choosing a club.
  */
 export function ClubGrid({
   clubs,
   selected,
   onToggle,
+  onOpenDetail,
 }: {
   clubs: Club[];
   selected: string[];
   onToggle: (id: string) => void;
+  onOpenDetail: (club: Club) => void;
 }) {
   const root = React.useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -51,13 +59,10 @@ export function ClubGrid({
       {clubs.map((club) => {
         const isSelected = selected.includes(club.id);
         return (
-          <button
+          <div
             key={club.id}
-            type="button"
-            aria-pressed={isSelected}
-            onClick={() => onToggle(club.id)}
             className={cn(
-              "group relative overflow-hidden rounded-[var(--radius-card)] border-2 text-left transition-[border-color,box-shadow,transform] duration-200",
+              "group relative overflow-hidden rounded-[var(--radius-card)] border-2 transition-[border-color,box-shadow] duration-200",
               /* `z-10` is what keeps a chosen club out of the spotlight's
                  grayscale wash. The wash is a single layer painted over the
                  whole grid, so it was desaturating the cards the student had
@@ -69,37 +74,57 @@ export function ClubGrid({
                  what you are pointing at. */
               isSelected
                 ? "z-10 border-violet-500 shadow-lift ring-4 ring-violet-500/25"
-                : "border-transparent hover:shadow-card focus-visible:border-violet-300",
+                : "border-transparent hover:shadow-card",
             )}
           >
-            <img
-              src={club.image.src}
-              alt={club.image.alt}
-              loading="lazy"
-              className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
-            />
-            <span
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/35 to-transparent"
-            />
-
-            <span className="absolute inset-x-0 bottom-0 flex items-end gap-2 p-3">
-              <span className="flex-1">
-                <span className="block text-body font-bold text-white">{club.name}</span>
-                <span className="mt-0.5 block text-small text-white/70">{club.blurb}</span>
-              </span>
+            <button
+              type="button"
+              onClick={() => onOpenDetail(club)}
+              className="block w-full text-left"
+            >
+              <img
+                src={club.image.src}
+                alt={club.image.alt}
+                loading="lazy"
+                /* Square rather than 4:3 — two-word names with an "&"
+                   ("Robotics & making") wrap to two lines in a two-column
+                   mobile grid, and a shorter box clipped that second line
+                   against the card's own top edge: the text is positioned
+                   absolutely, so it can grow past the container's height
+                   without stretching it, and `overflow-hidden` then crops
+                   whatever crossed that boundary. The extra height is the
+                   fix; the line-clamps below cap it so even the longest name
+                   and blurb can't reopen the same problem. */
+                className="aspect-square w-full object-cover transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
+              />
               <span
-                className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                  isSelected
-                    ? "border-white bg-violet-500 text-white"
-                    : "border-white/60 bg-white/10 text-transparent",
-                )}
-              >
-                <CheckIcon weight="bold" aria-hidden className="size-3.5" />
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/40 to-transparent"
+              />
+
+              <span className="absolute inset-x-0 bottom-0 p-3 pr-12">
+                <span className="line-clamp-2 text-body font-bold text-white">{club.name}</span>
+                <span className="mt-0.5 line-clamp-2 text-small text-white/70">{club.blurb}</span>
               </span>
-            </span>
-          </button>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => onToggle(club.id)}
+              className={cn(
+                "absolute top-2.5 right-2.5 z-10 flex size-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                isSelected
+                  ? "border-white bg-violet-500 text-white"
+                  : "border-white/70 bg-ink-950/30 text-transparent hover:bg-ink-950/50",
+              )}
+            >
+              <CheckIcon weight="bold" aria-hidden className="size-4" />
+              <span className="sr-only">
+                {isSelected ? `Remove ${club.name} from your picks` : `Pick ${club.name}`}
+              </span>
+            </button>
+          </div>
         );
       })}
 

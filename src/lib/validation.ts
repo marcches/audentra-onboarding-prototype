@@ -117,30 +117,58 @@ export const aboutYouSchema = z
     phone: optionalPhoneNumber,
     citizenship: z.string().min(1, { message: "Choose the one that applies to you." }),
     /**
-     * The permanent address is required, and the whole block is.
-     *
-     * An earlier version of the spec had this optional, which was the reverse
-     * of the primary source: Laura said it three times, twice on the call and
-     * again in the second Jam — "Onde você vive agora? Não é opcional, isso
-     * aqui é obrigatório. Então tudo isso é obrigatório." It decides the
-     * residency classification, which decides tuition, and it is where official
-     * post goes. The unit line stays optional because plenty of addresses do
-     * not have one.
+     * The permanent address is required for every branch except international
+     * students, and the whole block is. Laura said it three times, twice on the
+     * call and again in the second Jam — "Onde você vive agora? Não é
+     * opcional, isso aqui é obrigatório. Então tudo isso é obrigatório." It
+     * decides the residency classification, which decides tuition, and it is
+     * where official post goes — for a U.S. citizen or permanent resident. An
+     * international student has no U.S. permanent address to give, so the
+     * requirement (enforced below, in `superRefine`, where it can see the
+     * citizenship answer) doesn't apply to that branch. The unit line stays
+     * optional throughout because plenty of addresses do not have one.
      */
-    street: z.string().trim().min(1, { message: "Enter your street address." }),
+    street: z.string().trim(),
     unit: z.string().trim(),
-    city: z.string().trim().min(1, { message: "Enter your city or town." }),
-    state: z.string().trim().min(1, { message: "Enter your state or province." }),
-    postalCode: z.string().trim().min(1, { message: "Enter your ZIP or postal code." }),
-    country: z.string().min(1, { message: "Choose the country you live in." }),
+    city: z.string().trim(),
+    state: z.string().trim(),
+    postalCode: z.string().trim(),
+    country: z.string(),
     residencyVerification: z.string(),
     emergencyContacts: z.array(emergencyContactSchema).min(1),
     grantsFamilyAccess: z.boolean(),
     familyMemberName: z.string().trim(),
     familyMemberEmail: z.string().trim(),
+    familyMemberRelationship: z.string().trim(),
     disclosureScope: z.array(z.string()),
   })
   .superRefine((values, ctx) => {
+    if (values.citizenship !== "international") {
+      if (values.street.length === 0) {
+        ctx.addIssue({ code: "custom", path: ["street"], message: "Enter your street address." });
+      }
+      if (values.city.length === 0) {
+        ctx.addIssue({ code: "custom", path: ["city"], message: "Enter your city or town." });
+      }
+      if (values.state.length === 0) {
+        ctx.addIssue({ code: "custom", path: ["state"], message: "Choose your state." });
+      }
+      if (values.postalCode.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["postalCode"],
+          message: "Enter your ZIP or postal code.",
+        });
+      }
+      if (values.country.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["country"],
+          message: "Choose the country you live in.",
+        });
+      }
+    }
+
     if (!values.grantsFamilyAccess) return;
 
     if (values.familyMemberName.length === 0) {
@@ -157,6 +185,14 @@ export const aboutYouSchema = z
         code: "custom",
         path: ["familyMemberEmail"],
         message: "Enter a valid email address — this is where their access goes.",
+      });
+    }
+
+    if (values.familyMemberRelationship.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["familyMemberRelationship"],
+        message: "Choose how you know them.",
       });
     }
 

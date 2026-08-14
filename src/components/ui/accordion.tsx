@@ -46,7 +46,7 @@ function AccordionTrigger({
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
-          "group flex flex-1 items-center gap-4 p-5 text-left transition-colors hover:bg-ink-50/60 sm:px-6",
+          "group flex flex-1 items-center gap-4 p-4 text-left transition-colors hover:bg-ink-50/60 sm:px-5",
           className,
         )}
         {...props}
@@ -73,7 +73,7 @@ function AccordionContent({
       className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
       {...props}
     >
-      <div className={cn("border-t border-ink-100 p-5 sm:px-6", className)}>{children}</div>
+      <div className={cn("border-t border-ink-100 p-4 sm:px-5", className)}>{children}</div>
     </AccordionPrimitive.Content>
   );
 }

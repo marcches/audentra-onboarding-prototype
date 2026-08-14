@@ -76,7 +76,7 @@ export function OfferRoute() {
             agrees to move their life somewhere, and a card of type alone gives
             them nothing to picture. The scrim is what keeps the copy legible
             over it. */}
-        <div className="relative isolate px-6 py-8 text-white sm:px-8 sm:py-10">
+        <div className="relative isolate px-6 py-6 text-white sm:px-8 sm:py-8">
           <img
             src={campusPhotos.offer.src}
             alt={campusPhotos.offer.alt}
@@ -97,7 +97,7 @@ export function OfferRoute() {
 
         {/* The helper text under each fact is the sheet's own, copied: it says
             what the value is without repeating the label back. */}
-        <dl className="grid gap-x-8 gap-y-6 p-6 sm:grid-cols-2 sm:p-8">
+        <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 sm:p-6">
           <Detail
             icon={<GraduationCapIcon weight="duotone" />}
             label="Degree"
@@ -128,12 +128,12 @@ export function OfferRoute() {
       {/* The deposit, out of the four-cell grid it used to be the last item of.
           The number is on the screen either way; what it was missing was any
           weight at all, which is what Laura noticed and could not place. */}
-      <section className="flex flex-col gap-5 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-6 shadow-card sm:flex-row sm:items-center sm:p-7">
+      <section className="flex flex-col gap-4 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card sm:flex-row sm:items-center sm:p-6">
         <div className="sm:w-[13rem] sm:shrink-0">
           <p className="field-label">Enrollment deposit</p>
           <p className="text-display font-black tracking-[-0.03em] text-ink-900">{DEPOSIT}</p>
         </div>
-        <div className="space-y-1.5 border-ink-100 sm:border-l sm:pl-7">
+        <div className="space-y-1.5 border-ink-100 sm:border-l sm:pl-6">
           <p className="text-body font-bold text-ink-900">
             Accepting does not commit you to payment yet.
           </p>
@@ -145,16 +145,16 @@ export function OfferRoute() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-6 shadow-card sm:p-7">
+      <section className="space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card sm:p-6">
         <h2 className="text-h3 text-ink-900">What happens when you accept</h2>
         <ol className="space-y-3">
           <Consequence n={1} title="Your place is reserved">
             Admissions is told the same day, and the place is held for {offer.startingTerm}.
             Deferring to a later term is a separate request and is not automatic.
           </Consequence>
-          <Consequence n={2} title="Five more steps open">
-            About you, housing, campus life, your document packet and the deposit. Your answers are
-            kept as you go.
+          <Consequence n={2} title="Six more steps open">
+            About you, housing, campus life, health information, your document packet and the
+            deposit. Your answers are kept as you go.
           </Consequence>
           <Consequence n={3} title="Your answer is final here">
             One response only. To change it afterwards, contact Admissions at{" "}

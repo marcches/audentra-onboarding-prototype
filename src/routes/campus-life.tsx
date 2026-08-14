@@ -1,26 +1,26 @@
 import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
+import * as React from "react";
 
+import { ClubDetail } from "@/components/club-detail";
 import { ClubGrid } from "@/components/club-grid";
-import { Field } from "@/components/field";
-import { Notice } from "@/components/notice";
-import { OptionCard } from "@/components/option-card";
 import { ContextPanel, SectionTitle, StepActions, StepShell } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
-import { RadioGroup } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
-import { type Club, clubs, institution } from "@/lib/fixtures";
+import { type Club, type ClubCategory, clubCategories, clubs } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 /**
- * Campus life, cut from five blocks to two.
+ * Campus life, cut from five blocks to one.
  *
  * The live step asks for clubs, then a social-setting preference, then "what
- * would you love to find", then support topics, then accommodations. Three of
+ * would you love to find", then support topics, then accommodations. Four of
  * those are profile questions wearing an enrollment step's clothes — the same
  * objection Laura made to the housing lifestyle questionnaire, applied one
- * screen along. What survives is the part with a consequence (accommodations)
- * and the part that is actually a pleasure to answer (clubs).
+ * screen along. What survives is the part that is actually a pleasure to
+ * answer: clubs. The one item with a real consequence — accommodations — moved
+ * out entirely, into its own Health information step, once it grew
+ * documentation uploads a "clubs and interests" screen had no business holding.
  *
  * This was the fourth and last screen where Laura complained about the space,
  * and the only one where she said she had no solution: "está muito esparramada,
@@ -36,9 +36,29 @@ export function CampusLifeRoute() {
   const navigate = useNavigate();
   const campusLife = state.campusLife;
 
+  const [categoryFilter, setCategoryFilter] = React.useState<ClubCategory[]>([]);
+  const [detailClub, setDetailClub] = React.useState<Club | null>(null);
+
   const picked = campusLife.clubs
     .map((id) => clubs.find((club) => club.id === id))
     .filter((club): club is Club => Boolean(club));
+
+  /* The filter narrows what's on screen, never what's picked. `picked` above
+     always reads from the full `clubs` list, so a club chosen and then
+     filtered out of view stays chosen — the running total in `Picks` and the
+     grid's own checkmarks never depend on which categories happen to be
+     toggled right now. */
+  const visibleClubs =
+    categoryFilter.length === 0
+      ? clubs
+      : clubs.filter((club) => categoryFilter.includes(club.category));
+
+  const toggleCategory = (category: ClubCategory) =>
+    setCategoryFilter((current) =>
+      current.includes(category)
+        ? current.filter((value) => value !== category)
+        : [...current, category],
+    );
 
   const toggle = (id: string) =>
     patch("campusLife", {
@@ -50,12 +70,11 @@ export function CampusLifeRoute() {
   /**
    * Skipping is not answering. Both buttons used to write `submitted: true`,
    * which put a tick against Campus life in the rail for a student who
-   * deliberately passed on it — and, worse, told Review & sign the
-   * accommodations question had been answered when it had not.
+   * deliberately passed on it.
    */
   const goNext = (answered: boolean) => {
     if (answered) patch("campusLife", { submitted: true });
-    navigate({ to: "/onboarding/review" });
+    navigate({ to: "/onboarding/health" });
   };
 
   return (
@@ -70,7 +89,24 @@ export function CampusLifeRoute() {
           Clubs and interests
         </SectionTitle>
 
-        <ClubGrid clubs={clubs} selected={campusLife.clubs} onToggle={toggle} />
+        <CategoryFilter
+          selected={categoryFilter}
+          onToggle={toggleCategory}
+          onClear={() => setCategoryFilter([])}
+        />
+
+        <ClubGrid
+          clubs={visibleClubs}
+          selected={campusLife.clubs}
+          onToggle={toggle}
+          onOpenDetail={setDetailClub}
+        />
+
+        {visibleClubs.length === 0 ? (
+          <p className="text-small text-ink-500">
+            Nothing matches that filter. Clear it to see all nine clubs again.
+          </p>
+        ) : null}
 
         {/* The running total, announced. Each card reports only its own pressed
             state, and the Picks panel that carries the count is static text
@@ -87,71 +123,72 @@ export function CampusLifeRoute() {
         </p>
       </section>
 
-      <section className="space-y-4">
-        <SectionTitle description="Ask Disability Services to contact you. Do not upload medical records here.">
-          Do you need any accommodations?
-        </SectionTitle>
-
-        <RadioGroup
-          value={campusLife.accommodations}
-          onValueChange={(value) => patch("campusLife", { accommodations: value as "yes" | "no" })}
-        >
-          <OptionCard
-            value="yes"
-            id="accommodations-yes"
-            label="Yes, contact me"
-            hint="Disability Services will contact you by email within 3 working days"
-          />
-          <OptionCard
-            value="no"
-            id="accommodations-no"
-            label="No, not right now"
-            hint="You can ask at any point in the year"
-          />
-        </RadioGroup>
-
-        {campusLife.accommodations === "yes" ? (
-          <div className="space-y-4">
-            {/* This warning is load-bearing, not boilerplate: this box is not a
-                medical record and is not stored like one. */}
-            <Notice tone="caution" title="Do not put medical details here">
-              A sentence about what would help is enough. Disability Services will tell you what
-              they need, over a channel built for it.
-            </Notice>
-
-            <Field
-              label="What would help?"
-              htmlFor="accommodation-note"
-              optional
-              hint="Skip it if you would rather talk to a person first."
-            >
-              <Textarea
-                id="accommodation-note"
-                value={campusLife.accommodationNote}
-                onChange={(event) => patch("campusLife", { accommodationNote: event.target.value })}
-                placeholder="A note-taker in lectures, step-free routes between buildings…"
-              />
-            </Field>
-          </div>
-        ) : null}
-
-        {campusLife.accommodations === "no" ? (
-          <Notice tone="info" title="Nothing is recorded">
-            Ask {institution.housingOffice} or Disability Services whenever you need to.
-          </Notice>
-        ) : null}
-      </section>
+      <ClubDetail
+        club={detailClub}
+        open={detailClub !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailClub(null);
+        }}
+      />
 
       <StepActions>
         <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
           Skip for now
         </Button>
         <Button type="button" size="lg" onClick={() => goNext(true)}>
-          Next: review &amp; sign
+          Next: health information
           <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
         </Button>
       </StepActions>
     </StepShell>
+  );
+}
+
+/**
+ * Category filter, above the grid. Multi-select — narrowing to "sport" and
+ * "outdoors" at once is a normal way to browse nine options down to the two or
+ * three someone actually cares about.
+ */
+function CategoryFilter({
+  selected,
+  onToggle,
+  onClear,
+}: {
+  selected: ClubCategory[];
+  onToggle: (category: ClubCategory) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {clubCategories.map((category) => {
+        const active = selected.includes(category.value);
+        return (
+          <button
+            key={category.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onToggle(category.value)}
+            className={cn(
+              "rounded-[var(--radius-pill)] border px-3.5 py-1.5 text-small font-bold transition-colors",
+              active
+                ? "border-violet-500 bg-violet-500 text-white"
+                : "border-ink-200 bg-surface text-ink-600 hover:border-ink-300",
+            )}
+          >
+            {category.label}
+          </button>
+        );
+      })}
+      {selected.length > 0 ? (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-small font-bold text-violet-600 transition-colors hover:text-violet-700"
+        >
+          Clear filter
+        </button>
+      ) : null}
+    </div>
   );
 }
 

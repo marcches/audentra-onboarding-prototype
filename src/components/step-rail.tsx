@@ -1,15 +1,16 @@
-import { CheckIcon } from "@phosphor-icons/react";
+import { CheckIcon, SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
 import { InstitutionBadge } from "@/components/institution-badge";
 import { Wordmark } from "@/components/wordmark";
 import { institution } from "@/lib/fixtures";
+import { totalPoints } from "@/lib/points";
 import { type StepId, stepCount, stepIndex, steps } from "@/lib/steps";
 import { completedSteps, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
- * The sidebar counts `steps`, so the "N of 6" can never disagree with what is
+ * The sidebar counts `steps`, so the "N of 7" can never disagree with what is
  * actually in the flow. The live portal shows "N of 8" because Emergency
  * contacts and Family permissions are still steps there; here they are
  * sections of About you, and the count follows automatically.
@@ -18,6 +19,7 @@ export function StepRail({ current }: { current: StepId }) {
   const state = useOnboarding();
   const done = completedSteps(state);
   const currentIndex = stepIndex(current);
+  const points = totalPoints(state);
 
   return (
     <>
@@ -51,7 +53,7 @@ export function StepRail({ current }: { current: StepId }) {
             on each child's *bottom* edge, which pinned every rule flush against
             the content above it and left the whole 48px of breathing room on
             the far side. */}
-        <div className="sticky top-0 flex h-dvh flex-col overflow-y-auto p-8">
+        <div className="sticky top-0 flex h-dvh flex-col overflow-y-auto p-7">
           {/* The institution leads. This is its portal; Audentra is the thing
               it runs on, and that goes at the foot of the rail. */}
           <InstitutionBadge />
@@ -59,6 +61,12 @@ export function StepRail({ current }: { current: StepId }) {
           <div className="mt-6 space-y-3 border-t border-ink-100 pt-6">
             <div className="flex items-baseline justify-between">
               <h2 className="text-h3 text-ink-900">Your path to {institution.short}</h2>
+              {points > 0 ? (
+                <span className="flex items-center gap-1 text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
+                  <SparkleIcon weight="fill" aria-hidden className="size-3.5" />
+                  {points} pts
+                </span>
+              ) : null}
             </div>
             <p className="text-small text-ink-500">
               {done.length} of {stepCount} saved. Your answers are kept as you go.
@@ -122,14 +130,25 @@ export function StepRail({ current }: { current: StepId }) {
                           index + 1
                         )}
                       </span>
-                      <span className="flex flex-col">
-                        <span
-                          className={cn(
-                            "text-body font-bold",
-                            isCurrent ? "text-violet-700" : "text-ink-800",
-                          )}
-                        >
-                          {step.label}
+                      <span className="flex flex-1 flex-col">
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "text-body font-bold",
+                              isCurrent ? "text-violet-700" : "text-ink-800",
+                            )}
+                          >
+                            {step.label}
+                          </span>
+                          {/* The points badge — only where they've actually
+                              been earned. Showing it on every row, done or
+                              not, would read as a menu of prices rather than a
+                              record of what this step was worth finishing. */}
+                          {isDone ? (
+                            <span className="text-micro font-bold text-mint-600">
+                              +{step.points}
+                            </span>
+                          ) : null}
                         </span>
                         <span className="text-small text-ink-500">{step.blurb}</span>
                       </span>

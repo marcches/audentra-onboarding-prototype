@@ -11,6 +11,7 @@ import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
 import { DepositRoute } from "@/routes/deposit";
 import { EntryRoute } from "@/routes/entry";
+import { HealthRoute } from "@/routes/health";
 import { HousingRoute } from "@/routes/housing";
 import { OfferRoute } from "@/routes/offer";
 import { ReviewRoute } from "@/routes/review";
@@ -97,6 +98,12 @@ const campusLifeRoute = createRoute({
   component: CampusLifeRoute,
 });
 
+const healthRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: "health",
+  component: HealthRoute,
+});
+
 const reviewRoute = createRoute({
   getParentRoute: () => onboardingRoute,
   path: "review",
@@ -131,6 +138,7 @@ const routeTree = rootRoute.addChildren([
     aboutYouRoute,
     housingRoute,
     campusLifeRoute,
+    healthRoute,
     reviewRoute,
     depositRoute,
   ]),

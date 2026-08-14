@@ -6,35 +6,14 @@ import { Button } from "@/components/ui/button";
 import type { UploadedFile } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-/** The sheet's restrictions, verbatim: "PDF, JPEG, PNG. Up to 8 files, 30 MB total." */
 const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
 const ACCEPT_ATTR = ".pdf,.jpg,.jpeg,.png";
 const MAX_FILES = 8;
 const MAX_TOTAL_BYTES = 30 * 1024 * 1024;
 
-/**
- * Below this, an image is treated as too low-quality to read — the SC-012 case,
- * "uploads a low-quality image". A prototype has no OCR to fail, so the failure
- * needs a trigger a reviewer can actually reach: dropping in a tiny thumbnail
- * produces the unreadable path, and a real photograph or scan produces the
- * success path.
- */
-const UNREADABLE_UNDER_BYTES = 20 * 1024;
+type UploadError = "type" | "size" | "total" | "count";
 
-type UploadError = "type" | "size" | "total" | "count" | "unreadable";
-
-/**
- * The first four are the sheet's own strings (field inventory, line 18).
- *
- * `total` is the one addition, and it exists because the sheet's size message
- * is about a single file: reporting "this file is larger than 30 MB" when a
- * 12 MB file is refused for pushing the *running total* past the limit tells
- * the student something they can see is false, and leaves them retrying the
- * same file. Written to the Inline validation rule — what is wrong, and what
- * would be acceptable.
- */
 const ERRORS: Record<UploadError, string> = {
-  unreadable: "We could not read this document. Fill the fields in yourself, or try another file.",
   type: "This file type is not accepted. Use PDF, JPEG or PNG.",
   size: "This file is larger than 30 MB.",
   total: "Your files come to more than 30 MB in total. Remove one, or attach a smaller file.",
@@ -47,30 +26,21 @@ function formatSize(bytes: number) {
 }
 
 /**
- * The identity document upload.
- *
- * This existed as a promise and nothing else: a notice announcing that EDward
- * reads your ID, with no control behind it. Laura went looking for the control
- * on camera — "onde que eu coloco aqui o upload e o national ID? Eu faço o
- * upload onde?" — which is the clearest possible verdict on "keep it as it is".
- *
- * The upload is real. The extraction behind it is simulated, like everything
- * else in this prototype: what was out of scope was OCR, not the existence of
- * somewhere to click.
+ * A general document upload — the identity upload's drag-and-drop, file list
+ * and remove behaviour, minus the simulated OCR read. A medical letter or an
+ * immunization record is never "extracted" into a field; it is attached and
+ * kept, and that is the whole of what this needs to do.
  */
-export function IdUpload({
+export function DocumentUpload({
+  label,
+  hint,
   files,
-  extracted,
-  documentHint = "Passport, national ID or driver's licence.",
   onChange,
-  onExtracted,
 }: {
+  label: string;
+  hint: string;
   files: UploadedFile[];
-  extracted: boolean;
-  /** What to accept, given what the student already told us — e.g. citizenship. */
-  documentHint?: string;
   onChange: (files: UploadedFile[]) => void;
-  onExtracted: () => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [error, setError] = React.useState<UploadError | null>(null);
@@ -84,26 +54,13 @@ export function IdUpload({
 
     if (files.length + list.length > MAX_FILES) return setError("count");
     if (list.some((file) => !ACCEPTED.includes(file.type))) return setError("type");
-    // One file over the limit on its own, and the running total over it, are
-    // different problems with different remedies, so they get different
-    // messages. Told the same thing, a student refused for the total retries
-    // the file they were just shown is under the limit.
     if (list.some((file) => file.size > MAX_TOTAL_BYTES)) return setError("size");
     const nextTotal = total + list.reduce((sum, file) => sum + file.size, 0);
     if (nextTotal > MAX_TOTAL_BYTES) return setError("total");
 
     const added = list.map((file) => ({ name: file.name, size: file.size }));
     onChange([...files, ...added]);
-
-    /* The read either works or it does not, and the student is told which.
-       "Nothing was lost" is the point of the failure path: the fields stay
-       fillable by hand and the file stays attached. */
-    if (added.some((file) => file.size < UNREADABLE_UNDER_BYTES)) {
-      setError("unreadable");
-      return;
-    }
     setError(null);
-    onExtracted();
   }
 
   return (
@@ -111,8 +68,7 @@ export function IdUpload({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop is an
           enhancement layered on top of the "Choose files" button inside this
           box, which is the keyboard and screen-reader path and is always
-          present. Giving the drop zone a role would announce a control that
-          nobody without a pointer can operate. */}
+          present. */}
       <div
         onDragOver={(event) => {
           event.preventDefault();
@@ -133,13 +89,9 @@ export function IdUpload({
           <FileArrowUpIcon weight="duotone" aria-hidden className="size-5.5" />
         </span>
         <div className="space-y-1">
-          {/* Helper text, the sheet's own. It says what is wanted and why, and
-              it does not repeat the label above it. */}
-          <p className="text-body font-bold text-ink-900">
-            Upload an ID and we will fill in what we can.
-          </p>
+          <p className="text-body font-bold text-ink-900">{label}</p>
           <p className="text-small text-ink-500">
-            {documentHint} PDF, JPEG or PNG, up to 8 files, 30 MB in total.
+            {hint} PDF, JPEG or PNG, up to 8 files, 30 MB in total.
           </p>
         </div>
         <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}>
@@ -151,7 +103,7 @@ export function IdUpload({
           multiple
           accept={ACCEPT_ATTR}
           className="sr-only"
-          aria-label="Upload an identity document"
+          aria-label={label}
           onChange={(event) => {
             accept(event.target.files);
             // Cleared so re-picking the same file fires `change` again.
@@ -199,13 +151,6 @@ export function IdUpload({
       {error ? (
         <Notice alert tone="caution" title="Nothing was lost">
           {ERRORS[error]}
-        </Notice>
-      ) : null}
-
-      {extracted && !error ? (
-        <Notice tone="success" title="We read your document">
-          We read your document and filled in the fields below. Check them before continuing. We
-          keep your original file, and nothing we read counts until a person checks it.
         </Notice>
       ) : null}
     </div>

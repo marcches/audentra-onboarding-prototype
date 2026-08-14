@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildAgreement, issueReference, legalName } from "@/lib/agreement";
 import { institution, offer } from "@/lib/fixtures";
+import { totalPoints } from "@/lib/points";
 import { patch, useOnboarding } from "@/lib/store";
 import { buildSummary } from "@/lib/summary";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ export function ReviewRoute() {
   const review = state.review;
   const summary = buildSummary(state);
   const clauses = buildAgreement(state);
+  const points = totalPoints(state);
 
   const signatureRef = React.useRef<HTMLDivElement>(null);
   /* Bumped on confirm. It is what tells the signature block to play its one
@@ -111,7 +113,7 @@ export function ReviewRoute() {
         review={review}
         applyToken={applyToken}
       />
-      <SummaryPanel summary={summary} />
+      <SummaryPanel summary={summary} points={points} />
     </StepShell>
   );
 }
@@ -196,8 +198,8 @@ function AgreementSheet({
         </p>
       </header>
 
-      <div className="px-6 py-7 sm:px-9">
-        <div className="space-y-6">
+      <div className="px-6 py-6 sm:px-8">
+        <div className="space-y-5">
           {clauses.map((clause) => (
             <article key={clause.number} className="space-y-1.5">
               <h3 className="text-body font-bold text-ink-900">
@@ -379,15 +381,27 @@ function SignPanel({
  * signed, it is long, and the two columns it sits between are the document and
  * the one control that has to stay put.
  */
-function SummaryPanel({ summary }: { summary: ReturnType<typeof buildSummary> }) {
+function SummaryPanel({
+  summary,
+  points,
+}: {
+  summary: ReturnType<typeof buildSummary>;
+  points: number;
+}) {
   return (
     <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-200 bg-surface shadow-card">
-      <header className="space-y-1 border-b border-ink-100 px-6 py-4">
-        <h2 className="text-h3 text-ink-900">Your answers</h2>
-        <p className="text-small text-ink-500">
-          These are what the agreement above says. If a line is wrong, edit takes you to it and
-          brings you back.
-        </p>
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-ink-100 px-6 py-4">
+        <div className="space-y-1">
+          <h2 className="text-h3 text-ink-900">Your answers</h2>
+          <p className="text-small text-ink-500">
+            These are what the agreement above says. If a line is wrong, edit takes you to it and
+            brings you back.
+          </p>
+        </div>
+        {/* The running total — the sum of whatever was actually completed, not
+            a hardcoded max. Sharing at the accept-offer moment adds to this
+            too, so it can read higher than the steps below add up to. */}
+        <p className="text-small font-bold text-violet-700">{points} points earned</p>
       </header>
 
       <div className="divide-y divide-ink-50">
@@ -395,6 +409,23 @@ function SummaryPanel({ summary }: { summary: ReturnType<typeof buildSummary> })
           <div key={group.id} className="px-6 py-4">
             <header className="flex items-center gap-2">
               <h3 className="flex-1 text-body font-bold text-ink-900">{group.label}</h3>
+              {/* Read straight from the step-order source (see `steps.ts`), so
+                  this can never say something different from the rail or
+                  About you's own section index. */}
+              <span className="text-micro font-bold tracking-[0.06em] text-ink-400 uppercase">
+                ~{group.timeEstimateMinutes} min
+              </span>
+              <span className="text-micro font-bold tracking-[0.06em] text-mint-600 uppercase">
+                {group.points} pts
+              </span>
+              <span
+                className={cn(
+                  "rounded-[var(--radius-pill)] px-2 py-0.5 text-micro font-bold tracking-[0.06em] uppercase",
+                  group.required ? "bg-violet-50 text-violet-700" : "bg-ink-50 text-ink-500",
+                )}
+              >
+                {group.required ? "Required" : "Optional"}
+              </span>
               <Button asChild variant="ghost" size="sm">
                 {/* `from=review` is what the destination step reads to offer
                     the way back — see ReturnToReview in step-shell.tsx. */}
