@@ -107,7 +107,11 @@ function SecureYourPlace() {
         </>
       }
     >
-      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+      {/* `items-start`, because a grid row stretches its items to the tallest
+          of them by default — which is `fill` reintroduced by CSS after the
+          prop was deleted. It put 76px of white inside "What happens next"
+          on the receipt, beside a taller receipt sheet. */}
+      <div className="grid grid-cols-12 items-start gap-3 narrow:grid-cols-1">
         <OnGround
           reason="checkout-asymmetry"
           as="section"
@@ -192,10 +196,10 @@ function SecureYourPlace() {
                   selected={deposit.method === "bank-transfer"}
                   onSelect={() => set({ method: "bank-transfer" })}
                 >
-                  <p className="pt-2 text-micro leading-4 text-ink-600">
+                  <Prose size="note" className="pt-2 text-ink-600">
                     Takes two to three working days to clear. Your place is held from the moment you
                     confirm.
-                  </p>
+                  </Prose>
                 </MethodRow>
               </div>
             </div>
@@ -355,7 +359,7 @@ function DoubleCheck() {
         </>
       }
     >
-      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+      <div className="grid grid-cols-12 items-start gap-3 narrow:grid-cols-1">
         <OnGround
           reason="checkout-asymmetry"
           as="section"
@@ -444,7 +448,7 @@ function Receipt() {
       saved={false}
       actions={<ContinueAction label="Finish" onClick={goNext} />}
     >
-      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+      <div className="grid grid-cols-12 items-start gap-3 narrow:grid-cols-1">
         <Sections signature className="col-span-7 narrow:col-span-1">
           <Section title="Your receipt" collapsible={false}>
             <div className="flex items-center gap-2.5">

@@ -6,10 +6,38 @@
 que era falso e foi herdado por um spec inteiro. O que os testes não conseguem
 julgar é composição, tom e movimento, e é disso que este roteiro trata.
 
-Rode em desktop (1440 e 1280) **e** em 390px de largura. Comece limpo:
-`localStorage.clear()` no console, depois recarregue.
+Rode em **1366x768** (o viewport da ADR 0008) **e** em **390x844**. Comece
+limpo: `localStorage.clear()` no console, depois recarregue.
 
 A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
+
+---
+
+## O que a rodada "identidade e os blocos quebrados" mediu
+
+Cada defeito daquela rodada foi medido em 1366x768 **antes** de qualquer coisa
+ser desenhada. A tabela abaixo repete a medição no fluxo entregue, para que a
+próxima rodada não comece discutindo se melhorou.
+
+| Defeito | Antes | Depois |
+|---|---|---|
+| Conector do rail desalinhado | marcador `x=28`, linha `x=23.5` (4,5px em cinco grupos) | marcador, linha e marca todos em `x=28`, nos cinco grupos |
+| Prosa dentro de uma Section | 89 caracteres por linha (577px) no bloco FERPA | 68 caracteres (373px) |
+| Vão dentro de uma Section | `who-you-are` §3: ~90px de branco sob uma frase | 0 |
+| Vão dentro de uma folha | `health` §2: ~140px sob a dropzone | 0 |
+| Vão sob uma folha | `who-we-call`: folha termina em y≈400, ~280px de Ground | Ground continua ali, e é aceito |
+| Gradiente da marca no app | 3 usos, nenhum num cabeçalho de Section | 1 régua por tela de trabalho + o marcador da Section corrente |
+| Quests contados | nove para international, dez para os demais | nove para todo mundo |
+
+Varredura das oito telas de trabalho em 1366x768: **nenhum parágrafo dentro de
+uma Section acima de 75 caracteres**, **nenhum vão**, **exatamente uma régua por
+tela** (zero em Housing e Campus life, que são catálogos e não têm folha de
+trabalho). Em 390x844: sem overflow horizontal, nada cortado, nada sobreposto,
+rail fora do fluxo e PhaseBar no lugar. Console limpo em todo o percurso.
+
+Uma medida fica em 76: a legenda da dropzone em Health ("A letter or report from
+a clinician. PDF, JPEG or PNG · up to 8 files, 30 MB"). É legenda de controle,
+não parágrafo, e trunca em vez de quebrar.
 
 ---
 

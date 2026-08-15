@@ -1,7 +1,7 @@
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useReducedMotion } from "motion/react";
 import * as React from "react";
-
+import { Prose } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import type { SignaturePoint } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -173,9 +173,9 @@ function Provenance({ reference }: { reference: string }) {
         </Button>
       </div>
 
-      <p className="mt-2.5 border-t border-ink-100 pt-2.5 text-small text-ink-500">
+      <Prose className="mt-2.5 border-t border-ink-100 pt-2.5 text-ink-500">
         Quote this reference if you contact anyone about this agreement. A copy is in My Documents.
-      </p>
+      </Prose>
     </div>
   );
 }

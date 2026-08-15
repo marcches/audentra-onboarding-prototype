@@ -163,11 +163,11 @@ export function ReviewRoute() {
           <Section title="Sign it" collapsible={false}>
             {/* The line that makes a U.S. reader recognise this as a signature
                 rather than as another field (Oyster, DocuSign). */}
-            <p className="text-micro leading-4 text-ink-500">
+            <Prose size="note">
               By signing electronically you agree that your electronic signature is the legal
               equivalent of your handwritten one, and that Aster may keep and send these records
               electronically.
-            </p>
+            </Prose>
 
             <Tabs
               className="mt-2"

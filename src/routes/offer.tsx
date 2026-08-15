@@ -136,10 +136,10 @@ export function OfferRoute() {
                   <p className="text-h3 text-ink-900 numeric">
                     {formatMoney(offer.depositAmount, offer.depositCurrency)}
                   </p>
-                  <p className="text-micro leading-4 text-ink-600">
+                  <Prose size="note" className="text-ink-600">
                     Enrollment deposit, credited against your first term's tuition, not charged on
                     top of it.
-                  </p>
+                  </Prose>
                 </div>
               </div>
             </Section>

@@ -444,11 +444,11 @@ function FerpaExplanation() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 border-t border-ink-100 pt-2 text-micro leading-4 text-ink-500">
+          <Prose size="note" className="mt-2 border-t border-ink-100 pt-2">
             Not with anyone who asks, including a parent who is paying your fees. Naming someone
             below is how you change that, and you can widen, narrow or withdraw it at any time in
             writing.
-          </p>
+          </Prose>
         </Well>
       </Reveal>
     </div>

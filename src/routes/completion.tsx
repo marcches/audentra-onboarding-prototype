@@ -205,39 +205,52 @@ function StudentCard({ residence }: { residence?: string }) {
         </IconTile>
       </div>
 
-      <div>
-        <p className="text-h1 font-bold">
-          {studentRecord.legalFirstName} {studentRecord.legalLastName}
-        </p>
-        {/* Uneven columns: the enrolment ID is the longest string on the card
-            and an even third wraps it onto two lines, which on a card that is
-            meant to be screenshotted is the one thing that must not happen. */}
-        {/* `pr-14` keeps the last column clear of the wordmark in the corner.
-            On a card that exists to be screenshotted, a mark sitting on top of
-            the enrolment year is the one thing that must not happen. */}
-        <dl className="mt-2 grid grid-cols-[1.5fr_1fr_0.6fr] gap-2 pr-14">
-          <div>
-            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
-              Enrolment ID
-            </dt>
-            <dd className="text-small font-bold numeric">{enrollment.id}</dd>
-          </div>
-          <div>
-            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
-              Residence
-            </dt>
-            <dd className="truncate text-small font-bold">{residence ?? "To be assigned"}</dd>
-          </div>
-          <div>
-            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
-              Class of
-            </dt>
-            <dd className="text-small font-bold numeric">{enrollment.classOf}</dd>
-          </div>
-        </dl>
-      </div>
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-h1 font-bold">
+            {studentRecord.legalFirstName} {studentRecord.legalLastName}
+          </p>
+          {/* Two rows, not three columns.
+            Four things were competing for one 320px row — three fields and the
+            wordmark — and every arrangement of it broke somewhere: `fr` columns
+            wrapped "AST-2027-014882" and "CLASS OF" onto second lines, and the
+            wrapped year landed on top of the wordmark's "A". Sized columns
+            stopped the wrapping and squeezed the Residence to "Aste…".
+            The card has vertical room it was not using, so the two short fixed
+            strings share the top row and the Residence gets its own beneath
+            them, where it fits whole.
 
-      <Wordmark className="absolute right-4 bottom-4 h-3 opacity-70" tone="knockout" />
+            The wordmark is a **sibling of this block**, not an absolutely
+            positioned mark with a hand-tuned reserve behind it. The reserve was
+            56px, the mark is wider than that, and on a card that exists to be
+            screenshotted an enrolment year under a logo is the one thing that
+            must not happen. In flow it cannot. */}
+          <dl className="mt-2 flex flex-col gap-1">
+            <div className="flex items-start gap-4 whitespace-nowrap">
+              <div>
+                <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+                  Enrolment ID
+                </dt>
+                <dd className="text-small font-bold numeric">{enrollment.id}</dd>
+              </div>
+              <div>
+                <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+                  Class of
+                </dt>
+                <dd className="text-small font-bold numeric">{enrollment.classOf}</dd>
+              </div>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+                Residence
+              </dt>
+              <dd className="truncate text-small font-bold">{residence ?? "To be assigned"}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <Wordmark className="mb-0.5 h-3 shrink-0 opacity-70" tone="knockout" />
+      </div>
     </div>
   );
 }

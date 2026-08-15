@@ -112,9 +112,13 @@ export function EntryRoute() {
               could not know whether this student had nine Quests or ten; every
               student walks the same nine now (ADR 0011), so the figure the
               entrance announces is the figure they go on to earn. */}
+          {/* The comma belongs to the clause before it, not to the one after.
+              Split across two flex children it inherited the row's `gap-x`, so
+              the line read "About 23 minutes , saved as you go" — punctuation
+              pushed off its own word by a layout gap. */}
           <p className="flex flex-wrap items-baseline gap-x-1.5 text-small text-ink-500">
-            <span className="font-strong text-ink-700 numeric">About {totalMinutes} minutes</span>
-            <span>, saved as you go.</span>
+            <span className="font-strong text-ink-700 numeric">About {totalMinutes} minutes,</span>
+            <span>saved as you go.</span>
             <span className="numeric">
               {stepCount} quests, worth {totalPointsAvailable} points toward credit at the campus
               bookstore.

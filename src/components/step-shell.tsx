@@ -408,7 +408,13 @@ export function StepShell({
             <motion.header key={beat.key} {...beat.enter(0)} className="flex items-baseline gap-3">
               <div className="min-w-0 flex-1">
                 <h1 className="text-h1 text-ink-900">{title}</h1>
-                {lead ? <p className="mt-0.5 text-small text-ink-500">{lead}</p> : null}
+                {/* The lead takes the prose measure like everything else that
+                    is prose. It was exempt on the grounds that a subtitle is
+                    scanned rather than read — and then Campus life's ran to 113
+                    characters on one line, which is three sentences, not a
+                    subtitle. Two lines under an `h1` is ordinary; a line nobody
+                    can track to its end is not. */}
+                {lead ? <Prose className="mt-0.5 text-ink-500">{lead}</Prose> : null}
               </div>
               {headerAside ? <div className="shrink-0">{headerAside}</div> : null}
             </motion.header>

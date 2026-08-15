@@ -360,8 +360,19 @@ export function Reveal({
       )}
     >
       {/* The clip that lets the track animate without the content spilling
-          while it is between sizes. */}
-      <div className="min-h-0 overflow-hidden">{children}</div>
+          while it is between sizes.
+
+          `inert` while closed, because a collapsed track is still *there*: the
+          subtree keeps its place in the tab order and stays hit-testable, so a
+          keyboard user tabs into a textarea nobody can see and a click lands on
+          the first file input on the page rather than the visible one. Found by
+          walking the flow — Health's medical upload, which is inside a closed
+          Reveal, swallowed a file meant for the immunization record two Sections
+          below it. `hidden`/`display:none` would fix it too and would kill the
+          transition; `inert` does not. */}
+      <div inert={!open} className="min-h-0 overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }
