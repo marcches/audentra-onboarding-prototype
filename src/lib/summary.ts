@@ -3,7 +3,6 @@ import {
   citizenshipOptions,
   clubs,
   disclosureScopeOptions,
-  housingIntents,
   protectionOptions,
   relationshipOptions,
   residences,
@@ -163,41 +162,34 @@ function identityContactRows(state: OnboardingState): SummaryRow[] {
 
 function housingRows(state: OnboardingState): SummaryRow[] {
   const housing = state.housing;
-  const intentLabel = housing.intent ? labelFor(housingIntents, housing.intent) : null;
 
-  const rows: SummaryRow[] = [
+  if (housing.arrangingOwn) {
+    return [
+      { label: "Where you'll live", value: "Arranging your own housing" },
+      {
+        label: "Tuition / housing protection",
+        value: labelFor(protectionOptions, housing.protectionInterest) ?? NOT_ANSWERED,
+        missing: !housing.protectionInterest,
+      },
+    ];
+  }
+
+  const ranked = housing.residenceRanking
+    .map((id) => residences.find((residence) => residence.id === id)?.name)
+    .filter(Boolean);
+
+  return [
     {
-      label: "Where you'll live",
-      value: intentLabel ?? NOT_ANSWERED,
-      missing: !intentLabel,
-    },
-  ];
-
-  if (housing.intent === "on-campus") {
-    const ranked = housing.residenceRanking
-      .map((id) => residences.find((residence) => residence.id === id)?.name)
-      .filter(Boolean);
-    rows.push({
-      label: "Residence ranking",
+      label: "Shortlist",
       // A middle dot, not the double space this used to use: HTML collapses
-      // runs of whitespace, so the separator was invisible and the ranking
+      // runs of whitespace, so the separator was invisible and the shortlist
       // arrived as one run-on line at the moment it is meant to be checked.
       value: ranked.length
         ? ranked.map((name, index) => `${index + 1}. ${name}`).join(" · ")
         : "No preference given",
       missing: ranked.length === 0,
-    });
-  }
-
-  if (housing.intent === "off-campus") {
-    rows.push({
-      label: "Tuition / housing protection",
-      value: labelFor(protectionOptions, housing.protectionInterest) ?? NOT_ANSWERED,
-      missing: !housing.protectionInterest,
-    });
-  }
-
-  return rows;
+    },
+  ];
 }
 
 function campusLifeRows(state: OnboardingState): SummaryRow[] {

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { type HousingIntent, housingIntents } from "@/lib/fixtures";
+import { housingAvailability, residences } from "@/lib/fixtures";
 import type { StepId } from "@/lib/steps";
 
 /**
@@ -13,6 +13,12 @@ import type { StepId } from "@/lib/steps";
 
 /**
  * Bumped whenever a stored value can no longer be interpreted by this build.
+ *
+ * v4, for Housing: `housing.intent` is gone and `housing.arrangingOwn` has
+ * taken its place, and the residence ids in `residenceRanking` were renumbered
+ * when the catalogue went from three to eight. A v3 blob would restore
+ * `arrangingOwn: false` — correct by accident — over a student who had answered
+ * "off campus", which is the failure that looks like the form ignoring them.
  *
  * v3, for the Phases round: the `aboutYou` slice is now `identityContact`,
  * following the step it belongs to. The shallow merge below is forgiving about
@@ -27,7 +33,7 @@ import type { StepId } from "@/lib/steps";
  * the merge cannot help with — a v1 blob would restore `intent: "commuting"`
  * against a list that no longer contains it.
  */
-const STORAGE_KEY = "audentra.onboarding.v3";
+const STORAGE_KEY = "audentra.onboarding.v4";
 
 export type EntryState = {
   /** Live draft of the create-account email field — changes on every keystroke. */
@@ -110,7 +116,13 @@ export type IdentityContactState = {
 };
 
 export type HousingState = {
-  intent: HousingIntent | null;
+  /**
+   * The off-campus exit. False is the ordinary path — the student is looking at
+   * the catalogue — so this is not a three-way answer with the residences down
+   * one arm of it, which is what it replaced.
+   */
+  arrangingOwn: boolean;
+  /** Residence ids, best first. At most `housingAvailability.shortlistSize` of them. */
   residenceRanking: string[];
   protectionInterest: string;
   submitted: boolean;
@@ -227,7 +239,7 @@ const initialState: OnboardingState = {
     submitted: false,
   },
   housing: {
-    intent: null,
+    arrangingOwn: false,
     residenceRanking: [],
     protectionInterest: "",
     submitted: false,
@@ -281,16 +293,15 @@ function read(): OnboardingState {
       deposit: { ...initialState.deposit, ...parsed.deposit },
     };
 
-    /* A stored answer that no longer exists as an option reads as "answered"
-       to every check while the control shows nothing selected — so the step
-       renders no follow-up, the Continue button stays enabled, and the
-       agreement states an answer nobody can see. The version bump above is the
-       first line of defence; this is the one that survives a fixture edit
-       without one. */
-    if (merged.housing.intent && !housingIntents.some((o) => o.value === merged.housing.intent)) {
-      merged.housing.intent = null;
-      merged.housing.submitted = false;
-    }
+    /* A ranked id that no longer resolves against the catalogue would sit
+       invisibly in the Shortlist: it takes a slot, it moves when the arrows
+       move it, and it prints as nothing in the summary and the agreement. The
+       version bump above is the first line of defence; this is the one that
+       survives a fixture edit without one. Trimming to `shortlistSize` covers
+       the other direction — an institution that used to accept five. */
+    merged.housing.residenceRanking = merged.housing.residenceRanking
+      .filter((id) => residences.some((residence) => residence.id === id))
+      .slice(0, housingAvailability.shortlistSize);
 
     return merged;
   } catch {

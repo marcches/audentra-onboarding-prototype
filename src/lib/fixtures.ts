@@ -69,92 +69,350 @@ export type Photo = {
   alt: string;
 };
 
+/**
+ * Housing, in the shape the university returns it.
+ *
+ * Availability comes from an institutional API — the client said so on the
+ * 2026-08-10 call, and said this round would mock it. So this fixture is
+ * modelled on the response, not on what is convenient to render: codes rather
+ * than sentences, a flat `photos` array with a `kind` on each frame rather than
+ * an object keyed by view, and the shortlist size supplied by the institution
+ * rather than hardcoded in a component. Everything a student reads is derived
+ * from these codes in this file's label maps, which is the seam that has to
+ * survive integration. A fixture shaped like the screen would have to be
+ * rewritten the day the endpoint is real, and a mock you rewrite is a mock that
+ * proved nothing.
+ *
+ * What is deliberately absent: **cost**. See ADR-0003 — with a price on every
+ * card the student compares spreadsheets, and the deposit has a step of its own.
+ */
+export type RoomTypeCode = "single" | "double" | "suite" | "apartment";
+export type BathroomCode = "private" | "semi-private" | "communal";
+export type MealPlanCode = "included" | "optional" | "none";
+export type LaundryCode = "in-unit" | "in-building" | "nearby";
+export type FirstYearPolicyCode = "first-year-only" | "first-year-priority" | "all-years";
+export type ResidencePhotoKind = "room" | "exterior" | "common";
+
+export type ResidencePhoto = Photo & { kind: ResidencePhotoKind };
+
 export type Residence = {
   id: string;
   name: string;
-  blurb: string;
-  detail: string;
+  /** One line, the thing that is true about this place and no other. */
+  summary: string;
+  roomTypes: RoomTypeCode[];
+  bathroom: BathroomCode;
+  mealPlan: MealPlanCode;
+  /** Minutes on foot to the middle of campus, as Housing Services publishes it. */
+  walkMinutes: number;
+  laundry: LaundryCode;
+  firstYearPolicy: FirstYearPolicyCode;
   /**
-   * Three views, in the order the gallery shows them. The room shot is the one
-   * that matters — "what would my room be like" is the question the student is
-   * actually asking, and no amount of blurb answers it.
+   * Ordered as the carousel shows them, room first. "What would my room
+   * actually be like" is the question being asked, and no photograph of a
+   * facade answers it.
    */
-  images: {
-    exterior: Photo;
-    room: Photo;
-    common: Photo;
-  };
+  photos: ResidencePhoto[];
 };
 
-export const residences: Residence[] = [
-  {
-    id: "aster-residence-hall",
-    name: "Aster Residence Hall",
-    blurb: "Traditional halls, right on the quad",
-    detail: "Shared floors · Dining hall attached · 4 min to the Computer Science building",
-    images: {
-      exterior: {
-        src: "/images/residences/aster-residence-hall-exterior.webp",
-        alt: "A four-storey brick residence hall with a covered porch and an external staircase, on a lawn in full sun",
-      },
-      room: {
-        src: "/images/residences/aster-residence-hall-room.webp",
-        alt: "A single dorm room with a bed against the wall, a white desk and chair, and a tall window overlooking trees",
-      },
-      common: {
-        src: "/images/residences/aster-residence-hall-common.webp",
-        alt: "A double-height common room with sofas, low stools and a glass wall looking onto the grounds",
-      },
-    },
-  },
-  {
-    id: "aster-apartments",
-    name: "Aster Apartments",
-    blurb: "Apartment-style with your own kitchen",
-    detail: "4-person units · Full kitchen · 12 min walk or 4 min on the campus loop",
-    images: {
-      exterior: {
-        src: "/images/residences/aster-apartments-exterior.webp",
-        alt: "Two brick apartment blocks facing each other across a paved courtyard with clipped hedges and trees",
-      },
-      room: {
-        src: "/images/residences/aster-apartments-room.webp",
-        alt: "A bedroom with a metal-framed bed, a long desk with a task chair, and a bright window above the desk",
-      },
-      common: {
-        src: "/images/residences/aster-apartments-common.webp",
-        alt: "A shared flat kitchen with white units, an oven, a coffee machine and a round dining table by a glazed door",
-      },
-    },
-  },
-  {
-    id: "student-village",
-    name: "Student Village",
-    blurb: "Newest buildings, quietest end of campus",
-    detail: "Mostly singles · Study rooms on every floor · 15 min walk",
-    images: {
-      exterior: {
-        src: "/images/residences/student-village-exterior.webp",
-        alt: "A long, low modern building in brick and glass behind a wide clipped lawn under a blue sky",
-      },
-      room: {
-        src: "/images/residences/student-village-room.webp",
-        alt: "A white single room with a made bed, a pale wood desk under the window and a mirror on the wall",
-      },
-      common: {
-        src: "/images/residences/student-village-common.webp",
-        alt: "Students working on laptops on beanbags and low sofas in a plywood-lined study room with a picture window",
-      },
-    },
-  },
-];
+export type HousingAvailability = {
+  academicYear: string;
+  /** How many ranked preferences this institution accepts. Three, here. */
+  shortlistSize: number;
+  residences: Residence[];
+};
 
-/** Ordered as the gallery shows them; the room shot leads the labels for a reason. */
-export const residenceViews = [
-  { key: "room", label: "Your room" },
-  { key: "exterior", label: "The building" },
-  { key: "common", label: "Shared space" },
-] as const satisfies readonly { key: keyof Residence["images"]; label: string }[];
+export const housingAvailability: HousingAvailability = {
+  academicYear: "2027-28",
+  shortlistSize: 3,
+  residences: [
+    {
+      id: "aster-residence-hall",
+      name: "Aster Residence Hall",
+      summary: "The traditional halls on the quad, with the dining hall attached.",
+      roomTypes: ["single", "double"],
+      bathroom: "communal",
+      mealPlan: "included",
+      walkMinutes: 4,
+      laundry: "in-building",
+      firstYearPolicy: "first-year-only",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/aster-residence-hall-room.webp",
+          alt: "A single dorm room with a bed against the wall, a white desk and chair, and a tall window overlooking trees",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/aster-residence-hall-exterior.webp",
+          alt: "A four-storey brick residence hall with a covered porch and an external staircase, on a lawn in full sun",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/aster-residence-hall-common.webp",
+          alt: "A double-height common room with sofas, low stools and a glass wall looking onto the grounds",
+        },
+      ],
+    },
+    {
+      id: "linden-house",
+      name: "Linden House",
+      summary: "The smallest house in the catalogue, and the closest to everything.",
+      roomTypes: ["double"],
+      bathroom: "communal",
+      mealPlan: "included",
+      walkMinutes: 3,
+      laundry: "in-building",
+      firstYearPolicy: "first-year-only",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/linden-house-room.webp",
+          alt: "A shared room with two wooden beds under white covers, a chest of drawers and a curtained window between them",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/linden-house-exterior.webp",
+          alt: "A low red-brick building with wide windows and a young tree on the grass in front of it",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/linden-house-common.webp",
+          alt: "A plain dining corner with a wooden table, four chairs, a bowl of fruit and a potted plant by the window",
+        },
+      ],
+    },
+    {
+      id: "kestrel-hall",
+      name: "Kestrel Hall",
+      summary: "Halls again, but quieter — and the study lounge is the good one.",
+      roomTypes: ["single", "double"],
+      bathroom: "communal",
+      mealPlan: "included",
+      walkMinutes: 6,
+      laundry: "in-building",
+      firstYearPolicy: "first-year-only",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/kestrel-hall-room.webp",
+          alt: "A dorm room with a green-covered bed, a slim white desk and chair, and a wide blinded window above the desk",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/kestrel-hall-exterior.webp",
+          alt: "A long red-brick hall with a white colonnaded entrance, seen across a lawn split by a brick path",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/kestrel-hall-common.webp",
+          alt: "Two armchairs and a small round table in front of a wall of open timber bookshelves",
+        },
+      ],
+    },
+    {
+      id: "maple-court",
+      name: "Maple Court",
+      summary: "Suites of four or five, sharing a bathroom and a kitchen table.",
+      roomTypes: ["single", "suite"],
+      bathroom: "semi-private",
+      mealPlan: "optional",
+      walkMinutes: 9,
+      laundry: "in-building",
+      firstYearPolicy: "first-year-priority",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/maple-court-room.webp",
+          alt: "A bedroom with a black metal bed frame on a wooden floor, a wardrobe alongside and daylight from two windows",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/maple-court-exterior.webp",
+          alt: "Students walking a path across a lawn towards a brick and glass building with a projecting upper floor",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/maple-court-common.webp",
+          alt: "A laid dining table with four chairs against an exposed brick wall, beside a tall fridge and a bright window",
+        },
+      ],
+    },
+    {
+      id: "student-village",
+      name: "Student Village",
+      summary: "Newest buildings, quietest end of campus, study rooms on every floor.",
+      roomTypes: ["single"],
+      bathroom: "semi-private",
+      mealPlan: "optional",
+      walkMinutes: 15,
+      laundry: "in-building",
+      firstYearPolicy: "all-years",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/student-village-room.webp",
+          alt: "A white single room with a made bed, a pale wood desk under the window and a mirror on the wall",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/student-village-exterior.webp",
+          alt: "A long, low modern building in brick and glass behind a wide clipped lawn under a blue sky",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/student-village-common.webp",
+          alt: "Students working on laptops on beanbags and low sofas in a plywood-lined study room with a picture window",
+        },
+      ],
+    },
+    {
+      id: "harborview-commons",
+      name: "Harborview Commons",
+      summary: "Your own bathroom, and the longest walk of anywhere on campus.",
+      roomTypes: ["single", "suite"],
+      bathroom: "private",
+      mealPlan: "optional",
+      walkMinutes: 18,
+      laundry: "in-building",
+      firstYearPolicy: "all-years",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/harborview-commons-room.webp",
+          alt: "A white room with a low bed, framed prints above it and a desk and wooden chair beside a floor-to-ceiling window",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/harborview-commons-exterior.webp",
+          alt: "A modern timber-and-glass building at the edge of a sunlit lawn, with mature trees along the path to it",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/harborview-commons-common.webp",
+          alt: "Three dark sofas around a low table on a concrete floor, seen from above, one student sitting with a phone",
+        },
+      ],
+    },
+    {
+      id: "aster-apartments",
+      name: "Aster Apartments",
+      summary: "Four-person flats with a full kitchen and nobody's meal plan to work around.",
+      roomTypes: ["apartment"],
+      bathroom: "semi-private",
+      mealPlan: "none",
+      walkMinutes: 12,
+      laundry: "in-unit",
+      firstYearPolicy: "all-years",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/aster-apartments-room.webp",
+          alt: "A bedroom with a metal-framed bed, a long desk with a task chair, and a bright window above the desk",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/aster-apartments-exterior.webp",
+          alt: "Two brick apartment blocks facing each other across a paved courtyard with clipped hedges and trees",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/aster-apartments-common.webp",
+          alt: "A shared flat kitchen with white units, an oven, a coffee machine and a round dining table by a glazed door",
+        },
+      ],
+    },
+    {
+      id: "quarry-ridge",
+      name: "Quarry Ridge",
+      summary: "Studios at the far edge of campus, on the shuttle line rather than the path.",
+      roomTypes: ["apartment"],
+      bathroom: "private",
+      mealPlan: "none",
+      walkMinutes: 20,
+      laundry: "in-unit",
+      firstYearPolicy: "all-years",
+      photos: [
+        {
+          kind: "room",
+          src: "/images/residences/quarry-ridge-room.webp",
+          alt: "A studio with a long desk and wooden chair in the foreground and a made bed by a floor-to-ceiling window",
+        },
+        {
+          kind: "exterior",
+          src: "/images/residences/quarry-ridge-exterior.webp",
+          alt: "Pale apartment towers behind a wide lawn with benches and clipped planting along a paved walk",
+        },
+        {
+          kind: "common",
+          src: "/images/residences/quarry-ridge-common.webp",
+          alt: "An open-plan flat with a kitchen counter, a dining table by tall windows and a red armchair in the corner",
+        },
+      ],
+    },
+  ],
+};
+
+export const residences = housingAvailability.residences;
+
+/**
+ * What the codes are called on screen.
+ *
+ * Separate from the fixture on purpose: the code is the institution's, the
+ * wording is ours, and a rename of the second must not look like a change to
+ * the first.
+ */
+export const roomTypeLabels: Record<RoomTypeCode, string> = {
+  single: "Single room",
+  double: "Shared room",
+  suite: "Suite",
+  apartment: "Apartment",
+};
+
+export const bathroomLabels: Record<BathroomCode, string> = {
+  private: "Own bathroom",
+  "semi-private": "Bathroom per suite",
+  communal: "Bathroom per floor",
+};
+
+export const mealPlanLabels: Record<MealPlanCode, string> = {
+  included: "Meal plan included",
+  optional: "Meal plan optional",
+  none: "No meal plan",
+};
+
+export const laundryLabels: Record<LaundryCode, string> = {
+  "in-unit": "Laundry in your flat",
+  "in-building": "Laundry in the building",
+  nearby: "Laundry a block away",
+};
+
+export const firstYearPolicyLabels: Record<FirstYearPolicyCode, string> = {
+  "first-year-only": "First years only",
+  "first-year-priority": "First years first",
+  "all-years": "Open to all years",
+};
+
+export const residencePhotoLabels: Record<ResidencePhotoKind, string> = {
+  room: "Your room",
+  exterior: "The building",
+  common: "Shared space",
+};
+
+/**
+ * The two filters, as pills across the top rather than a column down the side.
+ * Right at eight residences and wrong at five hundred (Zillow, Care.com) — and
+ * a filter column would have cost this step the width it needs for the card.
+ */
+export const roomTypeFilters = (Object.keys(roomTypeLabels) as RoomTypeCode[]).map((value) => ({
+  value,
+  label: roomTypeLabels[value],
+}));
+
+export const bathroomFilters = (Object.keys(bathroomLabels) as BathroomCode[]).map((value) => ({
+  value,
+  label: bathroomLabels[value],
+}));
 
 /**
  * The Offer keeps its photograph. The completion screen does not: every
@@ -317,36 +575,14 @@ export const clubs: Club[] = [
 ];
 
 /**
- * Three options, not five.
+ * Asked of the student who takes the off-campus exit, and of nobody else.
  *
- * An earlier version of the spec claimed none of the five had been criticised
- * in the primary source. The opposite is true: Laura removed two of them on the
- * 2026-08-10 call — "Aí é on campus e off campus. Esses outros três enfia no
- * não", corrected to "on campus, off campus, I'm not sure yet", then "Isso. Os
- * outros dois" — and repeated it in the second Jam. Commuting and family or
- * dependent housing are gone. The three that remain are also exactly the three
- * the client's field inventory lists for this field.
+ * This used to hang off the "off campus" arm of a three-way question at the top
+ * of Housing. That question is gone — the client asked for Housing to be the
+ * residences, not a fork with the residences down one branch — but the field
+ * itself is in the institution's inventory and the person it is for is exactly
+ * the person arranging their own place. So it moved rather than went.
  */
-export const housingIntents = [
-  {
-    value: "on-campus",
-    label: "On campus",
-    hint: "In an Aster residence",
-  },
-  {
-    value: "off-campus",
-    label: "Off campus",
-    hint: "Your own place nearby",
-  },
-  {
-    value: "not-sure",
-    label: "Not decided yet",
-    hint: "You can settle it later",
-  },
-] as const;
-
-export type HousingIntent = (typeof housingIntents)[number]["value"];
-
 export const protectionOptions = [
   { value: "not-now", label: "Not now" },
   { value: "compare", label: "Help me compare" },

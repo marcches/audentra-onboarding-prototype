@@ -2,7 +2,6 @@ import {
   citizenshipOptions,
   formatDeadline,
   formatMoney,
-  housingIntents,
   institution,
   offer,
   protectionOptions,
@@ -187,37 +186,14 @@ export function buildAgreement(state: OnboardingState): Clause[] {
 
 function housingClause(housing: OnboardingState["housing"]): Clause {
   const heading = "Housing";
-  const intent = housing.intent ? label(housingIntents, housing.intent) : null;
 
-  if (housing.intent === "on-campus") {
-    const ranked = housing.residenceRanking
-      .map((id) => residences.find((residence) => residence.id === id)?.name)
-      .filter((name): name is string => Boolean(name));
-
+  if (housing.arrangingOwn) {
     return {
       number: "5",
       heading,
       runs: [
-        t("You intend to live "),
-        v("on campus"),
-        t(". Your ranking is "),
-        v(
-          ranked.length ? ranked.map((name, index) => `${index + 1}. ${name}`).join("; ") : "empty",
-        ),
-        t(
-          `. ${institution.housingOffice} assigns rooms after the response deadline. A ranking is considered, not guaranteed, and no room is reserved by this agreement.`,
-        ),
-      ],
-    };
-  }
-
-  if (housing.intent === "off-campus") {
-    return {
-      number: "5",
-      heading,
-      runs: [
-        t("You intend to live "),
-        v("off campus"),
+        t("You have told us you are "),
+        v("arranging your own housing"),
         t(", and on tuition or housing protection you answered "),
         v(label(protectionOptions, housing.protectionInterest) ?? NOT_GIVEN),
         t(
@@ -227,14 +203,18 @@ function housingClause(housing: OnboardingState["housing"]): Clause {
     };
   }
 
+  const ranked = housing.residenceRanking
+    .map((id) => residences.find((residence) => residence.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
+
   return {
     number: "5",
     heading,
     runs: [
-      t("You answered "),
-      v(intent ?? NOT_GIVEN),
+      t("Your shortlist is "),
+      v(ranked.length ? ranked.map((name, index) => `${index + 1}. ${name}`).join("; ") : "empty"),
       t(
-        `. Confirm housing plans stays on your enrollment checklist until you settle it, and ${institution.housingOffice} cannot hold a room for you in the meantime.`,
+        `. ${institution.housingOffice} assigns rooms after the response deadline. A shortlist is considered, not guaranteed, and no room is reserved by this agreement.`,
       ),
     ],
   };

@@ -1,4 +1,4 @@
-Status: in-progress — 01, 02 and 03 done, 04–07 open
+Status: in-progress — 01–04 done, 05–07 open
 
 # Onboarding: Phases, shell, and the parts the last round missed
 
@@ -134,7 +134,7 @@ named out loud on the next call rather than discovered.
 | 01 — The shell: Phases, recessed ground, fixed action bar, mobile-first | **done** |
 | 02 — Your offer in one viewport | **done** |
 | 03 — Points with a destination | **done** |
-| 04 — Housing: eight Residences, a Shortlist of three | ready-for-human |
+| 04 — Housing: eight Residences, a Shortlist of three | **done** |
 | 05 — The Closing: Review & sign, and Deposit | ready-for-human |
 | 06 — Copy sweep | ready-for-human |
 | 07 — Family access: what they can actually see | ready-for-human |

@@ -2,76 +2,61 @@ import {
   ArrowDownIcon,
   ArrowRightIcon,
   ArrowUpIcon,
-  BuildingApartmentIcon,
-  CheckIcon,
   HouseLineIcon,
-  ImagesIcon,
-  PlusIcon,
-  QuestionIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { motion, Reorder, useDragControls, useReducedMotion } from "motion/react";
 import * as React from "react";
 
+import { FilterPill } from "@/components/filter-pill";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
-import { ResidenceGallery } from "@/components/residence-gallery";
+import { ResidenceCard } from "@/components/residence-card";
 import { BackButton, Panel, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
-  formatDeadline,
-  type HousingIntent,
-  housingIntents,
+  type BathroomCode,
+  bathroomFilters,
+  housingAvailability,
   institution,
-  offer,
   protectionOptions,
   type Residence,
+  type RoomTypeCode,
   residences,
+  roomTypeFilters,
 } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
-import { cn } from "@/lib/utils";
-
-const INTENT_ICONS: Record<HousingIntent, React.ReactNode> = {
-  "on-campus": <BuildingApartmentIcon weight="duotone" className="size-5 text-violet-500" />,
-  "off-campus": <HouseLineIcon weight="duotone" className="size-5 text-violet-500" />,
-  "not-sure": <QuestionIcon weight="duotone" className="size-5 text-violet-500" />,
-};
 
 const ORDINALS = ["1st choice", "2nd choice", "3rd choice"];
-const SLOTS = 3;
+const SLOTS = housingAvailability.shortlistSize;
 
 /**
- * Housing, reduced.
+ * Housing.
  *
- * The live step stacks four blocks of questions — room type, bathroom, roommate
- * matching, a lifestyle questionnaire, themed communities — behind the single
- * "on campus" answer. None of that is here. On campus asks one thing; off
- * campus asks one thing; "not decided yet" asks nothing at all.
+ * The step the last round did not touch at all. It used to open with a
+ * three-way question — on campus, off campus, not decided — with the eight
+ * residences hidden down one arm of it, which meant the screen's first act was
+ * to ask a student to commit before showing them anything to commit to. The
+ * residences are now the step. The student who has already found a flat in the
+ * city takes the exit at the bottom.
  *
- * The two columns exist for one reason on this step: the ranking slots stay in
- * view while the photographs scroll past them. Choosing where to live from a
- * list you cannot see while you look at the options is the thing that was
- * broken.
+ * What they build is a **Shortlist**: three ranked preferences, not a booking.
+ * `Housing Services` assigns rooms, and the screen says so twice — once at the
+ * top where the ranking is made and once inside the Shortlist itself, because
+ * "I chose this" is what a ranked list looks like to anyone who has used the
+ * internet.
  */
 export function HousingRoute() {
   const state = useOnboarding();
   const { next, goNext } = useStepNav("housing");
-  const reduceMotion = useReducedMotion();
-  const [gallery, setGallery] = React.useState<Residence | null>(null);
   const [announcement, setAnnouncement] = React.useState("");
 
-  const intent = state.housing.intent;
+  const arrangingOwn = state.housing.arrangingOwn;
 
   const ranked = state.housing.residenceRanking
     .map((id) => residences.find((residence) => residence.id === id))
     .filter((residence): residence is Residence => Boolean(residence));
-  /**
-   * Everything below indexes this, never the raw stored ranking. A stored id
-   * that no longer resolves against the fixture — the exact case store.ts's
-   * shallow merge is built to survive — would otherwise sit invisibly in the
-   * list and make the arrows reorder a row nobody can see.
-   */
   const rankedIds = ranked.map((residence) => residence.id);
 
   function setRanking(next: string[]) {
@@ -83,7 +68,7 @@ export function HousingRoute() {
     const position = next.indexOf(residence.id);
     setAnnouncement(
       position === -1
-        ? `${residence.name} removed from your ranking.`
+        ? `${residence.name} removed from your shortlist.`
         : `${residence.name} is now ${ORDINALS[position] ?? `choice ${position + 1}`}.`,
     );
   }
@@ -118,13 +103,18 @@ export function HousingRoute() {
     <StepShell
       current="housing"
       title="Where you'll live"
+      lead={
+        <>
+          Rank {SLOTS} of the {residences.length}. {institution.housingOffice} assigns rooms after
+          the response deadline — a shortlist is considered, never guaranteed.
+        </>
+      }
       actions={
         <>
           <BackButton current="housing" />
           <Button
             type="button"
             size="lg"
-            disabled={!intent}
             onClick={() => {
               patch("housing", { submitted: true });
               goNext();
@@ -137,113 +127,72 @@ export function HousingRoute() {
         </>
       }
     >
-      <Panel as="fieldset" className="space-y-4">
-        {/* The sheet's own wording for this field. What was here — "Where do you
-            picture starting your day?" — Laura read out loud and laughed at. */}
-        <legend className="text-h3 mb-3 text-ink-900">
-          Will you live on campus or off campus?
-        </legend>
-        <RadioGroup
-          value={intent ?? ""}
-          onValueChange={(value) => patch("housing", { intent: value as HousingIntent })}
-        >
-          {housingIntents.map((option) => (
-            <OptionCard
-              key={option.value}
-              value={option.value}
-              id={`housing-${option.value}`}
-              label={option.label}
-              hint={option.hint}
-              icon={INTENT_ICONS[option.value]}
-            />
-          ))}
-        </RadioGroup>
-      </Panel>
+      {arrangingOwn ? (
+        <ArrangingOwn onReturn={() => patch("housing", { arrangingOwn: false })} />
+      ) : (
+        <>
+          <Shortlist ranked={ranked} onMove={move} onRemove={remove} onReorder={setRanking} />
+          <ResidenceCatalogue rankedIds={rankedIds} onAdd={add} onRemove={remove} />
 
-      {/* Enter-only, no AnimatePresence: changing the key swaps the branch on
-          the same frame as the answer. An exit animation here just puts a
-          delay between "I picked off campus" and seeing what that means. */}
-      {intent ? (
-        <motion.section
-          key={intent}
-          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-5"
-        >
-          {/* The ranking, which used to be the third column, now sits directly
-              above the catalogue it is built from — the question it answers
-              ("what have I picked so far") is asked while looking at the
-              cards. */}
-          {intent === "on-campus" ? (
-            <RankingSlots
-              ranked={ranked}
-              onMove={move}
-              onRemove={remove}
-              onReorder={setRanking}
-              onOpenGallery={setGallery}
-            />
-          ) : null}
-          {intent === "on-campus" ? (
-            <ResidenceCatalogue
-              rankedIds={rankedIds}
-              onAdd={add}
-              onRemove={remove}
-              onOpenGallery={setGallery}
-            />
-          ) : null}
-          {intent === "off-campus" ? <ProtectionQuestion /> : null}
-          {intent === "not-sure" ? (
-            <Notice tone="success" title="No problem">
-              Confirm housing plans is now on your enrollment checklist, due{" "}
-              {formatDeadline(offer.responseDeadline)}.
-            </Notice>
-          ) : null}
-        </motion.section>
-      ) : null}
+          {/* The exit, kept discreet on purpose: it is the right path for a
+              small minority and the wrong one for everybody else, and it used
+              to be a third of the step. */}
+          <p className="pb-1 text-center text-small text-ink-500">
+            Already have a place in the city?{" "}
+            <button
+              type="button"
+              onClick={() => patch("housing", { arrangingOwn: true, residenceRanking: [] })}
+              className="font-bold text-violet-600 underline underline-offset-4 hover:text-violet-700"
+            >
+              I'll arrange my own housing
+            </button>
+          </p>
+        </>
+      )}
 
       <p aria-live="polite" className="sr-only">
         {announcement}
       </p>
-
-      <ResidenceGallery
-        residence={gallery}
-        open={gallery !== null}
-        onOpenChange={(open) => {
-          if (!open) setGallery(null);
-        }}
-      />
     </StepShell>
   );
 }
 
-function RankingSlots({
+/**
+ * The Shortlist, above the catalogue it is built from.
+ *
+ * It sits above rather than beside because there is no third column any more,
+ * and above rather than below because "what have I picked so far" is asked
+ * while looking at the cards, not after scrolling past all eight of them.
+ */
+function Shortlist({
   ranked,
   onMove,
   onRemove,
   onReorder,
-  onOpenGallery,
 }: {
   ranked: Residence[];
   onMove: (index: number, direction: -1 | 1) => void;
   onRemove: (residence: Residence) => void;
   onReorder: (next: string[]) => void;
-  onOpenGallery: (residence: Residence) => void;
 }) {
   const rankedIds = ranked.map((residence) => residence.id);
   const empty = Math.max(0, SLOTS - ranked.length);
 
   return (
     <Panel
-      title="Your ranking"
-      description="First choice at the top. Housing considers this, it does not guarantee it — rooms are assigned after the deadline."
+      title="Your shortlist"
+      description="First choice at the top. Reorder with the arrows, or drag the number."
     >
       {ranked.length === 0 ? (
         /* Empty state, per the Message Library rule: why it is empty and what
-           would fill it. Never a blank box. */
+           would fill it. Never a blank box — but never three empty boxes
+           either: the sentence says the same thing in a tenth of the height,
+           and 200px of dashed placeholder above the first photograph is
+           exactly the bulk the client was complaining about. The numbered
+           slots appear as soon as one of them means something. */
         <p className="text-small text-ink-500">
-          Nothing ranked yet. Choose <strong className="text-ink-700">Rank it</strong> on a
-          residence and it takes the first slot.
+          Nothing shortlisted yet. Choose <strong className="text-ink-700">Add to shortlist</strong>{" "}
+          on a residence and it takes the first slot.
         </p>
       ) : null}
 
@@ -262,13 +211,12 @@ function RankingSlots({
             total={ranked.length}
             onMove={(direction) => onMove(index, direction)}
             onRemove={() => onRemove(residence)}
-            onOpenGallery={() => onOpenGallery(residence)}
           />
         ))}
       </Reorder.Group>
 
-      {empty > 0 ? (
-        <ol className="space-y-2">
+      {empty > 0 && ranked.length > 0 ? (
+        <ol className="mt-2 space-y-2">
           {Array.from({ length: empty }, (_, offset) => {
             const position = ranked.length + offset;
             return (
@@ -295,14 +243,12 @@ function RankedSlot({
   total,
   onMove,
   onRemove,
-  onOpenGallery,
 }: {
   residence: Residence;
   index: number;
   total: number;
   onMove: (direction: -1 | 1) => void;
   onRemove: () => void;
-  onOpenGallery: () => void;
 }) {
   const reduceMotion = useReducedMotion();
   const dragControls = useDragControls();
@@ -318,7 +264,8 @@ function RankedSlot({
          Drag starts from the handle only. Making the whole row draggable takes
          over the vertical axis on touch, so a swipe anywhere on it lifts the
          row instead of scrolling the page. The arrows are the equivalent path
-         for anyone not dragging. */
+         for anyone not dragging — and the ticket asks for reordering to work
+         without a drag at all. */
       dragListener={false}
       dragControls={dragControls}
       whileDrag={
@@ -339,20 +286,13 @@ function RankedSlot({
           {index + 1}
         </button>
 
-        <button
-          type="button"
-          onClick={onOpenGallery}
-          className="size-11 shrink-0 overflow-hidden rounded-[8px]"
-        >
-          <img
-            src={residence.images.room.src}
-            alt=""
-            loading="lazy"
-            draggable={false}
-            className="size-full object-cover"
-          />
-          <span className="sr-only">See photos of {residence.name}</span>
-        </button>
+        <img
+          src={residence.photos[0]?.src}
+          alt=""
+          loading="lazy"
+          draggable={false}
+          className="size-11 shrink-0 rounded-[8px] object-cover"
+        />
 
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body font-bold text-ink-900">{residence.name}</span>
@@ -378,7 +318,7 @@ function RankedSlot({
           </IconAction>
         </span>
 
-        <IconAction label={`Remove ${residence.name} from your ranking`} onClick={onRemove}>
+        <IconAction label={`Remove ${residence.name} from your shortlist`} onClick={onRemove}>
           <XIcon weight="bold" aria-hidden className="size-4" />
         </IconAction>
       </div>
@@ -386,146 +326,127 @@ function RankedSlot({
   );
 }
 
-/**
- * The scrolling column: the residences as photographs.
- *
- * Round one made this three lines of text and a dropdown, which is not a choice
- * anyone can make — "where would I live" is answered by a picture of the room,
- * not by a sentence about the walk to the department.
- */
+/** The eight residences, filtered by the two things a student narrows on first. */
 function ResidenceCatalogue({
   rankedIds,
   onAdd,
   onRemove,
-  onOpenGallery,
 }: {
   rankedIds: string[];
   onAdd: (residence: Residence) => void;
   onRemove: (residence: Residence) => void;
-  onOpenGallery: (residence: Residence) => void;
 }) {
+  const [roomTypes, setRoomTypes] = React.useState<string[]>([]);
+  const [bathrooms, setBathrooms] = React.useState<string[]>([]);
   const full = rankedIds.length >= SLOTS;
+
+  const visible = residences.filter(
+    (residence) =>
+      (roomTypes.length === 0 ||
+        residence.roomTypes.some((type) => roomTypes.includes(type as RoomTypeCode))) &&
+      (bathrooms.length === 0 || bathrooms.includes(residence.bathroom as BathroomCode)),
+  );
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <h2 className="text-h3 text-ink-900">These are the options open for your year</h2>
-        <p className="text-body text-ink-600">
-          This is a preference, not an assignment. Rank up to three — your ranking is beside them as
-          you go.
+      <div className="flex flex-wrap items-center gap-2">
+        <FilterPill
+          label="Room type"
+          options={roomTypeFilters}
+          selected={roomTypes}
+          onChange={setRoomTypes}
+        />
+        <FilterPill
+          label="Bathroom"
+          options={bathroomFilters}
+          selected={bathrooms}
+          onChange={setBathrooms}
+        />
+        <p className="ml-auto text-small text-ink-500">
+          {visible.length} of {residences.length}
         </p>
-      </div>
-
-      <div className="space-y-4">
-        {residences.map((residence) => {
-          const position = rankedIds.indexOf(residence.id);
-          const isRanked = position !== -1;
-
-          return (
-            <article
-              key={residence.id}
-              className={cn(
-                "overflow-hidden rounded-[var(--radius-card)] border bg-surface transition-[border-color,box-shadow]",
-                isRanked
-                  ? "border-violet-500 shadow-[0_0_0_1px_var(--color-violet-500)]"
-                  : "border-ink-200 hover:border-ink-300 hover:shadow-soft",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => onOpenGallery(residence)}
-                className="relative block w-full"
-              >
-                <img
-                  src={residence.images.exterior.src}
-                  alt={residence.images.exterior.alt}
-                  loading="lazy"
-                  className="h-44 w-full object-cover sm:h-52"
-                />
-                <span className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-ink-950/70 px-3 py-1.5 text-small font-bold text-white backdrop-blur-sm">
-                  <ImagesIcon weight="duotone" aria-hidden className="size-4" />
-                  See the room
-                </span>
-              </button>
-
-              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <p className="text-body font-bold text-ink-900">{residence.name}</p>
-                  <p className="text-small text-ink-600">{residence.blurb}</p>
-                  <p className="text-small text-ink-400">{residence.detail}</p>
-                </div>
-
-                {isRanked ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={() => onRemove(residence)}
-                  >
-                    <CheckIcon weight="bold" aria-hidden className="size-4 text-mint-600" />
-                    {ORDINALS[position]} — remove
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="shrink-0"
-                    disabled={full}
-                    onClick={() => onAdd(residence)}
-                  >
-                    <PlusIcon weight="bold" aria-hidden className="size-4" />
-                    Rank it
-                  </Button>
-                )}
-              </div>
-            </article>
-          );
-        })}
       </div>
 
       {full ? (
         <p className="text-small text-ink-500">
-          All three slots are full. Remove one to rank a different residence.
+          All {SLOTS} slots are full. Remove one to shortlist a different residence.
         </p>
       ) : null}
 
-      {rankedIds.length === 0 ? (
-        <p className="text-small text-ink-500">
-          Skip it if you would rather. {institution.housingOffice} will place you and tell you
-          where.
-        </p>
+      {visible.length === 0 ? (
+        <Notice tone="info" title="Nothing matches both filters">
+          No residence offers that room type with that bathroom. Widening either one brings
+          residences back.
+        </Notice>
       ) : null}
+
+      <div className="space-y-3">
+        {visible.map((residence) => (
+          <ResidenceCard
+            key={residence.id}
+            residence={residence}
+            position={rankedIds.indexOf(residence.id)}
+            disabled={full}
+            onAdd={() => onAdd(residence)}
+            onRemove={() => onRemove(residence)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-function ProtectionQuestion() {
+/**
+ * The off-campus path, which is now one screen rather than half the step.
+ *
+ * Tuition and housing protection lives here: it was the whole content of the
+ * old "off campus" branch, it is in the institution's field inventory, and the
+ * person arranging their own place is exactly the person it is for.
+ */
+function ArrangingOwn({ onReturn }: { onReturn: () => void }) {
   const state = useOnboarding();
+  const reduceMotion = useReducedMotion();
 
   return (
-    <fieldset className="space-y-4">
-      <legend className="text-h3 mb-1 text-ink-900">
-        Want to look at tuition or housing protection?
-      </legend>
-      <p className="mb-3 text-body text-ink-600">
-        Optional cover that refunds part of what you have paid if you have to withdraw mid-term.
-        Saying yes means someone sends you the details.
-      </p>
-      <RadioGroup
-        value={state.housing.protectionInterest}
-        onValueChange={(value) => patch("housing", { protectionInterest: value })}
-      >
-        {protectionOptions.map((option) => (
-          <OptionCard
-            key={option.value}
-            value={option.value}
-            id={`protection-${option.value}`}
-            label={option.label}
-          />
-        ))}
-      </RadioGroup>
-    </fieldset>
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-4"
+    >
+      <Notice tone="success" title="Noted — you're housing yourself">
+        {institution.housingOffice} won't assign you a room, and there's no shortlist to build.
+        Nothing else in enrollment depends on this.
+      </Notice>
+
+      <Panel as="fieldset" className="space-y-4">
+        <legend className="text-h3 mb-1 text-ink-900">
+          Want to look at tuition or housing protection?
+        </legend>
+        <p className="mb-3 text-body text-ink-600">
+          Optional cover that refunds part of what you have paid if you have to withdraw mid-term.
+          Saying yes means someone sends you the details.
+        </p>
+        <RadioGroup
+          value={state.housing.protectionInterest}
+          onValueChange={(value) => patch("housing", { protectionInterest: value })}
+        >
+          {protectionOptions.map((option) => (
+            <OptionCard
+              key={option.value}
+              value={option.value}
+              id={`protection-${option.value}`}
+              label={option.label}
+            />
+          ))}
+        </RadioGroup>
+      </Panel>
+
+      <Button type="button" variant="secondary" onClick={onReturn} className="w-full sm:w-auto">
+        <HouseLineIcon weight="duotone" aria-hidden className="size-4" />
+        Show me the residences after all
+      </Button>
+    </motion.div>
   );
 }
 
