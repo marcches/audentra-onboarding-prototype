@@ -56,16 +56,16 @@ export function Notice({
       role={alert ? "alert" : undefined}
       tabIndex={alert ? -1 : undefined}
       className={cn(
-        "flex items-start gap-3 rounded-[var(--radius-card)] border px-4 py-3.5",
+        "flex items-start gap-2.5 rounded-[var(--radius-field)] border px-3 py-2",
         wrapper,
         className,
       )}
     >
-      <Icon weight="fill" aria-hidden className={cn("mt-0.5 size-5 shrink-0", icon)} />
-      <div className="flex-1 space-y-1">
-        {title ? <p className="text-body font-bold">{title}</p> : null}
-        <div className="text-small leading-5">{children}</div>
-        {action ? <div className="pt-1.5">{action}</div> : null}
+      <Icon weight="fill" aria-hidden className={cn("mt-0.5 size-4 shrink-0", icon)} />
+      <div className="min-w-0 flex-1 space-y-0.5">
+        {title ? <p className="text-small font-bold">{title}</p> : null}
+        <div className="text-micro leading-4">{children}</div>
+        {action ? <div className="pt-1">{action}</div> : null}
       </div>
     </div>
   );

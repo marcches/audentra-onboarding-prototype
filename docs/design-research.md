@@ -727,7 +727,7 @@ citadas nos tickets de `.scratch/onboarding-rebuild/`, conforme o portão de
 
 ### 16 · Enrolled
 
-- [CRED](https://mobbin.com/screens/d019ff07-66a3-44cb-b9bc-cece1fec50d9) — eyebrow de status + frase de pertencimento, **sem confete**, e ainda assim o momento mais caro do app.
+- [CRED](https://mobbin.com/screens/d019ff07-66a3-44cb-b9bc-cece1fec50d9) — eyebrow de status + frase de pertencimento, **sem confete**, e ainda assim o momento mais caro do app. _Revertido em 2026-08-15 (tarde): o cliente pediu confete explicitamente, e nos doze momentos. Ver "Confete" abaixo — o que sobrevive desta linha é o eyebrow e a frase, não a ausência de festa._
 - [Qonto](https://mobbin.com/screens/e8a14e8f-026f-4010-87f3-da16d3f2ba22) e [Zing](https://mobbin.com/screens/02897cfd-94ce-430d-a253-7ecb1a2cb821) — o fim do fluxo entrega **um objeto**, não uma mensagem.
 - [Qantas](https://mobbin.com/screens/f909ccea-f103-4cbd-b3a9-6545a156b123) — entrega o número de matrícula como o artefato do fim.
 - [Headway](https://mobbin.com/screens/e82ee53f-9d24-458d-9846-8500317aba65) — o checklist reaparece **dentro** da celebração, com checks.
@@ -746,3 +746,188 @@ eles saiu `gsap` e `@gsap/react` do `package.json` — o ticket 16 permitia que 
 `gsap` se justificasse na chegada do cartão de estudante, e não se justificou:
 um `rotateY` com overshoot é uma transição, não uma timeline. `canvas-confetti`
 fica, com um único chamador.
+
+## Rodada de 2026-08-15 (tarde) — o desktop construído, densidade Salesforce, motion que conduz
+
+Da sessão de grilling com o cliente: 22 perguntas em três rodadas, todas
+respondidas por ele. As decisões duras viraram os ADRs 0008, 0009 e 0010; o que
+está aqui é o vocabulário e as réguas que sobram.
+
+### Vocabulário novo
+
+**Presence** — atributo de *peça*, nunca de Step: `mobile`, `desktop` ou
+`both`. Todos os dez Steps existem nas duas larguras; o que varia é a peça
+dentro deles. `both` é o padrão e não se escreve. As exceções são exatamente
+oito, e a tabela abaixo é fechada — uma nona linha exige justificativa escrita,
+senão Presence vira `hidden lg:block` com nome bonito.
+
+**Section** — substitui `Panel`, por ADR 0010. Cabeçalho com rótulo e chevron,
+sem sombra. Colapsada, mostra o valor preenchido numa linha.
+
+**Rail** — a coluna de navegação do desktop. Topo: wordmark + nome do aluno.
+Meio: três Phases com seus Steps e checks. Pé: o Balance com o que ele converte
+em. Nunca colapsa, nem em Steps de catálogo — um rail que muda de largura por
+Step é drift entre Steps. No mobile, a mesma informação é a `PhaseBar`
+segmentada.
+
+_Aposentado_: `Panel`.
+
+### A tabela de Presence
+
+| Peça | mobile | desktop |
+|---|---|---|
+| Navegação do spine | `PhaseBar` segmentada | Rail |
+| Ações do Step | barra fixa no rodapé | pill flutuante |
+| Balance | dentro da PhaseBar, comprimido | pé do rail, permanente |
+| Galeria de Residence | carrossel embutido | grade + `ImageViewer` |
+| Filtro de Campus life | sheet acionado por botão | chips horizontais acima da grade |
+| Seções do Step | uma coluna | duas colunas |
+| Review & sign | uma coluna | duas colunas |
+| Autosave | dentro da barra | dentro do pill |
+
+**Referências:**
+- [Salesforce — Task record](https://mobbin.com/screens/95e5ac90-9df1-486f-8425-b130011eb761) e [Event record](https://mobbin.com/screens/ce85ea59-0b33-4c35-a4d4-f46da1a72cfb) — seção colapsável com cabeçalho, linhas label/valor em duas colunas, ~13px de corpo, zero ilustração. É a anatomia da `Section`.
+- [Salesforce — Advanced User Details](https://mobbin.com/screens/0365bde7-c320-46a0-b2e9-3ea0bb9f8451) — o extremo da densidade, e o limite: sem espaçamento vertical o mesmo padrão vira parede.
+- [Salesforce — Lead record](https://mobbin.com/screens/bfca53c8-202b-48aa-954d-cb58efa99231) — o Path em chevrons. **Rejeitado**: custa altura, que é o recurso escasso no HD, e só mostra três Phases quando o Rail mostra os dez Steps.
+- [Mercury](https://mobbin.com/screens/8b12e7b5-4bd6-4eea-9a61-7ebbcfa4f855) e [Klook Merchant](https://mobbin.com/screens/11779a82-1f77-4177-a114-8b3f550f19fc) — trilha de passos fixa à esquerda com sub-passos e checks: a anatomia do Rail.
+- [Vanta](https://mobbin.com/screens/d6c8a960-3253-4ca4-b4aa-06e902fa0e4e) — progresso no topo da sidebar e contador "4 of 4 complete" no cabeçalho da seção. Pegamos o contador na seção; **rejeitamos** a barra de progresso, porque os checks já são o progresso e uma barra acima deles é a mesma informação duas vezes.
+- [Time2book](https://mobbin.com/screens/7c6850a5-6e83-4830-8b67-a30738cf46e1) — card fixado no pé da sidebar. É o slot do Balance.
+- [Clerk](https://mobbin.com/screens/64495603-2e48-4214-922d-2022463a27e2) — ações num pill flutuante ("Unsaved changes · Reset · Save") em vez de barra de largura inteira. É o action bar do desktop, e o autosave vira o texto do próprio pill.
+- [Etsy](https://mobbin.com/screens/81f5a1f5-ad55-4253-b61f-d3dd4b653216) e [Docusign](https://mobbin.com/screens/f48ffe3f-dcf9-4167-bdbb-d3c11ab84bdd) — a alternativa (ações no fim do conteúdo), **rejeitada**: perde a promessa de que a saída do Step não depende de onde se rolou.
+- [Pinterest](https://mobbin.com/screens/ab0d2b06-e640-42f0-a68f-c1a638ce50cd) — seção colapsada mostrando o valor ("Push on, in-app on"). É a linha central do ADR 0010.
+- [Zillow](https://mobbin.com/screens/1899b9a4-752f-483c-9798-3b16ea1b074f) e [Unity](https://mobbin.com/screens/5b890789-7046-4cd6-8c88-7023df1cce94) — catálogo com filtro à esquerda. **Rejeitado para nós**: o Rail já ocupa a esquerda, e rail + filtro + grade em 1366 deixa duas colunas de card num Step cujo trabalho é varrer.
+- [Shop](https://mobbin.com/screens/0e7de09d-f42a-4ee0-8582-037c61a89ad3) — filtro como faixa de chips acima da grade. ~2,5rem de altura uma vez contra 14rem de largura permanente. É o filtro de Campus life no desktop. Housing, com 8 Residences, não leva filtro nenhum.
+- [Headspace](https://mobbin.com/screens/6fdec779-df69-4624-9399-43028d8d1710) e [Figma](https://mobbin.com/screens/e23d11dd-4c38-4d54-bae4-7c10a45042d6) — confirmação em duas colunas: respostas à esquerda, documento e assinatura à direita. É Review & sign no desktop, e é o que dispensa o nudge "Scroll to bottom" que o próprio Headspace precisou colar na tela.
+- [Walmart](https://mobbin.com/screens/548804c1-697d-4d40-ae16-22c57de12b98) — `Edit` por **linha**, não por seção: é por campo que o aluno pensa.
+- [Navattic](https://mobbin.com/screens/5d8218fa-3d80-4c6c-95a6-3aded005f947), [Deel](https://mobbin.com/screens/ba792d2d-588e-42d9-bd88-daa7a9abf533) e [Magnific](https://mobbin.com/screens/2577133f-ff19-4517-ac06-2a060ad0df9f) — tour de coach marks com "1 de 4". **Rejeitado neste produto**: é um onboarding do onboarding, e ancorar tooltip em elemento reintroduz medir-para-posicionar, que é a causa raiz de metade dos flicks que estamos consertando. O cliente reservou o tour para a entrada na plataforma, depois do onboarding.
+
+### A régua de densidade
+
+Corpo **13px/1.45** (era 15px/1.6), small 12px, `h1` de Step **24px** (era 32px),
+cabeçalho de Section 15px, espaçamento entre Sections **16px** (era 24–32px).
+Vale nas duas larguras, com **uma exceção declarada: alvo de toque**. Tipografia
+e espaçamento vertical densificam no telefone também; altura de controle
+interativo não — abaixo de 44px o dedo erra e densidade vira erro de
+preenchimento. O `h1` de 24px é o número mais arriscado e o mais barato de
+reverter.
+
+O que fecha o ticket não é nenhum desses: é **conteúdo por dobra**, declarado
+por Step e conferido em 1366×768 e 390×844. Um Step de formulário mostra todos
+os seus campos sem rolar no desktop; o que não couber vira Section colapsada,
+não campo apagado. Teto de **três superfícies** no eixo vertical por tela.
+
+E a regra que sobrevive de duas rodadas atrás: para reivindicar densidade, algo
+tem que ser **apagado** do inventário de blocos. Percentual de altura não é
+evidência.
+
+### Motion
+
+A escala passa de 120/220/360/560ms para **240/400/640/1000ms**. Três regras:
+
+1. **Só `transform` e `opacity` animam.** Nada de `height`, `top` ou `width` —
+   é a aposta principal para o "travada"; o accordion da `Section` usa
+   `grid-template-rows` ou clip, nunca `height`.
+2. O voo de Points passa de ~2,6s para ~3,4s, e a parada deliberada no meio sobe
+   de 300ms para 500ms. É o beat que o aluno precisa ver.
+3. **A condução é um beat de entrada por Step**: título e primeira Section
+   entram em 400ms com 60ms de defasagem, e nada mais se move. O resto da
+   orientação é foco automático no primeiro campo e o botão primário narrando o
+   que falta ("Faltam 2 campos" → "Continuar"). Sem tour.
+
+Se ficar arrastado, o número a mexer é o `stage` (1000ms), não os outros três.
+
+### O que vira teste, e o que não vira
+
+Viram teste em `src/lib/layout-rules.test.ts`: as quatro invariantes de drift
+que já existem, a tabela de Presence ter exatamente oito linhas, nenhum
+breakpoint fora das três classes, e só `transform`/`opacity` em regra de
+animação. **Não viram teste**: conteúdo por dobra e o teto de três superfícies —
+medir dobra em jsdom é fingir que o teste sabe a altura de uma fonte, e um teste
+que mente é pior que nenhum. Esses dois são aceite humano, conferidos pelo
+cliente nas duas viewports. A régua que fecha o ticket é fechada por ele
+olhando, não pelo CI, e isso está dito aqui de propósito.
+
+### Confete — doze momentos, três tamanhos, uma camada
+
+O cliente pediu entusiasmo de volta, e nomeou os gatilhos: **quando ganha, quando
+aceita, quando termina**. No domínio isso são doze momentos — os dez prêmios de
+Points, a aceitação da oferta, e o Enrolled. Nenhum deles fica sem confete. O
+que varia é a escala, porque doze festas idênticas deixam o Enrolled sem para
+onde subir:
+
+| Momento | Escala | Fundo |
+|---|---|---|
+| Quest concluída (×10) | jorro curto ancorado no Balance, ~40 partículas, ~1,2s, **atrás** do chip de Points | a tela em que o aluno já estava |
+| Aceitar a oferta | jorro de tela cheia, ~150 partículas | a própria tela da oferta |
+| Enrolled | chuva sustentada, ~3s, com o cartão do aluno no centro | palco escuro, e só aqui |
+
+**Uma única camada de celebração**, montada no shell, dona do voo de Points *e*
+do confete: `fixed`, `pointer-events: none`, um `<canvas>` criado uma vez e
+reaproveitado. `canvas-confetti` cria um canvas novo por chamada se deixarem, e
+doze desses num flow é a segunda suspeita para o "travada" que o cliente
+relatou — a primeira é animar `height`. Duas camadas de tela cheia animando ao
+mesmo tempo no instante do prêmio é o pior caso, e ele deixa de existir por
+construção.
+
+O palco escuro do Enrolled contraria a densidade Salesforce de propósito: a
+régua vale para as telas de trabalho, e o Enrolled não é uma. É a única tela do
+flow que troca de fundo, e é isso que a faz ser o fim de alguma coisa.
+
+**Uma exceção, aprovada pelo cliente**: com `prefers-reduced-motion`, o confete
+não cai. O chip de Points e o cartão aparecem sem ele. É uma configuração que o
+aluno escolheu no próprio aparelho, normalmente por enxaqueca ou vertigem, e é o
+único caso em que "sempre" sai caro demais.
+
+**Referências:**
+- [Ahead](https://mobbin.com/screens/2674831b-d1ab-4464-baa6-4a3d2e615aec) — o confete cai **atrás** do cartão que carrega o "+100 XP", e o número continua legível. É a anatomia do prêmio por Quest.
+- [Trello](https://mobbin.com/screens/5efa7ddf-952d-4264-938c-b5ec328ee885) — confete sobre a UI de trabalho, sem trocar de tela: comemora sem tirar o usuário do fluxo. É a aceitação da oferta.
+- [Linktree](https://mobbin.com/screens/15bce965-033f-424f-ae47-ad9c544cb798) — chuva sustentada com o objeto produzido no centro. É o Enrolled, e foi a referência que o cliente citou.
+- [Codecademy](https://mobbin.com/screens/c827145c-7d03-4771-908c-6a6c4be2abc7) — sobre palco escuro o confete rende muito mais com muito menos partícula. É por que o Enrolled troca de fundo.
+- [Finch](https://mobbin.com/screens/3d7ef155-c49e-45b6-b918-2f73c95f6162) e [Nibble](https://mobbin.com/screens/5385f415-3d0a-4d60-86f2-b50d6aaa7763) — confete mais o valor ganho num chip, que é o Points-como-recibo do ADR 0007.
+- [Mercury](https://mobbin.com/screens/c26da4f3-2cdd-47c8-a737-34c623476680) — o fim do fluxo entrega **um objeto**, não uma mensagem. Continua valendo; o que mudou é que agora o objeto tem festa em volta.
+
+### Correções feitas com o cliente olhando a tela (2026-08-15, noite)
+
+Cinco decisões desta rodada não sobreviveram ao primeiro contato com o browser.
+Ficam registradas com o motivo, porque uma decisão revertida sem motivo escrito
+volta em duas rodadas.
+
+**A escala densa foi longe demais.** 13px de corpo e `h1` de 24px vieram direto
+da referência Salesforce e o cliente leu o resultado como "vc reduziu muito…
+era só a densidade de dados". O diagnóstico é dele e está certo: **densidade é
+quanto cabe na tela, não quão pequeno está escrito.** O ganho tem que vir da
+Section colapsada mostrando o valor, das duas colunas e do ritmo vertical — não
+de tirar um ponto do corpo. A escala voltou um passo, não quatro: corpo
+**14/1.5**, `h1` de Step **28**, Section header 16. O resto da régua vale igual.
+
+**Nem toda Section merece um chevron.** Todas eram colapsáveis e a tela virou
+uma parede de acordeões. Um chevron ao lado de algo que ninguém quer fechar é um
+controle que só custa clique. `collapsible` passou a ser opt-in: um resumo de
+leitura, um bloco opcional longo, uma explicação. Um formulário sendo preenchido
+agora, não.
+
+**Faltava uma regra de largura de input** — e é isso que o "tudo grande" da
+Laura era. Um ZIP tinha a mesma caixa de um endereço, e o telefone tinha uma
+linha inteira. Largura passou a ser propriedade da **resposta**, em doze
+colunas: `tiny` 3, `short` 4, `medium` 6, `long` 8, `full` 12. Uma tentativa
+intermediária pareou span com teto em `rem` e ficou pior que qualquer um dos
+dois sozinho — o teto ganhava nas linhas largas e o span nas estreitas, então
+nenhum campo alinhava com o vizinho.
+
+**O vazio do desktop não se resolve esticando caixa.** Primeiro o cartão branco
+acabava no meio da tela com cinza embaixo; depois foi esticado e virou branco
+vazio dentro dele, que o cliente chamou de "ESPAÇO NO VAZIO" com razão. O que
+preenche espaço é conteúdo: cada Step de formulário ganhou um **painel de
+condução** à direita — por que esta tela pergunta, as partes dela se marcando
+sozinhas, e qual é a próxima. Duas colunas de conteúdo real são uma composição;
+uma coluna e um buraco são um cartão boiando. Onde ainda sobra altura, quem toma
+a folga é o **dropzone** — o único controle do fluxo que fica genuinamente
+melhor grande.
+
+**A camada de celebração estava embaixo do Rail.** A régua dizia que o confete
+cai *atrás* do chip que carrega o número ganho (Ahead), e no browser isso
+significou desenhar o jorro atrás do painel opaco de 16rem em que o chip mora.
+Invisível — "cadê os confetis". A camada subiu para acima do Rail e do pill,
+abaixo do modal. A legibilidade do número vem do jorro ser pequeno e espalhar
+para fora, não de estar debaixo do móvel. O aceite da oferta ganhou três origens
+em vez de uma: 150 partículas de um ponto só lê como espirro.

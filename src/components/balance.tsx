@@ -1,7 +1,7 @@
 import { BookOpenIcon, CoinVerticalIcon } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { usePointsAward } from "@/components/points-award";
+import { useCelebration } from "@/components/celebration";
 import { creditReleased, formatCredit, nextTarget, totalPoints } from "@/lib/points";
 import { useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -21,13 +21,14 @@ import { cn } from "@/lib/utils";
  *    the bar.
  *
  * It also has to sit in the same place on every screen, because the award's
- * flight needs somewhere to land. The rail renders it at the top; the phone
- * header renders the chip. Both register with the award provider, which flies
- * to whichever of the two is actually visible.
+ * flight needs somewhere to land. The Rail pins it to its foot (Time2book); the
+ * PhaseBar carries the compressed chip. Both register with the celebration
+ * layer, which flies to whichever of the two is actually visible — third row of
+ * the Presence table.
  */
 export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "full" }) {
   const live = totalPoints(useOnboarding());
-  const award = usePointsAward();
+  const award = useCelebration();
   const reduceMotion = useReducedMotion();
 
   /* Outside the provider — the style guide — nothing is in flight, so the live
@@ -40,7 +41,7 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
   const { target, pointsAway, reached } = nextTarget(points);
   const progress = reached ? 1 : Math.min(1, released / target.usd);
 
-  /* Beat 6: the Balance scales 1 → 1.12 → 1 with a brief glow while its number
+  /* Beat 4: the Balance scales 1 → 1.12 → 1 with a brief glow while its number
      rolls. Keyed on the landing count so it replays its own arrival — the token
      is absorbed and then the total reacts, in that order. */
   const Total = (
@@ -48,7 +49,7 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
       key={reduceMotion ? "static" : landings}
       initial={landings > 0 && !reduceMotion ? { scale: 0.75, opacity: 0.4 } : false}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 460, damping: 17 }}
+      transition={{ type: "spring", stiffness: 420, damping: 18 }}
       className="inline-block numeric"
     >
       {points}
@@ -60,13 +61,13 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
       <span
         ref={award?.registerBalance}
         className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] bg-violet-50 px-2.5 py-1",
+          "flex shrink-0 items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-0.5",
           "text-micro font-bold tracking-[0.06em] text-violet-700 uppercase",
-          "transition-shadow duration-[var(--duration-slow)]",
-          beat === 6 && "ring-glow",
+          "transition-shadow duration-[var(--duration-quick)]",
+          beat === 4 && "ring-glow",
         )}
       >
-        <CoinVerticalIcon weight="fill" aria-hidden className="size-3.5" />
+        <CoinVerticalIcon weight="fill" aria-hidden className="size-3" />
         <span aria-hidden>{Total} pts</span>
         {released > 0 ? (
           <span aria-hidden className="text-violet-500 numeric">
@@ -85,34 +86,29 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
   return (
     <motion.div
       ref={award?.registerBalance}
-      animate={beat === 6 && !reduceMotion ? { scale: [1, 1.12, 1] } : { scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+      animate={beat === 4 && !reduceMotion ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+      transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
       className={cn(
         /* Its own surface, and it looks pressable — a raised tile rather than a
            tinted strip of the rail it sits in. */
-        "rounded-[var(--radius-card)] border border-violet-100 bg-panel shadow-soft",
-        "transition-shadow duration-[var(--duration-slow)]",
-        full ? "px-6 py-5" : "px-3 py-2.5",
-        beat === 6 && "ring-glow",
+        "rounded-[var(--radius-field)] border border-violet-100 bg-violet-50/50",
+        "transition-shadow duration-[var(--duration-quick)]",
+        full ? "px-6 py-5" : "px-2.5 py-2",
+        beat === 4 && "ring-glow",
       )}
     >
       {/* The verb, not a label. adiClub's "50 points to spend" turns a counter
           into a wallet, and the word doing that is "spend". */}
-      <div className="flex items-baseline gap-1.5">
+      <div className="flex items-baseline gap-1">
         <span
           className={cn(
             "font-bold text-violet-700 numeric",
-            full ? "text-[3.25rem] leading-none" : "text-h3",
+            full ? "text-[3rem] leading-none" : "text-h3",
           )}
         >
           {Total}
         </span>
-        <span
-          className={cn(
-            "font-strong text-violet-700",
-            full ? "text-lead" : "text-[0.6875rem] leading-4",
-          )}
-        >
+        <span className={cn("font-strong text-violet-700", full ? "text-lead" : "text-micro")}>
           points to spend
         </span>
       </div>
@@ -121,38 +117,39 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
           "$0.00 Value" on the same row, and the translation lives glued to the
           figure rather than a screen away. */}
       <motion.p
-        key={`${released}-${beat >= 7 ? "new" : "old"}`}
-        initial={beat === 7 && !reduceMotion ? { opacity: 0 } : false}
+        key={`${released}-${beat >= 5 ? "new" : "old"}`}
+        initial={beat === 5 && !reduceMotion ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className={cn("text-mint-deep numeric", full ? "mt-1 text-h3" : "text-[0.6875rem]")}
+        transition={{ duration: 0.4 }}
+        className={cn("text-mint-deep numeric", full ? "mt-1 text-h3" : "text-micro")}
       >
         = <span className="font-bold">{formatCredit(released)}</span> in bookstore credit
       </motion.p>
 
-      {/* The bar ends in the prize's icon, not in the end of the bar
-          (Shopee). What is missing is an object with a name (IHG). */}
-      <div className={cn("flex items-center gap-2", full ? "mt-4" : "mt-2")}>
+      {/* The bar ends in the prize's icon, not in the end of the bar (Shopee).
+          What is missing is an object with a name (IHG). `scaleX`, not `width`:
+          no animation rule in this system touches a layout property. */}
+      <div className={cn("flex items-center gap-1.5", full ? "mt-4" : "mt-1.5")}>
         <span className="h-1 flex-1 overflow-hidden rounded-full bg-violet-100">
           <span
-            className="progress-fill block h-full rounded-full transition-[width] duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
-            style={{ width: `${progress * 100}%` }}
+            className="progress-fill block h-full origin-left rounded-full transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
+            style={{ transform: `scaleX(${progress})` }}
           />
         </span>
         <BookOpenIcon
           weight={reached ? "fill" : "regular"}
           aria-hidden
-          className={cn("shrink-0", reached ? "text-mint-600" : "text-violet-300", "size-4")}
+          className={cn("size-3.5 shrink-0", reached ? "text-mint-600" : "text-violet-300")}
         />
       </div>
 
-      <p className={cn("mt-1.5 text-ink-500", full ? "text-body" : "text-[0.6875rem] leading-4")}>
+      <p className={cn("mt-1 text-ink-500", full ? "text-body" : "text-micro leading-4")}>
         {reached ? (
           <>Enough for {target.label}</>
         ) : (
           <>
             <span className="font-strong text-ink-700 numeric">{pointsAway} more</span> for{" "}
-            {target.label} ({formatCredit(target.usd)})
+            {target.label}
           </>
         )}
       </p>

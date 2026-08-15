@@ -35,6 +35,7 @@ function formatSize(bytes: number) {
 export function DocumentUpload({
   label,
   hint,
+  tall = false,
   files,
   onChange,
 }: {
@@ -45,6 +46,12 @@ export function DocumentUpload({
    * genuinely cannot be guessed, and it is always shown.
    */
   hint?: string;
+  /**
+   * Fill the room the Section gives it. A dropzone is the one control in the
+   * flow that is genuinely better large — the target you throw a file at should
+   * be the size of the space, not the size of its own label.
+   */
+  tall?: boolean;
   files: UploadedFile[];
   onChange: (files: UploadedFile[]) => void;
 }) {
@@ -70,7 +77,7 @@ export function DocumentUpload({
   }
 
   return (
-    <div className="space-y-3">
+    <div className={cn("flex flex-col gap-1.5", tall && "min-h-0 flex-1")}>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop is an
           enhancement layered on top of the "Choose files" button inside this
           box, which is the keyboard and screen-reader path and is always
@@ -90,21 +97,34 @@ export function DocumentUpload({
           /* The dropzone is a dashed Well: the only thing recessed here, and
              an invitation rather than a record (PayPal). The uploaded file
              leaves it and becomes a row in the sibling Well below, so the Well
-             never accumulates state. */
-          "flex flex-col items-center gap-3 rounded-[var(--radius-field)] border border-dashed px-5 py-6 text-center transition-colors",
+             never accumulates state.
+
+             It is a *row* rather than a 9rem box this round. A dropzone is an
+             invitation, and an invitation does not need a sixth of a 1366×768
+             viewport to be understood — that height is what was pushing the
+             last field of three Steps below the fold. */
+          "rounded-[var(--radius-field)] border border-dashed transition-colors",
+          tall
+            ? "flex max-h-[16rem] min-h-[9rem] flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
+            : "flex items-center gap-2.5 px-2.5 py-2",
           dragging ? "border-violet-500 bg-violet-50/60" : "border-ink-200 bg-transparent",
         )}
       >
-        <IconTile size="md">
-          <FileArrowUpIcon weight="duotone" aria-hidden className="size-5.5" />
+        <IconTile size={tall ? "lg" : "sm"}>
+          <FileArrowUpIcon weight="duotone" aria-hidden className={tall ? "size-6" : "size-4"} />
         </IconTile>
-        <div className="space-y-1">
-          <p className="text-body font-bold text-ink-900">{label}</p>
-          <p className="text-small text-ink-500">
-            {hint ? `${hint} ` : null}PDF, JPEG or PNG, up to 8 files, 30 MB in total.
+        <div className={cn("min-w-0", tall ? "" : "flex-1")}>
+          <p className={cn("text-small font-strong text-ink-900", !tall && "truncate")}>{label}</p>
+          <p className={cn("text-micro text-ink-500", !tall && "truncate")}>
+            {hint ? `${hint} ` : null}PDF, JPEG or PNG · up to 8 files, 30 MB
           </p>
         </div>
-        <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => inputRef.current?.click()}
+        >
           Choose files
         </Button>
         <input
@@ -123,22 +143,24 @@ export function DocumentUpload({
       </div>
 
       {files.length > 0 ? (
-        <ul className="space-y-2 rounded-[var(--radius-field)] bg-well p-2">
+        <ul className="space-y-1 rounded-[var(--radius-field)] bg-well p-1.5">
           {files.map((file, index) => (
             <li
               key={`${file.name}-${index}`}
-              className="flex items-center gap-3 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-3.5 py-2.5"
+              className="flex items-center gap-2 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-2 py-1.5"
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-ink-50 text-ink-500">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-ink-50 text-ink-500">
                 {file.name.toLowerCase().endsWith(".pdf") ? (
-                  <FilePdfIcon weight="duotone" aria-hidden className="size-4.5" />
+                  <FilePdfIcon weight="duotone" aria-hidden className="size-3.5" />
                 ) : (
-                  <ImageIcon weight="duotone" aria-hidden className="size-4.5" />
+                  <ImageIcon weight="duotone" aria-hidden className="size-3.5" />
                 )}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-body text-ink-800">{file.name}</span>
-                <span className="block text-small text-ink-400">{formatSize(file.size)}</span>
+              <span className="flex min-w-0 flex-1 items-baseline gap-2">
+                <span className="truncate text-small text-ink-800">{file.name}</span>
+                <span className="shrink-0 text-micro text-ink-400 numeric">
+                  {formatSize(file.size)}
+                </span>
               </span>
               <Button
                 type="button"

@@ -1,13 +1,18 @@
-import { ArrowRightIcon, MapPinIcon } from "@phosphor-icons/react";
+import { HouseLineIcon, MapPinIcon, SealCheckIcon } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
+import { PricePill, useCelebration } from "@/components/celebration";
 import { Field } from "@/components/field";
 import { OptionCard } from "@/components/option-card";
-import { AwardStage, PricePill, usePointsAward } from "@/components/points-award";
-import { BackButton, StepShell, steadyAction, useStepNav } from "@/components/step-shell";
-import { IconTile, Panel, PanelDivider } from "@/components/surfaces";
-import { Button } from "@/components/ui/button";
+import {
+  BackButton,
+  ContinueAction,
+  StepGuide,
+  StepShell,
+  useStepNav,
+} from "@/components/step-shell";
+import { Section, SectionFields, Sections } from "@/components/surfaces";
 import { Input } from "@/components/ui/input";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
@@ -34,25 +39,24 @@ import { addressSchemaFor } from "@/lib/validation";
  * For an international student this Step **does not exist**. Not shown and
  * explained, not skipped in the rail: absent, from `steps.ts` outward. Laura on
  * the call: *"se não é residente ou cidadão dos Estados Unidos, não precisa de
- * endereço, já arranca fora."* This was specified in a previous spec and never
- * implemented; until now every student was shown a U.S. address block
- * regardless of the answer, which is the clearest example of the flow asking
- * for something it already knows cannot apply.
+ * endereço, já arranca fora."*
  *
  * The schema branches with it. `addressSchemaFor("international")` returns
  * `null` rather than a schema of optional fields, because a hidden required
  * field that blocks Continue with an error nobody can see is the worst version
  * of this.
  *
- * Density comes from pairing on one row rather than from compression, and the
- * second column takes what is not a field (Workable, Zillow).
+ * "Why we ask" used to be a second framed column beside the form, which is a
+ * third of the width spent on four sentences nobody reads twice. It is now a
+ * closed Section: the one line that answers the question is on its header, and
+ * the paragraph is a click away for the student who wants it.
  */
 export function WhereYouLiveRoute() {
   const state = useOnboarding();
   const live = state.whereYouLive;
   const status = state.whoYouAre.studentStatus;
   const navigate = useNavigate();
-  const award = usePointsAward();
+  const award = useCelebration();
   const { goNext } = useStepNav("where-you-live");
   const step = stepById("where-you-live");
 
@@ -72,6 +76,11 @@ export function WhereYouLiveRoute() {
   const set = (changes: Partial<typeof live>) => patch("whereYouLive", changes);
 
   const cities = live.state ? (citiesByState[live.state as UsStateCode] ?? []) : [];
+
+  const filled = [live.street, live.state, live.city, live.postalCode, live.country].filter(
+    (entry) => entry.trim() !== "",
+  ).length;
+  const missing = 5 - filled + (live.residencyVerification ? 0 : 1);
 
   const submit = () => {
     const result = schema.safeParse({
@@ -99,6 +108,9 @@ export function WhereYouLiveRoute() {
     award?.celebrate("where-you-live", step.points);
   };
 
+  const cityLabel = cities.find((entry) => entry.value === live.city)?.label;
+  const stateLabel = usStates.find((entry) => entry.value === live.state)?.label;
+
   return (
     <StepShell
       current="where-you-live"
@@ -107,25 +119,42 @@ export function WhereYouLiveRoute() {
       headerAside={
         <PricePill points={step.points} stepId="where-you-live" earned={live.submitted} />
       }
+      guide={
+        <StepGuide
+          current="where-you-live"
+          why="Your permanent address decides your residency classification, which decides your tuition rate. It is also where anything official goes — your enrolment confirmation and your first bill. It is not where you will live during term."
+          tasks={[
+            { label: "Where you live now", done: filled === 5 },
+            { label: "How we should check it", done: Boolean(live.residencyVerification) },
+          ]}
+        />
+      }
       actions={
         <>
           <BackButton current="where-you-live" />
-          <Button type="button" size="lg" className={steadyAction} onClick={submit}>
-            Save and continue
-            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-          </Button>
+          {live.submitted ? (
+            <ContinueAction label="Continue" onClick={goNext} />
+          ) : (
+            <ContinueAction remaining={missing} label="Save and continue" onClick={submit} />
+          )}
         </>
       }
     >
-      <div className="grid gap-4 lg:grid-cols-12">
-        <Panel as="fieldset" className="lg:col-span-8">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field
-              className="sm:col-span-2"
-              label="Street address"
-              htmlFor="street"
-              error={errors.street}
-            >
+      <Sections as="fieldset">
+        <Section
+          step={1}
+          done={filled === 5}
+          icon={<HouseLineIcon weight="duotone" aria-hidden className="size-4" />}
+          title="Your permanent address"
+          count={[filled, 5]}
+          value={
+            live.street
+              ? [live.street, cityLabel, stateLabel, live.postalCode].filter(Boolean).join(", ")
+              : undefined
+          }
+        >
+          <SectionFields>
+            <Field width="long" label="Street address" htmlFor="street" error={errors.street}>
               <Input
                 id="street"
                 autoComplete="address-line1"
@@ -133,7 +162,7 @@ export function WhereYouLiveRoute() {
                 onChange={(event) => set({ street: event.target.value })}
               />
             </Field>
-            <Field label="Apartment or unit" htmlFor="unit" optional>
+            <Field width="short" label="Apartment or unit" htmlFor="unit" optional>
               <Input
                 id="unit"
                 autoComplete="address-line2"
@@ -141,16 +170,14 @@ export function WhereYouLiveRoute() {
                 onChange={(event) => set({ unit: event.target.value })}
               />
             </Field>
-          </div>
 
-          {/* State and city are selects, and the city list is scoped to the
-              state. The review call asked for the dropdown explicitly, so the
-              registrar is not correcting free text. Changing the state clears
-              the city: a city that no longer belongs to the chosen state is
-              exactly the kind of well-formed nonsense a select exists to
-              prevent. */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Field label="State" htmlFor="state" error={errors.state}>
+            {/* State and city are selects, and the city list is scoped to the
+                state. The review call asked for the dropdown explicitly, so
+                the registrar is not correcting free text. Changing the state
+                clears the city: a city that no longer belongs to the chosen
+                state is exactly the kind of well-formed nonsense a select
+                exists to prevent. */}
+            <Field width="short" label="State" htmlFor="state" error={errors.state}>
               <Select value={live.state} onValueChange={(value) => set({ state: value, city: "" })}>
                 <SelectTrigger id="state" className="w-full">
                   <SelectValue placeholder="Choose your state" />
@@ -165,7 +192,7 @@ export function WhereYouLiveRoute() {
               </Select>
             </Field>
 
-            <Field label="City" htmlFor="city" error={errors.city}>
+            <Field width="short" label="City" htmlFor="city" error={errors.city}>
               <Select
                 value={live.city}
                 onValueChange={(value) => set({ city: value })}
@@ -186,7 +213,7 @@ export function WhereYouLiveRoute() {
               </Select>
             </Field>
 
-            <Field label="ZIP code" htmlFor="postal" error={errors.postalCode}>
+            <Field width="short" label="ZIP code" htmlFor="postal" error={errors.postalCode}>
               <Input
                 id="postal"
                 inputMode="numeric"
@@ -195,34 +222,39 @@ export function WhereYouLiveRoute() {
                 onChange={(event) => set({ postalCode: event.target.value })}
               />
             </Field>
-          </div>
 
-          <Field
-            className="mt-4 sm:max-w-xs"
-            label="Country"
-            htmlFor="country"
-            error={errors.country}
-          >
-            <Select value={live.country} onValueChange={(value) => set({ country: value })}>
-              <SelectTrigger id="country" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((entry) => (
-                  <SelectItem key={entry.value} value={entry.value}>
-                    {entry.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+            <Field width="short" label="Country" htmlFor="country" error={errors.country}>
+              <Select value={live.country} onValueChange={(value) => set({ country: value })}>
+                <SelectTrigger id="country" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((entry) => (
+                    <SelectItem key={entry.value} value={entry.value}>
+                      {entry.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </SectionFields>
+        </Section>
 
-          <PanelDivider />
-
+        <Section
+          step={2}
+          done={Boolean(live.residencyVerification)}
+          icon={<SealCheckIcon weight="duotone" aria-hidden className="size-4" />}
+          title="Residency check"
+          value={
+            residencyVerificationOptions.find(
+              (option) => option.value === live.residencyVerification,
+            )?.label
+          }
+        >
           <fieldset>
             <legend className="field-label">How should we check your residency?</legend>
             <RadioGroup
-              className="mt-3 grid gap-2.5"
+              className="mt-2 grid grid-cols-3 gap-1.5 narrow:grid-cols-1"
               value={live.residencyVerification}
               onValueChange={(value) => set({ residencyVerification: value })}
             >
@@ -237,38 +269,28 @@ export function WhereYouLiveRoute() {
               ))}
             </RadioGroup>
             {errors.residencyVerification ? (
-              <p className="mt-2 text-small font-medium text-danger-600">
+              <p className="mt-1.5 text-micro font-medium text-danger-600">
                 {errors.residencyVerification}
               </p>
             ) : null}
           </fieldset>
-        </Panel>
+        </Section>
 
-        {/* The second column takes what is not a field, which is what stops the
-            form column being half a screen wide with nothing beside it. */}
-        <Panel aside className="lg:col-span-4">
-          <IconTile size="lg">
-            <MapPinIcon weight="fill" aria-hidden className="size-6" />
-          </IconTile>
-          <p className="mt-3 text-body font-strong text-ink-900">Why we ask</p>
-          <p className="mt-1 text-small leading-5 text-ink-600">
+        <Section
+          collapsible
+          icon={<MapPinIcon weight="duotone" aria-hidden className="size-4" />}
+          title="Why we ask"
+          defaultOpen={false}
+          value="It decides your tuition rate, and where official post goes"
+        >
+          <p className="max-w-prose text-small leading-5 text-ink-600">
             Your permanent address decides your residency classification, which decides your tuition
             rate. It is also where anything official goes, including your enrolment confirmation and
-            your first bill.
+            your first bill. It is not where you will be living during term — Housing Services
+            handles that in the next Phase.
           </p>
-          <p className="mt-3 text-small leading-5 text-ink-600">
-            It is not where you will be living during term. Housing Services handles that in the
-            next Phase.
-          </p>
-        </Panel>
-      </div>
-
-      <AwardStage stepId="where-you-live" headline="Address on file.">
-        <Button type="button" size="lg" onClick={goNext}>
-          Continue
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </AwardStage>
+        </Section>
+      </Sections>
     </StepShell>
   );
 }

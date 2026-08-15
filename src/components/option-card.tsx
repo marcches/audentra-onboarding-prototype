@@ -35,7 +35,7 @@ export function OptionCard({
     <label
       htmlFor={id}
       className={cn(
-        "group flex cursor-pointer items-start gap-3.5 rounded-[var(--radius-field)] border border-ink-200 bg-panel p-4",
+        "group flex cursor-pointer items-start gap-2.5 rounded-[var(--radius-field)] border border-ink-200 bg-panel px-2.5 py-2 compact:min-h-[var(--tap-target)]",
         "transition-[border-color,background-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
         "hover:border-ink-300 hover:bg-ink-50/50",
         /* Fill and a check. No shadow, no scale, no lift: the card is the same
@@ -48,12 +48,14 @@ export function OptionCard({
       )}
     >
       <RadioGroupItem value={value} id={id} className="mt-0.5" />
-      <span className="flex flex-1 flex-col gap-0.5">
-        <span className="flex items-center gap-2 text-body font-strong text-ink-900">
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex items-center gap-1.5 text-body font-strong text-ink-900">
           {icon}
           {label}
         </span>
-        {consequence ? <span className="text-small text-ink-500">{consequence}</span> : null}
+        {consequence ? (
+          <span className="text-micro leading-4 text-ink-500">{consequence}</span>
+        ) : null}
       </span>
     </label>
   );

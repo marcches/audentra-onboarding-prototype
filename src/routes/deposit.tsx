@@ -1,5 +1,4 @@
 import {
-  ArrowRightIcon,
   BankIcon,
   CheckCircleIcon,
   CreditCardIcon,
@@ -7,11 +6,19 @@ import {
 } from "@phosphor-icons/react";
 import type * as React from "react";
 
+import { PricePill, useCelebration } from "@/components/celebration";
 import { Field } from "@/components/field";
 import { OptionCard } from "@/components/option-card";
-import { AwardStage, PricePill, usePointsAward } from "@/components/points-award";
-import { BackButton, StepShell, steadyAction, useStepNav } from "@/components/step-shell";
-import { OnGround, Panel, Well } from "@/components/surfaces";
+import { BackButton, ContinueAction, StepShell, useStepNav } from "@/components/step-shell";
+import {
+  Fact,
+  OnGround,
+  Reveal,
+  Section,
+  SectionFields,
+  Sections,
+  Well,
+} from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup } from "@/components/ui/radio-group";
@@ -26,12 +33,18 @@ const DEADLINE = formatDeadline(depositTerms.refundableUntil);
 const BALANCE_DUE = formatDeadline(depositTerms.balanceDue);
 
 /**
- * The Deposit, redrawn from nothing as a checkout.
+ * The Deposit, as a checkout the student has already used somewhere else.
  *
- * The client's brief: make it an experience the user has already had. Three
- * screens behind **one rail entry**, because a checkout is one thing to anyone
- * who has bought something online, and three rail entries would make the
+ * Three screens behind **one rail entry**, because a checkout is one thing to
+ * anyone who has bought something online, and three rail entries would make the
  * Closing larger than a Phase.
+ *
+ * The composition is the checkout asymmetry: methods on the Ground at the left,
+ * **only the summary framed**, at the right, where it stays put (Babbel,
+ * Squarespace). Framing both halves would erase the emphasis that makes the
+ * summary the summary. Choosing a method expands it in place through
+ * `grid-template-rows` — never `height` — and nothing above it moves (Turo,
+ * lululemon).
  *
  * What deliberately does **not** come across from e-commerce, and the first is
  * a matter of ethics rather than taste:
@@ -39,13 +52,10 @@ const BALANCE_DUE = formatDeadline(depositTerms.balanceDue);
  * - **No urgency of any kind.** No countdown, no "held for 09:58", no scarcity.
  *   Applying purchase pressure to a financial obligation, from an institution
  *   that has already admitted the student, is coercive and reads as a scam.
- * - No cart vocabulary, no upsells, no promo code field, no BNPL branding, no
- *   marketing opt-ins, and no confetti on the receipt.
- * - The button says the amount. The confirmation says a place is confirmed. A
- *   seat is not an order.
- *
- * The gateway is not connected: screen two simulates and screen three is real.
- * The sequence survives unchanged when a gateway lands.
+ * - No cart vocabulary, no upsells, no promo code field, no BNPL branding, and
+ *   no confetti on the receipt: the celebration belongs on Enrolled.
+ * - The three ways out — pay now, pay by the deadline, request a waiver — are
+ *   equally visible, and the screen says none of them is giving up.
  */
 export function DepositRoute() {
   const state = useOnboarding();
@@ -88,28 +98,27 @@ function SecureYourPlace() {
       actions={
         <>
           <BackButton current="deposit" />
-          <Button
-            type="button"
-            size="lg"
-            className={steadyAction}
-            disabled={!ready}
+          <ContinueAction
+            remaining={ready ? 0 : 1}
+            label="Review before paying"
             onClick={() => set({ screen: "double-check" })}
-          >
-            Review before paying
-            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-          </Button>
+          />
         </>
       }
     >
-      {/* The checkout's asymmetry: the form is on the Ground and only the
-          summary is framed. Framing both halves would erase the emphasis that
-          makes the summary the summary (Squarespace). This is the third
-          documented Ground exception. */}
-      <div className="grid gap-5 lg:grid-cols-12">
-        <OnGround reason="checkout-asymmetry" as="section" className="space-y-6 lg:col-span-7">
-          <NumberedCard number={1} title="How you want to pay">
+      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+        <OnGround
+          reason="checkout-asymmetry"
+          as="section"
+          className="col-span-7 space-y-3 narrow:col-span-1"
+        >
+          <div>
+            <p className="field-label">How you want to pay</p>
+            <p className="mt-0.5 text-micro leading-4 text-ink-500">
+              Three ways to finish this. None of them is giving up your place.
+            </p>
             <RadioGroup
-              className="grid gap-2.5"
+              className="mt-2 grid gap-1.5"
               value={deposit.choice}
               onValueChange={(value) =>
                 set({
@@ -137,47 +146,30 @@ function SecureYourPlace() {
                 consequence={`For students for whom the deposit is a barrier. Reviewed within ${depositTerms.waiverReviewDays} working days.`}
               />
             </RadioGroup>
-          </NumberedCard>
+          </div>
 
-          {/* Choosing the waiver collapses what follows rather than leaving the
-              checkout. Requesting a waiver is a valid outcome, not an exit. */}
-          {waiver ? (
-            <NumberedCard number={2} title="Why are you requesting a waiver?">
-              <Field
-                label="Your reason"
-                htmlFor="waiver-reason"
-                hint="A sentence is enough. Student Accounts reads these."
-              >
-                <Textarea
-                  id="waiver-reason"
-                  rows={3}
-                  value={deposit.waiverReason}
-                  onChange={(event) => set({ waiverReason: event.target.value })}
-                />
-              </Field>
-            </NumberedCard>
-          ) : payingNow ? (
-            <NumberedCard number={2} title="Payment method">
-              {/* Collapsed accordion rows: only the chosen one expands
-                  (Codecademy). Method and schedule are one decision, not two
-                  screens (Shop). */}
-              <div className="space-y-2.5">
+          {/* Both follow-ups are always mounted and reveal in place, so choosing
+              a way to pay never moves the option list the student just used. */}
+          <Reveal open={payingNow}>
+            <div>
+              <p className="field-label">Payment method</p>
+              <div className="mt-2 space-y-1.5">
                 <MethodRow
                   id="card"
-                  icon={<CreditCardIcon weight="fill" aria-hidden className="size-5" />}
+                  icon={<CreditCardIcon weight="fill" aria-hidden className="size-4" />}
                   label="Card"
                   selected={deposit.method === "card"}
                   onSelect={() => set({ method: "card" })}
                 >
-                  <div className="grid gap-3 pt-3 sm:grid-cols-2">
-                    <Field label="Name on card" htmlFor="card-name">
+                  <SectionFields className="pt-2">
+                    <Field width="medium" label="Name on card" htmlFor="card-name">
                       <Input
                         id="card-name"
                         value={deposit.cardName}
                         onChange={(event) => set({ cardName: event.target.value })}
                       />
                     </Field>
-                    <Field label="Card number" htmlFor="card-number">
+                    <Field width="medium" label="Card number" htmlFor="card-number">
                       <Input
                         id="card-number"
                         inputMode="numeric"
@@ -186,74 +178,58 @@ function SecureYourPlace() {
                         onChange={(event) => set({ cardNumber: event.target.value })}
                       />
                     </Field>
-                  </div>
-                  <p className="pt-2 text-small text-ink-400">
+                  </SectionFields>
+                  <p className="pt-1.5 text-micro text-ink-400">
                     No gateway is connected in this prototype. Nothing is charged.
                   </p>
                 </MethodRow>
 
                 <MethodRow
                   id="bank-transfer"
-                  icon={<BankIcon weight="fill" aria-hidden className="size-5" />}
+                  icon={<BankIcon weight="fill" aria-hidden className="size-4" />}
                   label="Bank transfer"
                   selected={deposit.method === "bank-transfer"}
                   onSelect={() => set({ method: "bank-transfer" })}
                 >
-                  <p className="pt-3 text-small text-ink-600">
+                  <p className="pt-2 text-micro leading-4 text-ink-600">
                     Takes two to three working days to clear. Your place is held from the moment you
                     confirm.
                   </p>
                 </MethodRow>
               </div>
-            </NumberedCard>
-          ) : (
-            /* Card two exists before it can be answered, muted. Without it the
-               numbering jumps from 1 to 3 the moment the screen loads, which
-               reads as a step having gone missing. */
-            <NumberedCard number={2} title="Payment method" muted>
-              <p className="text-small text-ink-600">Choose how you want to pay first.</p>
-            </NumberedCard>
-          )}
+            </div>
+          </Reveal>
 
-          <NumberedCard number={3} title="Review" muted={!ready}>
-            <p className="text-small text-ink-600">
-              {ready
-                ? "Nothing has been charged yet. The next screen shows what you are about to do."
-                : "Answer the steps above and this opens."}
-            </p>
-          </NumberedCard>
+          <Reveal open={waiver}>
+            <Field
+              width="full"
+              label="Why are you requesting a waiver?"
+              htmlFor="waiver-reason"
+              hint="A sentence is enough. Student Accounts reads these."
+            >
+              <Textarea
+                id="waiver-reason"
+                rows={2}
+                value={deposit.waiverReason}
+                onChange={(event) => set({ waiverReason: event.target.value })}
+              />
+            </Field>
+          </Reveal>
         </OnGround>
 
-        <DepositSummary waiver={waiver} className="lg:col-span-5" />
+        <DepositSummary waiver={waiver} />
       </div>
     </StepShell>
   );
 }
 
-function NumberedCard({
-  number,
-  title,
-  muted = false,
-  children,
-}: {
-  number: number;
-  title: string;
-  muted?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn(muted && "opacity-50")}>
-      <h2 className="flex items-center gap-2.5 text-h3 text-ink-900">
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-ink-900 text-[0.6875rem] font-bold text-white numeric">
-          {number}
-        </span>
-        {title}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
-}
-
+/**
+ * One method, expanding in place.
+ *
+ * `Reveal` rather than a conditional render, so the row that was clicked does
+ * not jump as its neighbour unmounts, and so the expansion is `0fr → 1fr`
+ * rather than a height animation.
+ */
 function MethodRow({
   id,
   icon,
@@ -272,7 +248,7 @@ function MethodRow({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-field)] border bg-panel px-4 py-3",
+        "rounded-[var(--radius-field)] border bg-panel px-2.5 py-2",
         "transition-[border-color,background-color] duration-[var(--duration-base)]",
         selected ? "border-violet-400 bg-violet-50/50" : "border-ink-200",
       )}
@@ -282,52 +258,51 @@ function MethodRow({
         onClick={onSelect}
         aria-expanded={selected}
         aria-controls={`method-${id}`}
-        className="flex w-full items-center gap-3 text-left"
+        className="flex w-full items-center gap-2 text-left compact:min-h-[var(--tap-target)]"
       >
         <span className="text-ink-500">{icon}</span>
         <span className="flex-1 text-body font-strong text-ink-900">{label}</span>
       </button>
-      {selected ? <div id={`method-${id}`}>{children}</div> : null}
+      <Reveal open={selected}>
+        <div id={`method-${id}`}>{children}</div>
+      </Reveal>
     </div>
   );
 }
 
 /**
- * The Deposit summary, pinned beside the form and never scrolling away, ending
- * in a bolded **Due today** on its own line, distinct from the subtotal
- * (Airbnb, Squarespace, Fresha).
- *
- * This replaces a full-width amount band. A number that large with no price
- * context reads as a banner rather than as a total.
+ * The Deposit summary, beside the form and never scrolling away, ending in a
+ * bolded **Due today** on its own line, distinct from the subtotal (Airbnb,
+ * Squarespace, Fresha). The one framed half of the checkout.
  */
-function DepositSummary({ waiver, className }: { waiver: boolean; className?: string }) {
+function DepositSummary({ waiver }: { waiver: boolean }) {
   return (
-    <div className={className}>
-      <Panel title="Deposit" className="lg:sticky lg:top-6">
-        <dl className="space-y-2">
-          <div className="flex items-baseline justify-between gap-4">
-            <dt className="text-small text-ink-600">Enrollment deposit</dt>
-            <dd className="text-body text-ink-800 numeric">{AMOUNT}</dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-4">
-            <dt className="text-small text-ink-600">Credited against your first term's tuition</dt>
-            <dd className="text-body text-mint-deep numeric">-{AMOUNT}</dd>
-          </div>
-        </dl>
+    <div className="col-span-5 narrow:col-span-1">
+      <Sections className="sticky top-3">
+        <Section title="Deposit" collapsible={false}>
+          <dl>
+            <Fact label="Enrollment deposit">
+              <span className="numeric">{AMOUNT}</span>
+            </Fact>
+            <Fact label="Credited against your first term's tuition">
+              <span className="text-mint-deep numeric">-{AMOUNT}</span>
+            </Fact>
+          </dl>
 
-        <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-ink-100 pt-3">
-          <span className="text-body font-strong text-ink-900">Due today</span>
-          <span className="text-h3 font-bold text-ink-900 numeric">
-            {waiver ? "$0, pending review" : AMOUNT}
-          </span>
-        </div>
+          <div className="mt-1.5 flex items-baseline justify-between gap-3 border-t border-ink-100 pt-1.5">
+            <span className="text-small font-strong text-ink-900">Due today</span>
+            <span className="text-h3 font-bold text-ink-900 numeric">
+              {waiver ? "$0, pending review" : AMOUNT}
+            </span>
+          </div>
 
-        <p className="mt-3 text-small text-ink-500">
-          {waiver
-            ? `Student Accounts reviews waiver requests within ${depositTerms.waiverReviewDays} working days. Your place is held while they do.`
-            : `Refundable in full until ${DEADLINE}.`}
-        </p>
-      </Panel>
+          <p className="mt-1.5 text-micro leading-4 text-ink-500">
+            {waiver
+              ? `Student Accounts reviews waiver requests within ${depositTerms.waiverReviewDays} working days. Your place is held while they do.`
+              : `Refundable in full until ${DEADLINE}.`}
+          </p>
+        </Section>
+      </Sections>
     </div>
   );
 }
@@ -340,7 +315,7 @@ function DoubleCheck() {
   const state = useOnboarding();
   const deposit = state.deposit;
   const step = stepById("deposit");
-  const award = usePointsAward();
+  const award = useCelebration();
 
   const set = (changes: Partial<typeof deposit>) => patch("deposit", changes);
   const waiver = deposit.choice === "waiver";
@@ -375,15 +350,16 @@ function DoubleCheck() {
           <Button type="button" variant="ghost" onClick={() => set({ screen: "secure" })}>
             Back
           </Button>
-          <Button type="button" size="lg" className={steadyAction} onClick={confirm}>
-            {label}
-            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-          </Button>
+          <ContinueAction label={label} onClick={confirm} />
         </>
       }
     >
-      <div className="grid gap-5 lg:grid-cols-12">
-        <OnGround reason="checkout-asymmetry" as="section" className="space-y-3 lg:col-span-7">
+      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+        <OnGround
+          reason="checkout-asymmetry"
+          as="section"
+          className="col-span-7 space-y-1.5 narrow:col-span-1"
+        >
           {/* Both prior steps collapsed to one line each with Change
               (lululemon). */}
           <CollapsedStep
@@ -405,8 +381,8 @@ function DoubleCheck() {
             />
           ) : null}
 
-          <Well label="The deposit policy, in short" className="mt-2">
-            <ul className="space-y-1.5 text-small leading-5 text-ink-700">
+          <Well label="The deposit policy, in short">
+            <ul className="space-y-1 text-micro leading-4 text-ink-700">
               <li>The deposit is {AMOUNT} and it is credited against your first term's bill.</li>
               <li>It is refundable in full until {DEADLINE}, and not after it.</li>
               <li>If you withdraw after that date you forfeit the deposit and nothing else.</li>
@@ -414,15 +390,8 @@ function DoubleCheck() {
           </Well>
         </OnGround>
 
-        <DepositSummary waiver={waiver} className="lg:col-span-5" />
+        <DepositSummary waiver={waiver} />
       </div>
-
-      <AwardStage stepId="deposit" headline="Your place is secured.">
-        <Button type="button" size="lg" onClick={() => set({ screen: "receipt" })}>
-          See your receipt
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </AwardStage>
     </StepShell>
   );
 }
@@ -437,11 +406,11 @@ function CollapsedStep({
   onChange: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-4 py-3">
-      <CheckCircleIcon weight="fill" aria-hidden className="size-5 shrink-0 text-mint-600" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-small text-ink-500">{label}</span>
-        <span className="block truncate text-body text-ink-900">{value}</span>
+    <div className="flex items-center gap-2.5 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-2.5 py-1.5">
+      <CheckCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-mint-600" />
+      <span className="flex min-w-0 flex-1 items-baseline gap-2">
+        <span className="shrink-0 text-micro text-ink-500">{label}</span>
+        <span className="truncate text-small text-ink-900">{value}</span>
       </span>
       <Button type="button" variant="ghost" size="sm" onClick={onChange}>
         Change
@@ -458,9 +427,6 @@ function CollapsedStep({
  * Every branch reaches a receipt, including paying by the deadline and
  * requesting a waiver, each with its own copy and status. A bank transfer shows
  * as **processing**, not as paid (Deel).
- *
- * No confetti. The sober next-steps timeline is the right register here; the
- * celebration lives on Enrolled.
  */
 function Receipt() {
   const state = useOnboarding();
@@ -475,71 +441,62 @@ function Receipt() {
       title={outcome.title}
       lead={outcome.sentence}
       saved={false}
-      actions={
-        <Button type="button" size="lg" onClick={goNext}>
-          Finish
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      }
+      actions={<ContinueAction label="Finish" onClick={goNext} />}
     >
-      <div className="grid gap-5 lg:grid-cols-12">
-        <Panel className="lg:col-span-7">
-          <div className="flex items-center gap-3">
-            {outcome.processing ? (
-              <HourglassMediumIcon weight="fill" aria-hidden className="size-8 text-amber-500" />
-            ) : (
-              <CheckCircleIcon weight="fill" aria-hidden className="size-8 text-mint-600" />
-            )}
-            <p className="text-h3 text-ink-900 numeric">{outcome.amount}</p>
-          </div>
+      <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
+        <Sections className="col-span-7 narrow:col-span-1">
+          <Section title="Your receipt" collapsible={false}>
+            <div className="flex items-center gap-2.5">
+              {outcome.processing ? (
+                <HourglassMediumIcon weight="fill" aria-hidden className="size-6 text-amber-500" />
+              ) : (
+                <CheckCircleIcon weight="fill" aria-hidden className="size-6 text-mint-600" />
+              )}
+              <p className="text-h2 text-ink-900 numeric">{outcome.amount}</p>
+            </div>
 
-          <Well strong className="mt-4">
-            <dl className="space-y-1.5">
-              <ReceiptRow label="Reference" value={deposit.reference || "pending"} />
-              <ReceiptRow
-                label="Date"
-                value={
-                  deposit.settledAt
+            <Well strong className="mt-2">
+              <dl>
+                <Fact label="Reference">
+                  <span className="font-mono">{deposit.reference || "pending"}</span>
+                </Fact>
+                <Fact label="Date">
+                  {deposit.settledAt
                     ? new Date(deposit.settledAt).toLocaleDateString("en-US", {
                         month: "long",
                         day: "numeric",
                         year: "numeric",
                       })
-                    : "today"
-                }
-              />
-              <ReceiptRow label="Method" value={outcome.method} />
-              <ReceiptRow label="Amount" value={outcome.amount} />
-            </dl>
-          </Well>
-        </Panel>
+                    : "today"}
+                </Fact>
+                <Fact label="Method">{outcome.method}</Fact>
+                <Fact label="Amount">
+                  <span className="numeric">{outcome.amount}</span>
+                </Fact>
+              </dl>
+            </Well>
+          </Section>
+        </Sections>
 
-        <Panel title="What happens next" className="lg:col-span-5">
-          <ol className="space-y-3">
-            {outcome.next.map((line, index) => (
-              <li key={line} className="flex items-start gap-3">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-ink-100 text-[0.625rem] font-bold text-ink-600 numeric">
-                  {index + 1}
-                </span>
-                <span className="text-small leading-5 text-ink-700">{line}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-small text-ink-400">
-            Questions about the money go to {institution.admissionsEmail}.
-          </p>
-        </Panel>
+        <Sections className="col-span-5 narrow:col-span-1">
+          <Section title="What happens next" collapsible={false}>
+            <ol className="space-y-1.5">
+              {outcome.next.map((line, index) => (
+                <li key={line} className="flex items-start gap-2">
+                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-ink-100 text-[0.5625rem] font-bold text-ink-600 numeric">
+                    {index + 1}
+                  </span>
+                  <span className="text-micro leading-4 text-ink-700">{line}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2 text-micro text-ink-400">
+              Questions about the money go to {institution.admissionsEmail}.
+            </p>
+          </Section>
+        </Sections>
       </div>
     </StepShell>
-  );
-}
-
-function ReceiptRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="text-small text-ink-500">{label}</dt>
-      <dd className="font-mono text-small text-ink-800">{value}</dd>
-    </div>
   );
 }
 

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * am I" without relying on a focus ring alone.
  */
 const fieldClassName =
-  "w-full rounded-[var(--radius-field)] border border-ink-200 bg-ink-50/60 px-3.5 text-body text-ink-900 shadow-none transition-[background-color,border-color,box-shadow] outline-none placeholder:text-ink-400 hover:border-ink-300 focus:border-violet-400 focus:bg-surface focus:shadow-[0_0_0_4px_var(--color-violet-50)] disabled:cursor-not-allowed disabled:border-ink-100 disabled:bg-ink-50 disabled:text-ink-500 aria-[invalid=true]:border-danger-500 aria-[invalid=true]:bg-danger-50/50 aria-[invalid=true]:focus:shadow-[0_0_0_4px_var(--color-danger-50)]";
+  "w-full rounded-[var(--radius-field)] border border-ink-200 bg-ink-50/60 px-2.5 text-body text-ink-900 shadow-none transition-[background-color,border-color,box-shadow] outline-none compact:min-h-[var(--tap-target)] placeholder:text-ink-400 hover:border-ink-300 focus:border-violet-400 focus:bg-surface focus:shadow-[0_0_0_3px_var(--color-violet-50)] disabled:cursor-not-allowed disabled:border-ink-100 disabled:bg-ink-50 disabled:text-ink-500 aria-[invalid=true]:border-danger-500 aria-[invalid=true]:bg-danger-50/50 aria-[invalid=true]:focus:shadow-[0_0_0_3px_var(--color-danger-50)]";
 
 function Input({
   className,
@@ -26,7 +26,7 @@ function Input({
       data-slot="input"
       aria-describedby={describedBy ?? field?.describedBy}
       aria-invalid={invalid ?? field?.invalid}
-      className={cn(fieldClassName, "h-11", className)}
+      className={cn(fieldClassName, "h-8", className)}
       {...props}
     />
   );

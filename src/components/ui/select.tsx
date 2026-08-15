@@ -34,7 +34,7 @@ function SelectTrigger({
       aria-invalid={invalid ?? field?.invalid}
       className={cn(
         fieldClassName,
-        "flex h-11 items-center justify-between gap-2 text-left data-[placeholder]:text-ink-400",
+        "flex h-8 items-center justify-between gap-2 text-left data-[placeholder]:text-ink-400",
         className,
       )}
       {...props}
@@ -60,7 +60,7 @@ function SelectContent({
         position={position}
         sideOffset={6}
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[10rem] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-[var(--radius-field)] border border-ink-100 bg-surface p-1.5 text-ink-900 shadow-lift data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "relative z-[var(--z-popover)] max-h-(--radix-select-content-available-height) min-w-[10rem] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-[var(--radius-field)] border border-ink-100 bg-surface p-1.5 text-ink-900 shadow-lift data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
         {...props}
@@ -94,7 +94,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-[7px] py-2 pr-8 pl-2.5 text-body outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-violet-50 data-[highlighted]:text-violet-700",
+        "relative flex w-full cursor-default items-center gap-2 rounded-[7px] py-1.5 pr-8 pl-2.5 text-body compact:min-h-[var(--tap-target)] outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-violet-50 data-[highlighted]:text-violet-700",
         className,
       )}
       {...props}

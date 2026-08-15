@@ -37,7 +37,12 @@ import { cn } from "@/lib/utils";
  *   invariants.
  */
 
-export type ViewerPhoto = Photo & { label?: string };
+/**
+ * A photo in the viewer. `category` is what turns twelve frames into a
+ * navigable set: KAYAK and Expedia both open a gallery on its categories with a
+ * count each, and a blind carousel of 24 images is the thing this replaces.
+ */
+export type ViewerPhoto = Photo & { label?: string; category?: string };
 
 type ViewerRequest = {
   photos: ViewerPhoto[];
@@ -106,6 +111,21 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
   const photos = request.photos;
   const photo = photos[index];
   const many = photos.length > 1;
+
+  /* The categories, in the order they first appear, each with the index it
+     starts at and how many frames it holds. A gallery that opens on its
+     categories is navigable at twenty-four photographs; a blind carousel is
+     twenty-three taps to the bathroom (KAYAK, Expedia). */
+  const categories = React.useMemo(() => {
+    const found: { name: string; start: number; count: number }[] = [];
+    photos.forEach((frame, position) => {
+      if (!frame.category) return;
+      const existing = found.find((entry) => entry.name === frame.category);
+      if (existing) existing.count += 1;
+      else found.push({ name: frame.category, start: position, count: 1 });
+    });
+    return found.length > 1 ? found : [];
+  }, [photos]);
 
   const step = React.useCallback(
     (delta: number) => {
@@ -189,7 +209,7 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
       role="dialog"
       aria-modal="true"
       aria-label={photo?.label ? `${photo.label} photo viewer` : "Photo viewer"}
-      className="on-dark fixed inset-0 z-[200] flex flex-col bg-black outline-none"
+      className="on-dark fixed inset-0 z-[var(--z-viewer)] flex flex-col bg-black outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -197,27 +217,55 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Top: close, and nothing else. */}
-      <div className="flex shrink-0 items-center p-3">
+      {/* Top: close at the left, and the categories beside it. Careem's rule
+          was "nothing competing with the close"; a row of room names is
+          navigation rather than competition, and without it the twelfth
+          photograph is eleven taps away. */}
+      <div className="flex shrink-0 items-center gap-2 p-2">
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="flex size-11 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10"
         >
           <XIcon weight="bold" aria-hidden className="size-6" />
         </button>
+
+        {categories.length ? (
+          <div className="rail-scroll flex min-w-0 gap-1.5 overflow-x-auto">
+            {categories.map((category) => {
+              const active = photo?.category === category.name;
+              return (
+                <button
+                  key={category.name}
+                  type="button"
+                  onClick={() => setIndex(category.start)}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3 text-small font-strong transition-colors",
+                    active
+                      ? "bg-white text-ink-900"
+                      : "bg-white/10 text-white/80 hover:bg-white/20",
+                  )}
+                >
+                  {category.name}
+                  <span className="numeric opacity-70">{category.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       {/* The frame. `object-contain` is the whole promise: the image is never
           cropped, at any aspect ratio or viewport. */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 sm:px-14">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-14 compact:px-2">
         {many ? (
           <button
             type="button"
             onClick={() => step(-1)}
             aria-label="Previous photo"
-            className="absolute left-1 z-10 hidden size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:flex"
+            className="absolute left-1 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 compact:hidden"
           >
             <CaretLeftIcon weight="bold" aria-hidden className="size-6" />
           </button>
@@ -237,7 +285,7 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
             type="button"
             onClick={() => step(1)}
             aria-label="Next photo"
-            className="absolute right-1 z-10 hidden size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:flex"
+            className="absolute right-1 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 compact:hidden"
           >
             <CaretRightIcon weight="bold" aria-hidden className="size-6" />
           </button>
@@ -255,7 +303,7 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
         </div>
 
         {many ? (
-          <div className="mt-3 hidden gap-2 overflow-x-auto pb-1 sm:flex">
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 compact:hidden">
             {photos.map((frame, position) => (
               <button
                 key={frame.src}

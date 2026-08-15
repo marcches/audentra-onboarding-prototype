@@ -62,7 +62,7 @@ export function EntryRoute() {
        On desktop the split is exactly one viewport tall and neither half moves
        the page: whichever column overflows scrolls inside itself. A whole-page
        scrollbar on an auth screen reads as a layout that didn't fit. */
-    <div className="flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:flex-row lg:overflow-hidden">
+    <div className="flex h-dvh min-h-0 flex-row overflow-hidden compact:min-h-dvh compact:h-auto compact:flex-col compact:overflow-visible">
       {/* Centred via an inner wrapper with `min-h-full`, not via `items-center`
           on the scroller itself. Centring a column that overflows its own
           scroll box splits the overflow across both edges, and `scrollTop`
@@ -73,9 +73,9 @@ export function EntryRoute() {
           space around it is symmetric and reads as margin — which is the
           difference between this and the defect it replaces, where a fixed panel
           let the form's gutter grow on one side only. */}
-      <div className="flex w-full items-start justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:shrink-0 lg:overflow-y-auto lg:px-12 lg:py-12">
+      <div className="flex w-1/2 shrink-0 items-start justify-center overflow-y-auto px-10 py-10 compact:w-full compact:overflow-visible compact:px-4 compact:py-6">
         <div className="flex min-h-full w-full max-w-[27rem] flex-col justify-center gap-6">
-          <div className="space-y-2 lg:hidden">
+          <div className="hidden space-y-2 compact:block">
             <Wordmark />
           </div>
 
@@ -165,7 +165,7 @@ export function EntryRoute() {
           2560 show the same picture at different sizes — the first round capped
           the panel and let the form absorb the slack, which is why the gutter
           around the form grew by 240px every time the monitor did. */}
-      <EntryPanel className="lg:order-first lg:h-full lg:w-1/2" />
+      <EntryPanel className="order-first h-full w-1/2 compact:order-none compact:h-auto compact:w-full" />
     </div>
   );
 }

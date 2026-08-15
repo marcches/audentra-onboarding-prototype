@@ -2,43 +2,49 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { presence, widthClasses } from "@/lib/layout";
+
 /**
- * The stillness ruler, reduced to four lines and enforced.
+ * The layout ruler, enforced.
  *
- * The ruler used to have six. Two rounds of screens showed that the extra two
- * were not preventing drift at all, they were preventing *choreography* — and
- * the client's actual complaint was never that things moved, it was that the
- * same screen landed in different places depending on how you arrived at it
- * ("vc erra bastante tbm com layout, onde fica dando flick, de posição").
+ * **Rewritten rather than extended**, for the third time and for the same
+ * reason ADR 0006 gives: a test and a ruler that disagree are worse than either
+ * alone. Everything the previous version asserted about `Panel`, about the
+ * `decision` archetype filling one viewport, and about a component called
+ * `points-award` is gone in the same change as the things themselves.
  *
- * So this file is **rewritten rather than extended**: it asserts exactly the
- * four survivors, and the assertions that enforced the revoked lines are
- * deleted in the same change as the lines themselves. A test and a ruler that
- * disagree is worse than either alone.
+ * What it asserts now, and why each line exists:
  *
- * The four survivors, all of them about drift:
+ * 1. The four **drift** invariants that survived ADR 0006. All four are about
+ *    the same element landing on different pixels depending on how you arrived
+ *    at it, which is the client's actual complaint word for word ("vc erra
+ *    bastante tbm com layout, onde fica dando flick, de posição").
+ * 2. **Presence has exactly eight rows.** Without this the closed table in
+ *    `docs/design-research.md` is decoration, and "Presence" is `hidden
+ *    lg:block` with a nicer name.
+ * 3. **No breakpoint outside the three width classes**, in any `.tsx`. ADR 0008
+ *    says a fourth class is a test failure rather than a review note.
+ * 4. **No animation rule touches a layout property.** `height`, `top`, `width`
+ *    and `left` reflow a subtree on every frame, and that is the first suspect
+ *    for the stutter the client reported. `grid-template-rows` is the sanctioned
+ *    replacement and is explicitly allowed.
+ * 5. **One celebration layer**, `fixed` and non-interactive — the evolution of
+ *    the assertion that used to aim at the Points flight, now that the same
+ *    layer owns the confetti and the single `<canvas>`.
+ * 6. **One z-index ladder.** Every overlapping thing reads a token and nothing
+ *    writes a literal, so "the dialog went behind the bar" stops being a class
+ *    of bug.
  *
- * 1. Every Step anchors its `h1` at the same pixel.
- * 2. Nothing is born above the title.
- * 3. The action bar is a constant height, declared once.
- * 4. A primary button's width does not react to its own label.
+ * What it deliberately does **not** assert: content above the fold, and the
+ * ceiling of three surfaces. The repo has no DOM environment, and measuring a
+ * fold without one is pretending the test knows the height of a font. A test
+ * that lies is worse than no test, so those two are human acceptance at
+ * 1366×768 and 390×844 — the one point in this epic where "done" is not an
+ * output of CI, and the client agreed to that explicitly.
  *
- * Revoked, with the reason recorded in `docs/design-research.md`:
- *
- * - *A conditional block reserves its space or is an overlay* — it forbade
- *   choreography outright. Replaced by *reveals directly below the control that
- *   triggered it, with an authored transition; nothing above the trigger moves*,
- *   which is a judgement call and is reviewed by a human.
- * - *`Panel` never wraps a gallery* — it is what pushed catalogues onto the
- *   bare Ground and produced the "jogado no fundo" complaint.
- * - *No control exists for a catalogue that already fits* — the review call
- *   asked for a filter and this line forbade it.
- * - *One title-and-lead pair per screen* — demoted to an archetype default.
- *
- * This asserts source-level invariants rather than measuring a rendered page:
- * the repo has no DOM test environment, and an escape hatch that does not exist
- * cannot be used wrongly by a future step, which is a stronger guarantee than
- * catching it afterwards.
+ * Everything here asserts a source-level invariant rather than measuring a
+ * rendered page: an escape hatch that does not exist cannot be used wrongly by
+ * a future Step, which is a stronger guarantee than catching it afterwards.
  */
 
 const SRC = join(import.meta.dirname, "..");
@@ -61,7 +67,9 @@ function sourceFiles() {
 }
 
 const files = sourceFiles();
+const components = files.filter((file) => file.name.endsWith(".tsx"));
 const shell = files.find((file) => file.name === "components/step-shell.tsx");
+const celebration = files.find((file) => file.name === "components/celebration.tsx");
 const css = readFileSync(join(SRC, "styles/app.css"), "utf8");
 const routes = files.filter((file) => file.name.startsWith("routes/"));
 
@@ -93,18 +101,18 @@ describe("every step anchors its title at the same pixel", () => {
 describe("nothing is born above the title", () => {
   it("renders the header as the first thing in the measured column", () => {
     // A block that appears by state — the return to Review was the one
-    // offender — moves the whole screen down.
+    // offender — moves the whole screen down. It now lives with the actions.
     const column = shell?.text.split("MEASURE[archetype]")[1] ?? "";
-    const beforeHeader = column.split("<header")[0];
+    const beforeHeader = column.split("motion.header")[0];
     expect(beforeHeader).not.toMatch(/<[A-Za-z]/);
   });
 });
 
 /* ---------------------------------------------------------------------------
-   3 · The action bar is a constant height, declared once
+   3 · The foot of the screen is a constant, declared once
    ------------------------------------------------------------------------ */
 
-describe("the action bar is a constant", () => {
+describe("the foot of the screen is a constant", () => {
   it("declares its height and every archetype measure exactly once, in the theme", () => {
     expect(css.match(/--action-bar-height:/g)).toHaveLength(1);
     expect(css.match(/--step-measure:/g)).toHaveLength(1);
@@ -121,7 +129,7 @@ describe("the action bar is a constant", () => {
     }
   });
 
-  it("pairs the column's bottom padding with a bar that is actually there", () => {
+  it("pairs the column's bottom padding with actions that are actually there", () => {
     // `main` always reserves `--action-bar-height` at the foot, so a step
     // without `actions` would render that much dead space below nothing.
     for (const route of routes) {
@@ -137,23 +145,149 @@ describe("the action bar is a constant", () => {
 
 describe("a primary action does not resize as you work", () => {
   it("gives a state-labelled button a width floor", () => {
-    // `steadyAction` is the floor. Any button whose label is chosen by a
-    // ternary inside the bar has to carry it, or the one fixed piece of
-    // furniture in the layout moves while the student uses the step.
+    // `steadyAction` is the floor, and `ContinueAction` is the only thing that
+    // swaps a primary label — "2 fields to go" and "Save and continue" are the
+    // same button, so it has to be the same width.
     expect(shell?.text).toMatch(/export const steadyAction/);
     expect(shell?.text).toMatch(/min-w-\[/);
+    expect(shell?.text).toMatch(/export function ContinueAction/);
+    expect(shell?.text).toMatch(/className=\{steadyAction\}/);
   });
 });
 
 /* ---------------------------------------------------------------------------
-   The award cannot move the page
+   5 · Presence is a closed table of eight
    ------------------------------------------------------------------------ */
 
-describe("the award choreography cannot shift the layout", () => {
-  it("keeps the flight layer fixed and non-interactive", () => {
-    // Not a fifth rule: it is how the four above survive a 2.6 second
-    // animation running across the whole screen.
-    const award = files.find((file) => file.name === "components/points-award.tsx");
-    expect(award?.text).toMatch(/pointer-events-none fixed inset-0/);
+describe("presence", () => {
+  it("has exactly eight rows", () => {
+    // Eight, argued for one by one in `docs/design-research.md`. A ninth needs
+    // a written reason in the same change, and the argument has to be that no
+    // container query can express it.
+    expect(presence).toHaveLength(8);
+  });
+
+  it("gives every row a distinct piece and both of its states", () => {
+    expect(new Set(presence.map((row) => row.id)).size).toBe(presence.length);
+    for (const row of presence) {
+      expect(row.compact.length, row.id).toBeGreaterThan(0);
+      expect(row.desktop.length, row.id).toBeGreaterThan(0);
+    }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   6 · Three width classes, and no fourth
+   ------------------------------------------------------------------------ */
+
+describe("the three width classes", () => {
+  it("declares them once, at the two boundaries ADR 0008 names", () => {
+    expect(widthClasses.map((entry) => entry.id)).toEqual(["compact", "medium", "desktop"]);
+    expect(widthClasses.map((entry) => entry.from)).toEqual([0, 768, 1280]);
+
+    const variants = css.match(/@custom-variant (compact|medium|desktop) /g) ?? [];
+    expect(variants).toHaveLength(3);
+    // 1280 rather than 1366, so a real HD machine sits inside the class rather
+    // than on its edge.
+    expect(css).toMatch(/@custom-variant desktop \(@media \(width >= 1280px\)\)/);
+  });
+
+  it("lets no `.tsx` reach for a Tailwind default breakpoint", () => {
+    for (const file of components) {
+      expect(file.text, file.name).not.toMatch(/\b(sm|md|lg|xl|2xl):[a-z[-]/);
+      expect(file.text, file.name).not.toMatch(/\b(min|max)-width\b/);
+    }
+  });
+
+  it("keeps the container query to one threshold, in one place", () => {
+    expect(css.match(/@custom-variant narrow /g)).toHaveLength(1);
+    expect(css.match(/container-type:/g)).toHaveLength(1);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   7 · No animation rule touches a layout property
+   ------------------------------------------------------------------------ */
+
+const LAYOUT_PROPERTIES = /\b(height|top|width|left)\b/;
+
+describe("nothing animates a layout property", () => {
+  it("keeps keyframes to transform, opacity and the sanctioned grid track", () => {
+    // `grid-template-rows: 0fr → 1fr` is the replacement for `height: 0 → auto`
+    // and is allowed by name — it collapses a track rather than reflowing a
+    // subtree. The bare properties below are what is forbidden.
+    const frames = css.match(/@keyframes[\s\S]*?\n {2}}/g) ?? [];
+    expect(frames.length).toBeGreaterThan(0);
+    for (const frame of frames) {
+      const body = frame.replace(/grid-template-rows/g, "");
+      for (const declaration of body.match(/^\s*[a-z-]+:/gm) ?? []) {
+        expect(declaration.trim(), frame.split("\n")[0]).not.toMatch(LAYOUT_PROPERTIES);
+      }
+    }
+  });
+
+  it("keeps CSS transitions off them too", () => {
+    for (const property of css.match(/transition-property:[^;]+;/g) ?? []) {
+      expect(property).not.toMatch(LAYOUT_PROPERTIES);
+    }
+  });
+
+  it("keeps Tailwind's arbitrary transition lists off them", () => {
+    for (const file of components) {
+      for (const list of file.text.match(/transition-\[[^\]]+\]/g) ?? []) {
+        expect(list.replace(/grid-template-rows/g, ""), file.name).not.toMatch(LAYOUT_PROPERTIES);
+      }
+    }
+  });
+
+  it("keeps `motion`'s animated properties off them", () => {
+    for (const file of components) {
+      for (const target of file.text.match(/(?:initial|animate|exit)=\{\{[^}]*\}/g) ?? []) {
+        expect(target, file.name).not.toMatch(/\b(height|top|left)\s*:/);
+      }
+    }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   8 · One celebration layer
+   ------------------------------------------------------------------------ */
+
+describe("the celebration layer", () => {
+  it("is one, fixed, and cannot be clicked", () => {
+    // Not a fifth drift rule: it is how the four above survive a 3.4 second
+    // choreography running across the whole screen.
+    expect(celebration?.text).toMatch(/pointer-events-none fixed inset-0/);
+  });
+
+  it("owns exactly one canvas, created once and reused", () => {
+    // `canvas-confetti` mints a full-screen canvas per call if it is allowed
+    // to. Twelve of those is the second suspect for the stutter, after
+    // animating `height`.
+    expect(celebration?.text.match(/<canvas/g)).toHaveLength(1);
+    expect(celebration?.text.match(/confetti\.create\(/g)).toHaveLength(1);
+    for (const file of components) {
+      if (file.name === "components/celebration.tsx") continue;
+      expect(file.text, file.name).not.toMatch(/from "canvas-confetti"/);
+    }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   9 · One z-index ladder
+   ------------------------------------------------------------------------ */
+
+describe("the stacking order", () => {
+  it("is declared once, in the theme", () => {
+    const rungs = css.match(/^\s*--z-[a-z-]+:/gm) ?? [];
+    expect(rungs.length).toBeGreaterThan(0);
+    expect(new Set(rungs.map((rung) => rung.trim())).size).toBe(rungs.length);
+  });
+
+  it("lets no component write a literal", () => {
+    for (const file of components) {
+      expect(file.text, file.name).not.toMatch(/\bz-\[?-?\d/);
+      expect(file.text, file.name).not.toMatch(/zIndex:\s*-?\d/);
+    }
   });
 });

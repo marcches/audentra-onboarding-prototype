@@ -5,8 +5,8 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import { CelebrationProvider } from "@/components/celebration";
 import { ImageViewerProvider } from "@/components/image-viewer";
-import { PointsAwardProvider } from "@/components/points-award";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
 import { DepositRoute } from "@/routes/deposit";
@@ -27,8 +27,18 @@ import { WhoYouAreRoute } from "@/routes/who-you-are";
  * Every onboarding step is its own URL, so a preview link can point straight at
  * the screen under review.
  */
+/**
+ * The celebration layer is mounted here rather than under `/onboarding`,
+ * because Enrolled lives outside it and the arrival is one of the twelve
+ * moments. One layer for the whole app is also the only way "there is exactly
+ * one `<canvas>`" can be true — a provider per section would mint one each.
+ */
 const rootRoute = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <CelebrationProvider>
+      <Outlet />
+    </CelebrationProvider>
+  ),
 });
 
 const indexRoute = createRoute({
@@ -63,24 +73,19 @@ const onboardingRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { from?: "review" } => ({
     from: search.from === "review" ? "review" : undefined,
   }),
-  /* Row at every width: the rail hides itself below `lg`, so there is no
-     direction to switch. The shell's own column carries the recessed ground.
-     The award provider wraps the whole of `/onboarding` rather than the step:
-     a Point is earned by the click that also navigates, and a provider inside
-     the step would be unmounted by that navigation halfway through the flight
-     it was animating. */
+  /* A row at every width: the Rail takes itself out of the flow in `compact`,
+     so there is no direction to switch and no component asking how wide the
+     window is. The shell's own column carries the recessed ground. */
   component: () => (
-    <PointsAwardProvider>
-      {/* The viewer wraps the whole of `/onboarding` so any photograph in the
-          flow can open it, and so the page behind it stays mounted while it is
-          open — a viewer that unmounted its own trigger could not return focus
-          to it. */}
-      <ImageViewerProvider>
-        <div className="flex min-h-dvh bg-canvas">
-          <Outlet />
-        </div>
-      </ImageViewerProvider>
-    </PointsAwardProvider>
+    /* The viewer wraps the whole of `/onboarding` so any photograph in the
+       flow can open it, and so the page behind it stays mounted while it is
+       open — a viewer that unmounted its own trigger could not return focus
+       to it. */
+    <ImageViewerProvider>
+      <div className="flex min-h-dvh bg-canvas">
+        <Outlet />
+      </div>
+    </ImageViewerProvider>
   ),
 });
 

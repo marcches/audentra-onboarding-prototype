@@ -35,11 +35,7 @@ export function PhoneInput({
       <Select value={dialCode} onValueChange={onDialCodeChange}>
         {/* Explicitly not invalid: it sits inside the same Field as the number,
             and it is the number that fails validation, never the country. */}
-        <SelectTrigger
-          className="w-[8.5rem] shrink-0"
-          aria-label="Country code"
-          aria-invalid={false}
-        >
+        <SelectTrigger className="w-[7rem] shrink-0" aria-label="Country code" aria-invalid={false}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

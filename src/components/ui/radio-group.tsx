@@ -10,7 +10,7 @@ function RadioGroup({
   return (
     <RadioGroupPrimitive.Root
       data-slot="radio-group"
-      className={cn("grid gap-2.5", className)}
+      className={cn("grid gap-2", className)}
       {...props}
     />
   );
@@ -24,7 +24,7 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "relative size-5 shrink-0 rounded-full border border-ink-300 bg-surface transition-[border-color,box-shadow] hover:border-ink-400 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-[6px] data-[state=checked]:border-violet-500",
+        "relative size-4 shrink-0 rounded-full border border-ink-300 bg-surface transition-[border-color,box-shadow] hover:border-ink-400 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-[5px] data-[state=checked]:border-violet-500",
         className,
       )}
       {...props}

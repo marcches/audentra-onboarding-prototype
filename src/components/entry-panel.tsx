@@ -64,7 +64,7 @@ export function EntryPanel({ className }: { className?: string }) {
   return (
     /* Inset with a radius rather than bled to the edge, so the gradient reads as
        a deliberate object on the page instead of as the page's background. */
-    <div className={cn("p-3 lg:py-4 lg:pr-0 lg:pl-4", className)}>
+    <div className={cn("py-4 pr-0 pl-4 compact:p-3", className)}>
       {/* `items-start`, because a flex column stretches its children across the
           cross axis by default — which took the lockup, an image told to keep its
           own width, and stretched it to the full width of the panel at the height
@@ -73,9 +73,9 @@ export function EntryPanel({ className }: { className?: string }) {
           The wordmark is pinned to the top of the same left axis, so the panel
           reads as one column: mark at the head, statement at the optical centre,
           both starting at the same x. */}
-      <div className="brand-panel on-dark relative isolate flex h-full items-center justify-start overflow-hidden rounded-[var(--radius-slab)] px-6 py-16 text-white sm:px-10 lg:px-14">
+      <div className="brand-panel on-dark relative isolate flex h-full items-center justify-start overflow-hidden rounded-[var(--radius-slab)] px-12 py-16 text-white compact:px-6">
         {showCanvas ? (
-          <div aria-hidden className="absolute inset-0 -z-10">
+          <div aria-hidden className="absolute inset-0 z-[var(--z-behind)]">
             <React.Suspense fallback={null}>
               {/* Enough grain to kill the banding a panel this size shows in any
                   smooth two-stop gradient, and no more. */}
@@ -100,7 +100,7 @@ export function EntryPanel({ className }: { className?: string }) {
             which at this size would fight the ground it lies on. */}
         <AudentraMark
           tone="mono"
-          className="pointer-events-none absolute -right-[16%] -bottom-[20%] -z-10 w-[64%] text-white/[0.06]"
+          className="pointer-events-none absolute -right-[16%] -bottom-[20%] z-[var(--z-behind)] w-[64%] text-white/[0.06]"
         />
 
         {/* The signature, at the head of the same left axis the statement sits on.
@@ -112,7 +112,7 @@ export function EntryPanel({ className }: { className?: string }) {
             ground. */}
         <Wordmark
           tone="knockout"
-          className="absolute top-10 left-6 h-7 sm:left-10 sm:h-8 lg:left-14"
+          className="absolute top-10 left-12 h-8 compact:left-6 compact:h-7"
         />
 
         {/* The brand's own line, and the panel's subject.

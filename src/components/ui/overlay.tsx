@@ -17,9 +17,9 @@ import { cn } from "@/lib/utils";
  * about the viewport, not about the content — the caller passes a title and
  * children and never thinks about it again.
  *
- * **Not** for the offer celebration. That one stays a full dialog in both
- * layouts on purpose: a sheet is a drawer of supporting detail, and the
- * celebration is the one moment in the flow that should own the whole screen.
+ * **Not** for a celebration. Nothing in the flow celebrates in an overlay any
+ * more: winning, accepting and finishing all happen on the screen the student
+ * is already standing on, through the celebration layer.
  *
  * Positioning is done with a flex wrapper rather than `top-1/2 -translate-y-1/2`
  * so that nothing static competes with the enter/exit keyframes — which is what
@@ -44,17 +44,16 @@ export function Overlay({
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
-        <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-4">
+        <div className="pointer-events-none fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4 compact:items-end compact:p-0">
           <DialogPrimitive.Content
             data-slot="overlay-content"
             className={cn(
-              "pointer-events-auto flex max-h-[88dvh] w-full flex-col overflow-y-auto bg-surface text-ink-900 outline-none",
-              "rounded-t-[var(--radius-slab)] px-5 pt-3 pb-6 shadow-modal",
-              "md:max-h-[85dvh] md:max-w-[34rem] md:rounded-[var(--radius-slab)] md:border md:border-ink-100 md:px-8 md:pt-6 md:pb-8",
+              "pointer-events-auto flex max-h-[85dvh] w-full max-w-[34rem] flex-col overflow-y-auto bg-surface text-ink-900 outline-none",
+              "rounded-[var(--radius-slab)] border border-ink-100 px-5 pt-4 pb-5 shadow-modal",
+              "compact:max-h-[88dvh] compact:max-w-none compact:rounded-b-none compact:border-0 compact:px-4 compact:pt-2 compact:pb-5",
               "duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
-              "data-[state=closed]:slide-out-to-bottom-6 data-[state=open]:slide-in-from-bottom-6",
-              "md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0",
-              "md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95",
+              "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+              "compact:data-[state=closed]:slide-out-to-bottom-6 compact:data-[state=open]:slide-in-from-bottom-6",
               className,
             )}
           >
@@ -63,16 +62,16 @@ export function Overlay({
                 not drawn on one. */}
             <span
               aria-hidden
-              className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-ink-200 md:hidden"
+              className="mx-auto mb-2 hidden h-1 w-9 shrink-0 rounded-full bg-ink-200 compact:block"
             />
 
             <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1 space-y-1">
-                <DialogPrimitive.Title className="text-h3 text-ink-900 md:text-h2">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <DialogPrimitive.Title className="text-h2 text-ink-900">
                   {title}
                 </DialogPrimitive.Title>
                 {description ? (
-                  <DialogPrimitive.Description className="text-small text-ink-600 md:text-body">
+                  <DialogPrimitive.Description className="text-small text-ink-600">
                     {description}
                   </DialogPrimitive.Description>
                 ) : (

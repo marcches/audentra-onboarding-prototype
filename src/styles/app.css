@@ -4,6 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
+   The three width classes, and the one container query (ADR 0008)
+   ---------------------------------------------------------------------------
+   Declared here and nowhere else. A fourth class cannot be written without
+   editing this block, which is where the argument for it belongs — and
+   `src/lib/layout-rules.test.ts` fails the build if a `.tsx` reaches for a
+   Tailwind default breakpoint instead.
+
+   The base state is the **desktop** composition and `compact` is the override.
+   That inversion is the point of the round: the old tree was a phone layout
+   with breakpoints stacked on top, which is how the desktop came to be widened
+   rather than built.
+
+   `medium` and `desktop` share a composition, so `medium` is rarely written —
+   it exists as a name because ADR 0008 names three classes, and a class with no
+   name is a class nobody can talk about in review.
+   ------------------------------------------------------------------------ */
+
+@custom-variant compact (@media (width < 768px));
+@custom-variant medium (@media (768px <= width < 1280px));
+@custom-variant desktop (@media (width >= 1280px));
+
+/* Inside the Step column the column is the authority, never the window — or the
+   same `Section` behaves differently in Housing and in Review purely because
+   the archetype measures differ. One threshold, because two would be a second
+   layout system growing quietly beside this one. */
+@custom-variant narrow (@container step (width < 34rem));
+
+/* ---------------------------------------------------------------------------
    Design tokens — Audentra onboarding prototype
    ---------------------------------------------------------------------------
    Anchored on the real Audentra brand guidelines (violet #6A38FF, azure
@@ -130,28 +158,96 @@
   --shadow-lift: 0 4px 8px rgb(10 31 68 / 0.06), 0 20px 40px -12px rgb(10 31 68 / 0.2);
   --shadow-modal: 0 8px 16px rgb(10 31 68 / 0.08), 0 40px 80px -24px rgb(10 31 68 / 0.4);
 
-  /* Type scale */
+  /* ---------------------------------------------------------------------
+     The type scale, densified.
+
+     Body 14/1.5 against the old 15/1.6, and the Step `h1` 28 against 32.
+
+     The first pass of this round went to 13/1.45 and a 24px title, straight
+     off the Salesforce reference, and the client's read of it in the browser
+     was that the type had been shrunk rather than the information densified.
+     That is the correct diagnosis: **density is a property of how much is on
+     the screen, not of how small it is set.** The gain has to come from
+     collapsed Sections showing their values, two-column section layout and
+     tighter vertical rhythm — all of which survive — rather than from taking a
+     point off the body size.
+
+     So the scale sits one step down from where it was, not four. Everything
+     the density ruler actually asked for still holds: all of a Step's fields
+     visible at once on a 1366×768 machine.
+
+     It holds at both widths. The one declared exception is the tap target —
+     type and vertical rhythm densify on a phone, control height does not, and
+     `--tap-target` below is what carries that.
+
+     This is the second setting of the same declaration in one round, and that
+     is exactly why the scale has no call sites: moving it is one edit.
+     ------------------------------------------------------------------ */
   --text-micro: 0.75rem;
-  --text-micro--line-height: 1rem;
-  --text-micro--letter-spacing: 0.06em;
+  --text-micro--line-height: 1.05rem;
+  --text-micro--letter-spacing: 0.05em;
   --text-small: 0.8125rem;
-  --text-small--line-height: 1.25rem;
-  --text-body: 0.9375rem;
-  --text-body--line-height: 1.6;
-  --text-lead: 1.0625rem;
-  --text-lead--line-height: 1.55;
-  --text-h3: 1.125rem;
-  --text-h3--line-height: 1.5rem;
-  --text-h3--letter-spacing: -0.015em;
-  --text-h2: 1.5rem;
-  --text-h2--line-height: 1.875rem;
-  --text-h2--letter-spacing: -0.02em;
-  --text-h1: 2rem;
-  --text-h1--line-height: 2.375rem;
-  --text-h1--letter-spacing: -0.025em;
-  --text-display: 2.5rem;
-  --text-display--line-height: 2.75rem;
+  --text-small--line-height: 1.2rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-lead: 0.9375rem;
+  --text-lead--line-height: 1.5;
+  /* Section header. */
+  --text-h3: 1rem;
+  --text-h3--line-height: 1.4rem;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h2: 1.25rem;
+  --text-h2--line-height: 1.6rem;
+  --text-h2--letter-spacing: -0.015em;
+  /* Step title. */
+  --text-h1: 1.75rem;
+  --text-h1--line-height: 2.125rem;
+  --text-h1--letter-spacing: -0.02em;
+  /* Celebration only. No working screen sets type at this size. */
+  --text-display: 2.25rem;
+  --text-display--line-height: 2.5rem;
   --text-display--letter-spacing: -0.03em;
+
+  /* The gap between two Sections. 16px, against the 24–32px this replaces —
+     and it is the number that keeps the Salesforce density from becoming the
+     Salesforce grey wall (Advanced User Details is the counter-example). */
+  --space-section: 1rem;
+
+  /* The declared exception to the density ruler. Below 44px the finger misses,
+     and density turns into a filling-in error — which costs more than the
+     three lines of height it saves. `compact` only: a mouse does not need it. */
+  --tap-target: 44px;
+
+  /* ---------------------------------------------------------------------
+     The stacking order, declared once.
+
+     Every overlapping thing in the flow is on this ladder and nothing sets a
+     `z-` literal outside it, so "the dialog went behind the bar" stops being a
+     class of bug and becomes an edit to five lines.
+
+     The celebration layer sits above the Rail and the actions, below a modal.
+     It spent one revision *below* the Rail, on Ahead's reasoning that confetti
+     should fall behind the chip carrying the number just won — and in the
+     browser that meant a burst anchored to the Balance was drawn behind the
+     16rem opaque panel the Balance lives in. Invisible. The number stays
+     legible because the burst is small and sprays outward, not because it is
+     under the furniture.
+     ------------------------------------------------------------------ */
+  /* Decorative ground inside an `isolate`d parent — a wash, a photograph, a
+     mark used as material. Never global: the isolation is what keeps it from
+     escaping under the page. */
+  --z-behind: -1;
+  /* A frozen table column, and nothing else at this rung: it has to sit over
+     the cells that scroll under it and under everything else on the page. */
+  --z-sticky: 1;
+  --z-rail: 20;
+  --z-actions: 30;
+  --z-popover: 40;
+  --z-celebration: 45;
+  --z-modal: 50;
+  /* The photo viewer opens *from* a modal — the Residence sheet — so it is the
+     one rung above it. */
+  --z-viewer: 60;
 
   /* The step layout's measures.
 
@@ -160,11 +256,13 @@
      really work on a large monitor; the third column is gone and the measure
      is a single number again.
 
-     56rem is wider than the 46rem reading column it grew out of, deliberately:
-     the content inside is panels, grids and fact rows rather than prose, and
-     those get *denser* with width where a paragraph would only get harder to
-     read. Prose inside a panel still sets its own narrower measure. */
-  --step-measure: 56rem;
+     64rem, widened from 56 when Sections gained a second column. The content
+     inside is fact rows and field pairs rather than prose, and those get
+     *denser* with width where a paragraph would only get harder to read — and
+     at 1366px a 56rem column left ~120px of grey down each side, which is the
+     dead white of ADR 0009 turned sideways. Prose inside a Section still sets
+     its own narrower measure. */
+  --step-measure: 64rem;
 
   /* The other two archetype measures. A `catalogue` and a `review` are made of
      grids and cards, which get denser with width; a `decision` is a two-column
@@ -174,10 +272,15 @@
   --catalogue-measure: 72rem;
   --decision-measure: 82rem;
 
-  /* The fixed action bar's height. The bar reads it, and so does the bottom
-     padding of the column that must not end underneath it — two numbers that
-     have to agree, so there is only one of them. */
-  --action-bar-height: 4.5rem;
+  /* What the foot of the screen costs, whichever form it takes.
+     `compact` spends it on a fixed bar; from `medium` up on a floating pill,
+     which is shorter — so the same number over-reserves there by a few pixels
+     and that is the trade for one constant instead of two. The column's bottom
+     padding reads it, which is the whole reason it exists: a bar of one height
+     and a column reserving another is how the foot of a Step came to be
+     covered on a short viewport (ADR 0009 names it as the second cause of
+     "cortado"). */
+  --action-bar-height: 4rem;
 
   /* The weight between body and bold, absorbed from the marketing site.
 
@@ -194,11 +297,21 @@
      0.22s all meaning "quick". Four durations and four curves is the whole of
      it; anything needing more than these is a timeline, and a timeline belongs
      in `gsap` rather than in a class name.
+
+     Roughly doubled from 120/220/360/560. The client's report was that the
+     motion is "travada e rápida demais para ser vista": an animation nobody
+     can follow is not telling them what changed, it is flickering at them. If
+     the flow ever reads as dragging, the number to move is `stage` — the other
+     three are attached to things a hand is waiting on.
+
+     The other half of "travada" is what animates. Only `transform` and
+     `opacity` appear in an animation rule anywhere in this file, and the
+     accordion below is the one that used to break it.
      ------------------------------------------------------------------ */
-  --duration-quick: 120ms;
-  --duration-base: 220ms;
-  --duration-slow: 360ms;
-  --duration-stage: 560ms;
+  --duration-quick: 240ms;
+  --duration-base: 400ms;
+  --duration-slow: 640ms;
+  --duration-stage: 1000ms;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   /* The default for anything entering or leaving. */
@@ -207,27 +320,33 @@
   --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 
-  --animate-accordion-down: accordion-down 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-accordion-up: accordion-up 0.18s ease-in;
+  /* The accordion, off `height`.
+     `height: 0 → var(--radix-accordion-content-height)` animates a layout
+     property on every frame, for every open section, which is the first
+     suspect for the stutter the client reported. `grid-template-rows: 0fr →
+     1fr` reaches the same place: the row collapses, the child clips, and the
+     browser is compositing a track size rather than reflowing a subtree. */
+  --animate-accordion-down: accordion-down var(--duration-base) cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-accordion-up: accordion-up var(--duration-quick) ease-in;
 
   @keyframes accordion-down {
     from {
-      height: 0;
+      grid-template-rows: 0fr;
       opacity: 0;
     }
     to {
-      height: var(--radix-accordion-content-height);
+      grid-template-rows: 1fr;
       opacity: 1;
     }
   }
 
   @keyframes accordion-up {
     from {
-      height: var(--radix-accordion-content-height);
+      grid-template-rows: 1fr;
       opacity: 1;
     }
     to {
-      height: 0;
+      grid-template-rows: 0fr;
       opacity: 0;
     }
   }
@@ -321,7 +440,7 @@
     color: var(--color-ink-900);
     font-family: var(--font-sans);
     font-size: var(--text-body);
-    line-height: 1.6;
+    line-height: 1.45;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -429,6 +548,24 @@
 }
 
 @layer components {
+  /* ---------------------------------------------------------------------
+     The Step column, and the only container query in the system.
+
+     Everything inside a Step responds to the *column*, not to the window.
+     Declared once, here, so the container's name cannot drift and a second
+     containment context cannot appear by accident.
+
+     One consequence worth knowing before it bites: `container-type` brings
+     layout containment with it, which makes this element the containing block
+     for `position: fixed` descendants. Nothing fixed may live inside a Step
+     column — the action pill, the celebration layer and every overlay are
+     mounted outside it, which is where they belonged anyway.
+     ------------------------------------------------------------------ */
+  .step-column {
+    container-type: inline-size;
+    container-name: step;
+  }
+
   /* The brand gradient. Reserved for the two moments that earn it: the live
      step marker and the accept-the-offer celebration. */
   .brand-gradient {

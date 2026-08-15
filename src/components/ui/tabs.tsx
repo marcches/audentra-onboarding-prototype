@@ -43,7 +43,7 @@ function Tabs({
     <TabsContext.Provider value={context}>
       <TabsPrimitive.Root
         data-slot="tabs"
-        className={cn("flex flex-col gap-6", className)}
+        className={cn("flex flex-col gap-3", className)}
         value={value}
         defaultValue={defaultValue}
         onValueChange={handleValueChange}
@@ -81,7 +81,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       value={value}
       className={cn(
-        "relative flex h-10 flex-1 items-center justify-center rounded-[var(--radius-pill)] px-4 text-body font-bold text-ink-500 transition-colors hover:text-ink-800 data-[state=active]:text-violet-600",
+        "relative flex h-8 flex-1 items-center justify-center rounded-[var(--radius-pill)] px-3 text-body compact:min-h-[var(--tap-target)] font-bold text-ink-500 transition-colors hover:text-ink-800 data-[state=active]:text-violet-600",
         className,
       )}
       {...props}
