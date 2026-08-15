@@ -233,8 +233,22 @@ const familyAccessSchema = z.object({
     .min(1, { message: "Pick at least one thing they can see, or remove them." }),
 });
 
+/**
+ * One emergency contact required, a second optional, and no third.
+ *
+ * `Add another` was on screen with no rule behind it, which is how a two-minute
+ * Quest turns into a list manager. Two is what U.S. institutions collect, and a
+ * cap is the difference between an invitation and an open-ended list.
+ *
+ * A second contact that has been added is required to be complete, the same
+ * rule Family access already applies to a grant with no scope: finish it, or
+ * remove it. Half a contact is worse than none, because it is the one Aster
+ * would call.
+ */
+export const MAX_EMERGENCY_CONTACTS = 2;
+
 export const whoWeCallSchema = z.object({
-  emergencyContacts: z.array(emergencyContactSchema).min(1),
+  emergencyContacts: z.array(emergencyContactSchema).min(1).max(MAX_EMERGENCY_CONTACTS),
   familyAccess: z.array(familyAccessSchema),
 });
 

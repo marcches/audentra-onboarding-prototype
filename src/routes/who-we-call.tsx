@@ -1,4 +1,12 @@
-import { EyeIcon, PhoneCallIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  CaretDownIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  PhoneCallIcon,
+  PlusIcon,
+  ProhibitIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import * as React from "react";
 
 import { PricePill, useCelebration } from "@/components/celebration";
@@ -12,7 +20,9 @@ import {
   useStepNav,
 } from "@/components/step-shell";
 import {
+  IconTile,
   Prose,
+  Reveal,
   Section,
   SectionFields,
   Sections,
@@ -39,7 +49,7 @@ import {
   useOnboarding,
 } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { whoWeCallSchema } from "@/lib/validation";
+import { MAX_EMERGENCY_CONTACTS, whoWeCallSchema } from "@/lib/validation";
 
 /**
  * Who we call, who can see.
@@ -71,11 +81,19 @@ export function WhoWeCallRoute() {
   const set = (changes: Partial<typeof call>) => patch("whoWeCall", changes);
 
   const contact = call.emergencyContacts[0];
-  const missing = [
-    !contact?.fullName.trim(),
-    !contact?.relationship,
-    !contact?.phone.trim(),
-  ].filter(Boolean).length;
+  /* One required, a second optional, capped at two. `Add another` was already
+     on screen with no rule behind it, and an uncapped list turns a two-minute
+     Quest into a list manager. Two is what U.S. institutions collect. */
+  const atCap = call.emergencyContacts.length >= MAX_EMERGENCY_CONTACTS;
+  /* Counted across every contact on screen rather than just the first: a second
+     one that has been added and left blank is work still to do, and the button
+     should say so rather than letting Continue fail into an error. */
+  const missing = call.emergencyContacts.reduce(
+    (total, entry) =>
+      total +
+      [!entry.fullName.trim(), !entry.relationship, !entry.phone.trim()].filter(Boolean).length,
+    0,
+  );
 
   const submit = () => {
     const result = whoWeCallSchema.safeParse({
@@ -160,27 +178,36 @@ export function WhoWeCallRoute() {
               : undefined
           }
           action={
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                set({
-                  emergencyContacts: [
-                    ...call.emergencyContacts,
-                    emptyEmergencyContact(newRowId("contact")),
-                  ],
-                })
-              }
-            >
-              <PlusIcon weight="bold" aria-hidden className="size-3.5" />
-              Add another
-            </Button>
+            atCap ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  set({
+                    emergencyContacts: [
+                      ...call.emergencyContacts,
+                      emptyEmergencyContact(newRowId("contact")),
+                    ],
+                  })
+                }
+              >
+                <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+                Add a second
+              </Button>
+            )
           }
         >
           <div className="space-y-2.5">
             {call.emergencyContacts.map((entry, index) => (
               <SectionFields key={entry.id}>
+                {/* The optionality is said in the heading rather than in a
+                    footnote under the group (Oyster's "Backup contact
+                    (optional)"). The first contact needs no heading: it is what
+                    the Section is called. */}
+                {index > 0 ? (
+                  <p className="field-label col-span-12">Second contact (optional)</p>
+                ) : null}
                 <Field
                   width="medium"
                   label="Full name"
@@ -288,23 +315,35 @@ export function WhoWeCallRoute() {
           title="Who can see your record"
           value={accessSummary}
           action={
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                set({ familyAccess: [...call.familyAccess, emptyFamilyAccess(newRowId("family"))] })
-              }
-            >
-              <PlusIcon weight="bold" aria-hidden className="size-3.5" />
-              Give someone access
-            </Button>
+            /* The header keeps the add control only while there is a list to add
+               to. With nobody named, the one action that changes that belongs
+               inside the empty state and nowhere else — the same control twice
+               on one Section makes the empty state read as decoration. */
+            call.familyAccess.length === 0 ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  set({
+                    familyAccess: [...call.familyAccess, emptyFamilyAccess(newRowId("family"))],
+                  })
+                }
+              >
+                <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+                Give someone access
+              </Button>
+            )
           }
         >
           <FerpaExplanation />
 
           {call.familyAccess.length === 0 ? (
-            <p className="mt-2 text-micro text-ink-500">Nobody has access to your record.</p>
+            <NobodyHasAccess
+              onAdd={() =>
+                set({ familyAccess: [...call.familyAccess, emptyFamilyAccess(newRowId("family"))] })
+              }
+            />
           ) : (
             <div className="mt-2.5 space-y-2.5">
               {call.familyAccess.map((grant, index) => (
@@ -336,18 +375,33 @@ export function WhoWeCallRoute() {
 }
 
 /**
- * The law, explained before it is exercised.
+ * The law, explained before it is exercised — rewritten to the four rules.
  *
- * The sentence in bold is the point, and it is why this explanation earns its
- * place rather than being legal decoration: it answers the question the screen
- * provokes in a seventeen-year-old and in the parent standing behind them —
- * *why am I the one deciding what my family can see?* Because the law moved the
- * right to the student on the day they enrolled. Without that sentence the
- * screen reads as the university arbitrarily cutting parents out.
+ * This was the worst-set paragraph in the flow, and the client photographed it:
+ * 89 characters per line, a bold clause that opened and closed inside a line so
+ * the reader could not tell what it was scoped to, and a link welded to the tail
+ * of the last line with an orphan under it. All three are the same defect, which
+ * is that nobody had decided what a paragraph in this system is.
  *
- * It is supporting text on the Section's own ground, never in a Well: a Well is
- * for data, and an explanation is not data.
+ * Now: **one block, at measure** (`Prose`, ~68 characters); **emphasis on a
+ * whole sentence**, and that sentence is the point of the whole screen — it
+ * answers the question the screen provokes in a seventeen-year-old and in the
+ * parent standing behind them, *why am I the one deciding what my family can
+ * see?*, and without it the screen reads as the university arbitrarily cutting
+ * parents out; and **the link on its own line**, which is also the only way it
+ * reads as a link rather than as the end of a sentence.
+ *
+ * The disclosure is a **list**, not a second paragraph. That is rule four doing
+ * real work rather than being obeyed: the substance of it is three nouns —
+ * grades, bill, housing — and three nouns in a sentence is a sentence you have
+ * to parse to find a list in.
+ *
+ * The prose is on the Section's own ground and never in a Well: a Well is for
+ * data, and an explanation is not data. The list that follows it is data, which
+ * is why that one may be.
  */
+const WITHHELD = ["Your grades", "Your bill", "Your housing"];
+
 function FerpaExplanation() {
   const [open, setOpen] = React.useState(false);
 
@@ -359,26 +413,77 @@ function FerpaExplanation() {
           When you turn 18, or enter a postsecondary institution at any age, that right transfers
           from your parents to you.
         </strong>{" "}
-        So this is your decision, not theirs.{" "}
-        <button
-          type="button"
-          onClick={() => setOpen((current) => !current)}
-          aria-expanded={open}
-          className="font-strong text-violet-600 underline-offset-4 hover:underline"
-        >
-          What this means in practice
-        </button>
+        So this is your decision, not theirs.
       </Prose>
 
-      {open ? (
-        <Prose className="mt-1.5">
-          Without your permission, Aster staff will decline to discuss your grades, your bill or
-          your housing with anyone who asks, including a parent who is paying your fees. Naming
-          someone here is how you change that. You can widen, narrow or withdraw it at any time in
-          writing.
-        </Prose>
-      ) : null}
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        className="mt-1 flex items-center gap-1 text-small font-strong text-violet-600 underline-offset-4 hover:underline"
+      >
+        What this means in practice
+        <CaretDownIcon
+          weight="bold"
+          aria-hidden
+          className={cn(
+            "size-3",
+            "transition-transform duration-[var(--duration-quick)] ease-[var(--ease-out-soft)]",
+            !open && "-rotate-90",
+          )}
+        />
+      </button>
+
+      <Reveal open={open}>
+        <Well label="Without your permission, Aster staff will not discuss" className="mt-1.5">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1">
+            {WITHHELD.map((item) => (
+              <li key={item} className="flex items-center gap-1.5 text-small text-ink-700">
+                <ProhibitIcon weight="bold" aria-hidden className="size-3.5 text-ink-400" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 border-t border-ink-100 pt-2 text-micro leading-4 text-ink-500">
+            Not with anyone who asks, including a parent who is paying your fees. Naming someone
+            below is how you change that, and you can widen, narrow or withdraw it at any time in
+            writing.
+          </p>
+        </Well>
+      </Reveal>
     </div>
+  );
+}
+
+/**
+ * The true thing, drawn, with the one action that changes it.
+ *
+ * "Nobody has access to your record." was a grey sentence floating under a
+ * paragraph — which is the state of the record stated as an aside, in the
+ * typeface the system uses for footnotes. It is not an aside: for most students
+ * it is the answer, and it is the answer FERPA gives them the right to keep.
+ *
+ * The anatomy is Tally's and Typeform's: a drawing, the sentence, and exactly
+ * one action. Neither of them pads the space around it, and neither does this —
+ * the Step still ends where the work ends.
+ */
+function NobodyHasAccess({ onAdd }: { onAdd: () => void }) {
+  return (
+    <Well className="mt-2.5 flex flex-col items-center gap-2 py-4 text-center">
+      <IconTile size="lg">
+        <EyeSlashIcon weight="duotone" aria-hidden className="size-6" />
+      </IconTile>
+      <div>
+        <p className="text-small font-strong text-ink-900">Nobody has access to your record.</p>
+        <Prose size="note" className="mt-0.5">
+          That is the default, and it is fine to leave it that way.
+        </Prose>
+      </div>
+      <Button type="button" variant="secondary" size="sm" onClick={onAdd}>
+        <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+        Give someone access
+      </Button>
+    </Well>
   );
 }
 
