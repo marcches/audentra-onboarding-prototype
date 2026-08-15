@@ -89,6 +89,8 @@ export function StepShell({
   title,
   lead,
   actions,
+  actionBarHeight,
+  centered = false,
   saved = true,
   children,
 }: {
@@ -101,6 +103,23 @@ export function StepShell({
    * used to be a scroll away from wherever the student had finished reading.
    */
   actions?: React.ReactNode;
+  /**
+   * For the step whose bar carries more than one row of buttons — Offer puts a
+   * reassurance line above its actions and the deadline below (Upwork). The bar
+   * and the column's bottom padding read the same variable, so a step that
+   * needs a taller bar sets it once here rather than in two places that can
+   * disagree.
+   */
+  actionBarHeight?: string;
+  /**
+   * Centres the column in the space it has, for a step whose content is
+   * deliberately short. Offer is the only one: once it fits a viewport it also
+   * stops filling one, and a card pinned to the top of 500px of empty canvas
+   * reads as a page that failed to load rather than as a page with one thing on
+   * it. `-safe` so a viewport too small for the content overflows downward
+   * instead of centring the top of it off-screen.
+   */
+  centered?: boolean;
   /** The autosave line. Steps with nothing to save (Review's signed state) turn it off. */
   saved?: boolean;
   children: React.ReactNode;
@@ -108,11 +127,23 @@ export function StepShell({
   return (
     <>
       <StepRail current={current} />
-      <div className="flex min-w-0 flex-1 flex-col bg-canvas">
+      <div
+        className="flex min-w-0 flex-1 flex-col bg-canvas"
+        style={
+          actionBarHeight
+            ? ({ "--action-bar-height": actionBarHeight } as React.CSSProperties)
+            : undefined
+        }
+      >
         <PhaseBar current={current} />
         {/* The bar is fixed, so the column ends above it rather than under it.
             `--action-bar-height` is the one number both sides read. */}
-        <main className="flex-1 px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7">
+        <main
+          className={cn(
+            "flex flex-1 flex-col px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7",
+            centered && "justify-center-safe",
+          )}
+        >
           <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-4">
             <ReturnToReview />
             {/* No "Step N of 7". The rail and the segmented bar both show

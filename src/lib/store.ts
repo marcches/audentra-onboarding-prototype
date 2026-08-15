@@ -59,8 +59,6 @@ export type EntryState = {
 export type OfferState = {
   response: "accepted" | "declined" | null;
   respondedAt: string | null;
-  declineReason: string;
-  declineNote: string;
   /** Whether the celebration's share prompt has been used. Awards points once — see `lib/points.ts`. */
   shared: boolean;
 };
@@ -202,8 +200,6 @@ const initialState: OnboardingState = {
   offer: {
     response: null,
     respondedAt: null,
-    declineReason: "",
-    declineNote: "",
     shared: false,
   },
   identityContact: {

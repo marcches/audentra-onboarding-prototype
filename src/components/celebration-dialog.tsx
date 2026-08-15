@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { institution, offer } from "@/lib/fixtures";
 import { SHARE_POINTS } from "@/lib/points";
-import { nextStep } from "@/lib/steps";
+import { nextStep, steps } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 
 const CONFETTI_COLORS = ["#6a38ff", "#1e5bff", "#00c49a", "#a888ff", "#ffffff"];
@@ -106,7 +106,10 @@ export function CelebrationDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="text-center sm:max-w-[38rem] sm:p-10"
+        /* It grows: the share prompt and "What happens next" both live here
+           now. Capped to the viewport and scrolled inside itself, or the
+           continue button leaves the screen on a phone. */
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto text-center sm:max-w-[38rem] sm:p-10"
         /* Land on the way forward, not on a share button. The share is the
            optional thing in this dialog; the continue is the point of it. */
         onOpenAutoFocus={(event) => {
@@ -200,6 +203,8 @@ export function CelebrationDialog({
             ) : null}
           </div>
 
+          <WhatHappensNext />
+
           {/* Named from `steps.ts` rather than written out. This said "Next:
               about you" for a step that is now called Identity & contact, and
               a hand-typed label is how that happens. */}
@@ -209,6 +214,42 @@ export function CelebrationDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * What accepting actually did, in the one place it is being asked about.
+ *
+ * This was three numbered slabs on the offer screen, above the decision — an
+ * answer printed before the question, and a third of that page's height. Here
+ * it is read by someone who has just clicked Accept and wants to know what
+ * they clicked, so it can be three lines instead of three paragraphs.
+ */
+function WhatHappensNext() {
+  const remaining = steps.slice(1);
+
+  return (
+    <div className="w-full space-y-2 text-left">
+      <p className="text-small font-bold text-ink-900">What happens now</p>
+      <ul className="space-y-1.5 text-small text-ink-600">
+        <li className="flex gap-2">
+          <CheckIcon weight="bold" aria-hidden className="mt-0.5 size-4 shrink-0 text-mint-600" />
+          Admissions is told today, and your place is held for {offer.startingTerm}.
+        </li>
+        {/* Counted and named from `steps.ts`. Written out by hand this said
+            "Six more steps" beside a list of six, then a seventh was added and
+            the sentence quietly became wrong. */}
+        <li className="flex gap-2">
+          <CheckIcon weight="bold" aria-hidden className="mt-0.5 size-4 shrink-0 text-mint-600" />
+          {remaining.length} more quests open: {remaining.map((step) => step.label).join(", ")}.
+          Your answers save as you go.
+        </li>
+        <li className="flex gap-2">
+          <CheckIcon weight="bold" aria-hidden className="mt-0.5 size-4 shrink-0 text-mint-600" />
+          Your answer is final. To change it, contact Admissions at {institution.admissionsEmail}.
+        </li>
+      </ul>
+    </div>
   );
 }
 

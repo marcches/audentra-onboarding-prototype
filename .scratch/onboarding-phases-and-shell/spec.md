@@ -1,4 +1,4 @@
-Status: in-progress — 01 done, 02–07 open
+Status: in-progress — 01 and 02 done, 03–07 open
 
 # Onboarding: Phases, shell, and the parts the last round missed
 
@@ -132,7 +132,7 @@ named out loud on the next call rather than discovered.
 | Ticket | Status |
 |---|---|
 | 01 — The shell: Phases, recessed ground, fixed action bar, mobile-first | **done** |
-| 02 — Your offer in one viewport | ready-for-human |
+| 02 — Your offer in one viewport | **done** |
 | 03 — Points with a destination | ready-for-human |
 | 04 — Housing: eight Residences, a Shortlist of three | ready-for-human |
 | 05 — The Closing: Review & sign, and Deposit | ready-for-human |
@@ -163,13 +163,18 @@ named out loud on the next call rather than discovered.
 - **Storage is `v3`.** Bump it again if a slice is renamed or a stored value
   changes meaning.
 
-### Carried into 02 by necessity
+### What 02 changed that the rest can use
 
-Offer's Accept/Decline already sit in the fixed bar with a reassurance line
-above them, because the column they lived in stopped existing. Everything else
-on that ticket is untouched: the hero is still a full block, "What happens when
-you accept" is still on the offer screen, Decline is still a solid secondary
-button, and the copy has not been rewritten.
+- **`StepShell` takes `actionBarHeight` and `centered`.** A step whose bar needs
+  more than one row sets the height there, not in two places; `centered` centres
+  a deliberately short column (`justify-center-safe`). 05 is the likely next
+  user of both.
+- **The celebration now carries "What happens now"** as well as the share
+  prompt, and scrolls inside itself (`max-h-[calc(100dvh-2rem)]`). Anything else
+  moved into that dialog has to keep the continue button reachable on a phone.
+- **The decline dialog and its state are gone** — `declineReasons`,
+  `declineReason`, `declineNote`. Declining is one click and records only the
+  answer and the timestamp.
 
 ### Known gaps, deliberate
 

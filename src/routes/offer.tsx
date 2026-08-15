@@ -1,41 +1,9 @@
-import {
-  ArrowRightIcon,
-  BuildingsIcon,
-  CalendarBlankIcon,
-  CheckCircleIcon,
-  GraduationCapIcon,
-  ProhibitIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon, CheckCircleIcon, ProhibitIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
-import { Field } from "@/components/field";
 import { StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  campusPhotos,
-  declineReasons,
-  formatDeadline,
-  formatMoney,
-  institution,
-  offer,
-} from "@/lib/fixtures";
-import { steps } from "@/lib/steps";
+import { campusPhotos, formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
 
 /* The celebration drags in GSAP and canvas-confetti — a third of the bundle for
@@ -47,36 +15,56 @@ const CelebrationDialog = React.lazy(() =>
 );
 
 const DEPOSIT = formatMoney(offer.depositAmount, offer.depositCurrency);
+const DEADLINE = formatDeadline(offer.responseDeadline);
 
+/**
+ * The offer, in one viewport.
+ *
+ * What this replaces was a 200px hero, a four-cell grid with a line of prose
+ * under every cell, a deposit section, and a numbered "What happens when you
+ * accept" — four full-width slabs and about two and a half screens. Laura's
+ * constraint was specific about the fix: "esses cards estão muito grandes… eu
+ * não quero também empilhar" — the cards get *smaller*, they do not get turned
+ * into a taller column. So the facts are now one hairline grid of small cells
+ * (Cake Equity), with the deposit as the single coloured tile because it is the
+ * number that decides anything; the hero is a 96px band; and the consequences
+ * of accepting moved into the celebration, where the student has actually asked
+ * the question.
+ */
 export function OfferRoute() {
   const state = useOnboarding();
   const { goNext } = useStepNav("offer");
   const [celebrating, setCelebrating] = React.useState(false);
-  const [declining, setDeclining] = React.useState(false);
 
   const response = state.offer.response;
 
-  function accept() {
-    patch("offer", { response: "accepted", respondedAt: new Date().toISOString() });
-    setCelebrating(true);
+  function respond(answer: "accepted" | "declined") {
+    patch("offer", { response: answer, respondedAt: new Date().toISOString() });
+    if (answer === "accepted") setCelebrating(true);
   }
 
   return (
     <StepShell
       current="offer"
       title="Your offer"
-      lead="Read it, then accept or decline. You can answer once — changing it afterwards goes through Admissions."
+      lead="Read it, then accept or decline. You answer once — changing it afterwards goes through Admissions."
       saved={false}
+      centered
+      /* Three rows rather than one: the reassurance, the buttons, the deadline. */
+      actionBarHeight={response === null ? "6.5rem" : undefined}
       actions={
-        <Decision response={response} onAccept={accept} onDecline={() => setDeclining(true)} />
+        response === null ? (
+          <Decision onAccept={() => respond("accepted")} onDecline={() => respond("declined")} />
+        ) : (
+          <RecordedResponse />
+        )
       }
     >
       <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-100 bg-surface shadow-card">
-        {/* The photo, not another text block: this is the screen where someone
-            agrees to move their life somewhere, and a card of type alone gives
-            them nothing to picture. The scrim is what keeps the copy legible
-            over it. */}
-        <div className="relative isolate px-6 py-6 text-white sm:px-8 sm:py-8">
+        {/* The photo survives; the 200px of it does not. A band is enough to say
+            "this is a place you would go to" — which is the whole job it was
+            doing — and it is the cheapest 100px on the screen to give back. */}
+        <div className="relative isolate flex h-24 flex-col justify-center px-5 text-white sm:px-6">
           <img
             src={campusPhotos.offer.src}
             alt={campusPhotos.offer.alt}
@@ -84,89 +72,39 @@ export function OfferRoute() {
           />
           <div
             aria-hidden
-            className="absolute inset-0 -z-10 bg-gradient-to-tr from-ink-950/95 via-ink-950/80 to-violet-700/55"
+            className="absolute inset-0 -z-10 bg-gradient-to-r from-ink-950/95 via-ink-950/85 to-violet-700/60"
           />
           <p className="text-micro font-bold tracking-[0.06em] text-white/70 uppercase">
             Offer of admission · {institution.name}
           </p>
-          <h2 className="mt-2 text-h1 font-black tracking-[-0.03em] text-white">
+          <h2 className="mt-1 text-h2 font-black tracking-[-0.03em] text-white">
             {offer.programme}
           </h2>
-          <p className="mt-2 max-w-[34rem] text-body text-white/80">{offer.programmeDescription}</p>
+          {/* One line, and only where a line's worth of it actually fits: a
+              truncated half-sentence on a phone reads as a bug, not as brevity. */}
+          <p className="mt-0.5 hidden truncate text-small text-white/75 sm:block">
+            {offer.programmeDescription}
+          </p>
         </div>
 
-        {/* The helper text under each fact is the sheet's own, copied: it says
-            what the value is without repeating the label back. */}
-        <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 sm:p-6">
-          <Detail
-            icon={<GraduationCapIcon weight="duotone" />}
-            label="Degree"
-            value={offer.degree}
-            note="The degree awarded."
-          />
-          <Detail
-            icon={<CalendarBlankIcon weight="duotone" />}
-            label="Starting term"
-            value={offer.startingTerm}
-            note="When you would begin."
-          />
-          <Detail
-            icon={<BuildingsIcon weight="duotone" />}
-            label="Campus"
-            value={offer.campus}
-            note="Where you would study."
-          />
-          <Detail
-            icon={<CalendarBlankIcon weight="duotone" />}
-            label="Respond by"
-            value={formatDeadline(offer.responseDeadline)}
-            note="After this the offer closes and only Admissions can reopen it."
-          />
+        {/* Hairline grid: the gap *is* the border, so four facts cost four small
+            cells and no card chrome. No line of explanation under any of them —
+            "The degree awarded" under Degree was the label read back slowly,
+            and that per-field commentary is exactly what she was asking about
+            when she said "será que é necessário isso mesmo?". */}
+        <dl className="grid grid-cols-2 gap-px border-t border-ink-100 bg-ink-100 sm:grid-cols-4">
+          <Fact label="Degree" value={offer.degree} />
+          <Fact label="Starting term" value={offer.startingTerm} />
+          <Fact label="Campus" value={offer.campus} />
+          {/* The one coloured tile, for the one number that changes what anybody
+              does next. */}
+          <Fact label="Enrollment deposit" value={DEPOSIT} tinted />
         </dl>
-      </section>
 
-      {/* The deposit, out of the four-cell grid it used to be the last item of.
-          The number is on the screen either way; what it was missing was any
-          weight at all, which is what Laura noticed and could not place. */}
-      <section className="flex flex-col gap-4 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card sm:flex-row sm:items-center sm:p-6">
-        <div className="sm:w-[13rem] sm:shrink-0">
-          <p className="field-label">Enrollment deposit</p>
-          <p className="text-display font-black tracking-[-0.03em] text-ink-900">{DEPOSIT}</p>
-        </div>
-        <div className="space-y-1.5 border-ink-100 sm:border-l sm:pl-6">
-          <p className="text-body font-bold text-ink-900">
-            Accepting does not commit you to payment yet.
-          </p>
-          <p className="text-small text-ink-600">
-            It is asked for at the last step of enrollment, it secures your place, and it is
-            credited against your first term's tuition. Refundable up to{" "}
-            {formatDeadline(offer.responseDeadline)}.
-          </p>
-        </div>
-      </section>
-
-      <section className="space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-5 shadow-card sm:p-6">
-        <h2 className="text-h3 text-ink-900">What happens when you accept</h2>
-        <ol className="space-y-3">
-          <Consequence n={1} title="Your place is reserved">
-            Admissions is told the same day, and the place is held for {offer.startingTerm}.
-            Deferring to a later term is a separate request and is not automatic.
-          </Consequence>
-          {/* Counted and named from `steps.ts`. Written out by hand this said
-              "Six more steps" beside a list of six, then a seventh step was
-              added and the sentence quietly became wrong. */}
-          <Consequence n={2} title={`${steps.length - 1} more quests open`}>
-            {steps
-              .slice(1)
-              .map((step) => step.label)
-              .join(", ")}
-            . Your answers are kept as you go.
-          </Consequence>
-          <Consequence n={3} title="Your answer is final here">
-            One response only. To change it afterwards, contact Admissions at{" "}
-            {institution.admissionsEmail}.
-          </Consequence>
-        </ol>
+        <p className="border-t border-ink-100 px-5 py-3 text-small text-ink-500 sm:px-6">
+          The deposit is asked for at the last step of enrollment, it secures your place, and it is
+          credited against your first term's tuition.
+        </p>
       </section>
 
       <React.Suspense fallback={null}>
@@ -181,96 +119,77 @@ export function OfferRoute() {
           />
         ) : null}
       </React.Suspense>
-
-      <DeclineDialog open={declining} onOpenChange={setDeclining} />
     </StepShell>
+  );
+}
+
+function Fact({
+  label,
+  value,
+  tinted = false,
+}: {
+  label: string;
+  value: string;
+  tinted?: boolean;
+}) {
+  return (
+    <div className={tinted ? "bg-violet-50 px-5 py-4" : "bg-surface px-5 py-4"}>
+      <dt className="field-label">{label}</dt>
+      <dd
+        className={
+          tinted
+            ? "text-lead font-black tracking-[-0.02em] text-violet-700"
+            : "text-lead font-bold text-ink-900"
+        }
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
 /**
  * The decision, in the fixed bar.
  *
- * It used to be a sticky panel in the third column, which is the column that no
- * longer exists — and the bar is the better home for it anyway: this is the one
- * screen whose whole purpose is a single irreversible choice, and Deel puts
- * exactly this pair in exactly this place.
+ * Upwork's shape, and for Upwork's reason: one solid button for the answer
+ * almost everybody is giving, the other answer as a link that is plainly there
+ * but is not competing for the eye. The reassurance sits above the pair rather
+ * than under each of them, and the deadline sits below — the two questions
+ * ("does this cost me anything?", "how long do I have?") answered in the place
+ * where they are actually being asked.
  *
- * The reassurance line sits above the buttons rather than under each of them
- * (Upwork). Ticket 02 takes this further — Decline down to a link, the deadline
- * underneath, the copy rewritten. What ticket 01 settles is where it lives.
+ * Declining is one click. The confirmation dialog it used to open asked for a
+ * reason and a note before it would take the answer, which is a survey charging
+ * admission to a door the student is trying to walk out of.
  */
-function Decision({
-  response,
-  onAccept,
-  onDecline,
-}: {
-  response: "accepted" | "declined" | null;
-  onAccept: () => void;
-  onDecline: () => void;
-}) {
-  if (response !== null) return <RecordedResponse />;
-
+function Decision({ onAccept, onDecline }: { onAccept: () => void; onDecline: () => void }) {
   return (
-    <>
-      <p className="mr-auto hidden text-small text-ink-500 md:block">
-        Nothing is charged. Your place is reserved and the rest of enrollment opens.
+    <div className="flex w-full flex-col gap-1.5 sm:items-end">
+      <p className="text-small text-ink-500">
+        <span className="sm:hidden">Nothing is charged today.</span>
+        <span className="hidden sm:inline">
+          Nothing is charged today — accepting reserves your place and opens the rest of enrollment.
+        </span>
       </p>
-      <Button type="button" variant="secondary" size="lg" onClick={onDecline}>
-        <ProhibitIcon aria-hidden className="size-5" />
-        <span className="hidden sm:inline">No, I won't be joining</span>
-        <span className="sm:hidden">Decline</span>
-      </Button>
-      <Button type="button" size="lg" onClick={onAccept}>
-        <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
-        Yes, I'm joining
-      </Button>
-    </>
-  );
-}
-
-function Consequence({
-  n,
-  title,
-  children,
-}: {
-  n: number;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className="flex gap-3.5">
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-50 text-small font-bold text-violet-600">
-        {n}
-      </span>
-      <div className="space-y-0.5">
-        <p className="text-body font-bold text-ink-900">{title}</p>
-        <p className="text-small text-ink-600">{children}</p>
+      <div className="flex w-full items-center gap-4 sm:w-auto">
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="px-0 text-ink-500 underline hover:text-ink-700"
+          onClick={onDecline}
+        >
+          Decline this offer
+        </Button>
+        <Button type="button" size="lg" className="ml-auto" onClick={onAccept}>
+          <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
+          Accept my place
+        </Button>
       </div>
-    </li>
-  );
-}
-
-function Detail({
-  icon,
-  label,
-  value,
-  note,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  note?: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-violet-50 text-violet-600 [&_svg]:size-5">
-        {icon}
-      </span>
-      <div>
-        <dt className="field-label">{label}</dt>
-        <dd className="text-lead font-bold text-ink-900">{value}</dd>
-        {note ? <p className="text-small text-ink-500">{note}</p> : null}
-      </div>
+      <p className="text-micro text-ink-400">
+        Respond by {DEADLINE}.
+        <span className="hidden sm:inline"> After that only Admissions can reopen it.</span>
+      </p>
     </div>
   );
 }
@@ -309,88 +228,4 @@ function formatRespondedAt(iso: string | null) {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function DeclineDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const state = useOnboarding();
-  const [reason, setReason] = React.useState(state.offer.declineReason);
-  const [note, setNote] = React.useState(state.offer.declineNote);
-
-  const tooLong = note.length > 250;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Decline your offer from {institution.short}?</DialogTitle>
-          <DialogDescription>
-            Your record closes and the place is released. Telling us why is optional and helps us
-            improve.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="mt-5 space-y-5">
-          <Field label="Why, roughly?" htmlFor="decline-reason" optional>
-            <Select value={reason} onValueChange={setReason}>
-              <SelectTrigger id="decline-reason">
-                <SelectValue placeholder="Tell us why, if you would like to" />
-              </SelectTrigger>
-              <SelectContent>
-                {declineReasons.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field
-            label="Anything else"
-            htmlFor="decline-note"
-            optional
-            hint={`${note.length} of 250 characters.`}
-            error={tooLong ? "That is longer than 250 characters. Trim it a little." : undefined}
-          >
-            <Textarea
-              id="decline-note"
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Only if you want to."
-              aria-invalid={tooLong}
-            />
-          </Field>
-        </div>
-
-        <DialogFooter className="mt-7">
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            Go back
-          </Button>
-          {/* Labelled with the action, not with "Yes" — the Confirmation
-              dialogue rule from the Message Library. */}
-          <Button
-            type="button"
-            disabled={tooLong}
-            onClick={() => {
-              patch("offer", {
-                response: "declined",
-                respondedAt: new Date().toISOString(),
-                declineReason: reason,
-                declineNote: note,
-              });
-              onOpenChange(false);
-            }}
-          >
-            Decline my offer
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }

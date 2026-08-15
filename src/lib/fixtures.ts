@@ -397,15 +397,6 @@ export const disclosureScopeOptions = [
   { value: "housing", label: "Housing" },
 ] as const;
 
-export const declineReasons = [
-  { value: "another-offer", label: "I accepted another offer" },
-  { value: "cost", label: "Cost" },
-  { value: "location", label: "Location" },
-  { value: "programme", label: "The programme isn't right for me" },
-  { value: "personal", label: "Personal circumstances" },
-  { value: "other", label: "Something else" },
-] as const;
-
 export const countries = [
   { value: "US", label: "United States" },
   { value: "CA", label: "Canada" },
