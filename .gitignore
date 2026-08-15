@@ -6,3 +6,5 @@ dist
 
 # Playwright MCP scratch: page snapshots, console logs and acceptance screenshots.
 .playwright-mcp
+
+.vercel
