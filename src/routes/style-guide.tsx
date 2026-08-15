@@ -39,8 +39,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Wordmark } from "@/components/wordmark";
+import { AudentraMark, Wordmark } from "@/components/wordmark";
 import { residences } from "@/lib/housing";
+import { cn } from "@/lib/utils";
 
 const SWATCHES: { name: string; token: string; hex: string; note: string }[] = [
   {
@@ -91,6 +92,13 @@ export function StyleGuideRoute() {
       </header>
 
       <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-14 px-6 py-14 sm:px-10">
+        <Section
+          title="Identity"
+          caption="One drawing, four colourings. The ground picks the tone, not the taste of whoever is placing it."
+        >
+          <IdentitySheet />
+        </Section>
+
         <Section title="Colour" caption="Brand values first, then the ground they sit on.">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {SWATCHES.map((swatch) => (
@@ -374,6 +382,75 @@ export function StyleGuideRoute() {
             </Card>
           </div>
         </Section>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The identity, on the three grounds it has to survive.
+ *
+ * Worth drawing rather than listing, because the whole reason four colourings
+ * exist is that each one fails on somebody else's ground — and that is only
+ * ever obvious side by side. The mark keeps its own colours on light and on
+ * dark *neutral*; it goes flat white only on brand violet, where its left
+ * stroke is the same colour as the panel.
+ *
+ * Every asset here is generated from `brand/` by `scripts/brand-variants.mjs`.
+ */
+const GROUNDS = [
+  { name: "Light", tone: "ink", className: "bg-white border-ink-100" },
+  { name: "Dark neutral", tone: "on-dark", className: "bg-ink-900 border-transparent" },
+  { name: "Brand", tone: "knockout", className: "brand-gradient border-transparent" },
+] as const;
+
+function IdentitySheet() {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {GROUNDS.map((ground) => (
+          <div key={ground.name} className="space-y-2">
+            {/* The border is on all three, transparent where it is not wanted:
+                only the light card needs one to separate from the canvas, and
+                giving it to that card alone put its caption 2px below its
+                neighbours'. */}
+            <div
+              className={cn(
+                "flex flex-col items-start justify-center gap-4 rounded-[var(--radius-card)] border p-5",
+                ground.className,
+              )}
+            >
+              <Wordmark tone={ground.tone} tagline />
+              {/* The same lockup at chrome size, which is where a mark either
+                  holds together or turns into a smudge. */}
+              <Wordmark tone={ground.tone} className="h-3.5" />
+            </div>
+            <p className="text-caption text-ink-500">
+              {ground.name} · <code>tone=&quot;{ground.tone}&quot;</code>
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-end gap-6 rounded-[var(--radius-card)] border border-ink-100 bg-white p-5">
+        <div className="space-y-2">
+          <AudentraMark className="h-10" />
+          <p className="text-caption text-ink-500">Symbol</p>
+        </div>
+        <div className="space-y-2">
+          {/* `mono` takes the colour of its parent, so it is the one variant
+              that can be used as material rather than as a signature. */}
+          <AudentraMark tone="mono" className="h-10 text-ink-900/25" />
+          <p className="text-caption text-ink-500">
+            Symbol · <code>tone=&quot;mono&quot;</code>
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Wordmark tone="mono" className="h-5 text-violet-500" />
+          <p className="text-caption text-ink-500">
+            Lockup · <code>tone=&quot;mono&quot;</code>
+          </p>
+        </div>
       </div>
     </div>
   );
