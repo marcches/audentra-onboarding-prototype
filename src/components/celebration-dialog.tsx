@@ -153,12 +153,20 @@ export function CelebrationDialog({
           </div>
 
           <div className="w-full rounded-[var(--radius-card)] bg-ink-50 p-5">
+            {/* "Entirely optional" is gone, and it is the point of this
+                rewrite. It was the exact register the client rejected — "não
+                apenas se você quiser" — in the one moment of the flow he wanted
+                to feel like going public with a relationship. Excusing the ask
+                before making it tells the student the news is not worth
+                announcing. It stays optional in fact: nothing gates on it, and
+                closing this dialog leaves the acceptance recorded. What
+                changed is that the invitation now sounds like one. */}
             <p className="text-body font-bold text-ink-900">
-              Make it official — tell people you're joining {institution.short}.
+              Go public with it. You're joining {institution.short}.
             </p>
             <p className="mt-1 text-small text-ink-600">
-              Post it to Facebook or LinkedIn and make the news public. Entirely optional, and worth{" "}
-              {SHARE_POINTS} points toward your bookstore credit if you do.
+              Post it to Facebook or LinkedIn and let people hear it from you. Worth {SHARE_POINTS}{" "}
+              points toward your bookstore credit.
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <ShareLink

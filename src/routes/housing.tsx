@@ -106,7 +106,7 @@ export function HousingRoute() {
       lead={
         <>
           Rank {SLOTS} of the {residences.length}. {institution.housingOffice} assigns rooms after
-          the response deadline — a shortlist is considered, never guaranteed.
+          the response deadline. A shortlist is considered, never guaranteed.
         </>
       }
       actions={

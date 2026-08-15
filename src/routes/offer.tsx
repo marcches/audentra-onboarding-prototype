@@ -168,7 +168,7 @@ function Decision({ onAccept, onDecline }: { onAccept: () => void; onDecline: ()
       <p className="text-small text-ink-500">
         <span className="sm:hidden">Nothing is charged today.</span>
         <span className="hidden sm:inline">
-          Nothing is charged today — accepting reserves your place and opens the rest of enrollment.
+          Nothing is charged today. Accepting reserves your place and opens the rest of enrollment.
         </span>
       </p>
       <div className="flex w-full items-center gap-4 sm:w-auto">

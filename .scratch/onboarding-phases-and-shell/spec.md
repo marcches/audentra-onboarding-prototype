@@ -1,4 +1,4 @@
-Status: in-progress — 01–05 and 07 done, 06 open
+Status: done — all seven tickets delivered
 
 # Onboarding: Phases, shell, and the parts the last round missed
 
@@ -136,12 +136,12 @@ named out loud on the next call rather than discovered.
 | 03 — Points with a destination | **done** |
 | 04 — Housing: eight Residences, a Shortlist of three | **done** |
 | 05 — The Closing: Review & sign, and Deposit | **done** |
-| 06 — Copy sweep | ready-for-human |
+| 06 — Copy sweep | **done** |
 | 07 — Family access: what they can actually see | **done** |
 
-04–07 are all unblocked: 01 was the only thing any of them were waiting on, and
-05's second dependency (how a completed flow reports its Points) is now answered
-by `points.ts` and the Balance.
+All seven are delivered. Verification on every one of them was typecheck, the
+test suite, biome, and looking at it at 1440px and 390px — no `/code-review`, by
+choice, per the note below.
 
 ### What 01 changed that the rest depend on
 

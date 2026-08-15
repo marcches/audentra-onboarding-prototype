@@ -215,7 +215,7 @@ export function CompletionRoute() {
 
           <motion.p {...rise(1.5)} className="mx-auto max-w-[36rem] text-lead text-white/75">
             {depositOutstanding
-              ? "Your record is live. One thing is still open — your deposit, in the first card below."
+              ? "Your record is live. One thing is still open: your deposit, in the first card below."
               : "Your record is live. Nothing needs you right now. We will tell you when something does."}
           </motion.p>
         </div>
@@ -354,7 +354,7 @@ function ClosingBalance({
           <>
             You earned{" "}
             <span className="font-bold text-white">{formatCredit(released)} bookstore credit</span>{" "}
-            on the way here — {points} points, waiting on your Aster account.
+            on the way here. That's {points} points, waiting on your Aster account.
           </>
         ) : (
           <>

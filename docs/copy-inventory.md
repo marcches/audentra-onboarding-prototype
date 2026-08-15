@@ -1,4 +1,10 @@
-# Copy inventory — round 3
+# Copy inventory — round 4
+
+Updated for the Phases round, not rewritten. Only the strings these decisions
+renamed, invented or orphaned were touched: the Housing section (rebuilt in
+ticket 04), the Offer's reassurance and share prompt, About you's disclosure
+scopes, and Completion's Balance line. Everything else is round 3's and was
+approved as it stands.
 
 Every string of interface text in the prototype, by screen, with where it came
 from. Two origins only:
@@ -62,7 +68,9 @@ The rules referenced, from the Message Library tab:
 | "Decline my offer" (confirm control) | Derived | Confirmation dialogue: labelled with the action, not with "Yes". |
 | "Thank you for letting us know. Your response is recorded." | **Sheet** | SC-002/SC-003. |
 | "You accepted this offer on {date}. To change your response, contact Admissions." | **Sheet** | SC-005. |
-| "What happens when you accept" — three numbered consequences | Derived | Voice. The body the facts column needed so the grid does not recreate the emptiness it exists to fix. Content is drawn from SC-001 and the offer restrictions. |
+| "What happens when you accept" — three numbered consequences | Derived | Voice. Moved into the celebration in ticket 02: it answers a question the student asks *after* saying yes. Content is drawn from SC-001 and the offer restrictions. |
+| "Nothing is charged today. Accepting reserves your place and opens the rest of enrollment." | Derived | The reassurance above the fixed bar (Upwork). Two sentences, not one joined by a dash — ticket 06. |
+| "Go public with it. You're joining Aster." → "Post it to Facebook or LinkedIn and let people hear it from you. Worth 20 points toward your bookstore credit." | Derived | The celebration's share prompt. **Replaces "Entirely optional, and worth N points if you do."** That was verbatim the register the client rejected ("não apenas se você quiser") in the one moment he wanted to feel like going public with a relationship. It remains optional in fact; it no longer apologises for being asked. |
 
 ## About you
 
@@ -89,23 +97,33 @@ The rules referenced, from the Message Library tab:
 | "Choose who can see your record and what they can see. You can change or remove this at any time." | **Sheet** | Grant family access helper plus SC-082 tooltip. |
 | "No one else has access to your record. You can grant access any time from your profile." | **Sheet** | SC-021 / the field's empty state. |
 | "Choose at least one item, or cancel." → "Pick at least one thing they can see, or turn access back off." | **Sheet** (adapted) | Disclosure scope error. Adapted because this screen has a toggle, not a cancel. |
+| The six scopes, each with its line: "Enrollment status" / "Grades and academic record" / "Billing and financial aid" / "Housing" / "Health and disability services" / "Disciplinary record" | Derived | Ticket 07. Named as the thing rather than as the office that owns it — a student ticking "Student Financial Services" has not been told what they are giving away. The sentence under each is what makes the tick informed. |
+| "These two stay off unless you turn them on." | Derived | Above the health and conduct scopes. States the default rather than relying on the student noticing it. |
+| "{name} · N of 6 areas" | Derived | The collapsed section summary. Was "N area(s)". |
 | "{n} of 4 sections still need you." | Derived | The fixed column. Voice. |
 
 ## Housing
 
+Rebuilt in ticket 04. The three-way intent question and everything hanging off
+it are gone: the residences are the step now, and the strings below replace the
+whole of the previous section.
+
 | String | Origin | Note |
 | --- | --- | --- |
-| "Where you'll live" | Derived | Page title. The subtitle Laura said added nothing is gone entirely. |
-| "Will you live on campus or off campus?" | **Sheet** | Housing intent helper, verbatim. Replaces "Where do you picture starting your day?", which Laura read out and laughed at. |
-| "On campus" / "Off campus" / "Not decided yet" | **Sheet** | The field's three values — and the errata: the two removed options were removed on Laura's instruction. |
-| "These are the options open for your year" | **Sheet** | SC-014. |
-| "This is a preference, not an assignment." | **Sheet** | Room type success message, reused here as the standing qualifier. |
-| "Housing considers this, it does not guarantee it — rooms are assigned after the deadline." | **Sheet** | The Housing tooltip, near-verbatim. |
-| "Nothing ranked yet. Choose Rank it on a residence and it takes the first slot." | Derived | Empty state: why it is empty, and what fills it. |
-| "1st choice / 2nd choice / 3rd choice — empty" | Derived | Empty state on each unfilled slot. |
-| "All three slots are full. Remove one to rank a different residence." | Derived | Blocked state: what unlocks the control. |
-| "No problem. Confirm housing plans is now on your enrollment checklist, due {date}." | **Sheet** | SC-017, verbatim. |
-| "You can decide later. The deadline is {date}." | **Sheet** | SC-017 tooltip. |
+| "Where you'll live" | Derived | Page title. Unchanged, and the subtitle Laura said added nothing is still gone. |
+| "Rank 3 of the 8. Housing Services assigns rooms after the response deadline. A shortlist is considered, never guaranteed." | **Sheet** (adapted) | The Housing tooltip, split into two sentences. The qualifier the sheet carries ("Housing considers this, it does not guarantee it") is now the lead of the screen rather than a line inside a panel, because the ranking is the screen. |
+| "Your shortlist" | Derived | Panel title. **Shortlist** per `CONTEXT.md` — the previous "Your ranking" named the gesture rather than the thing produced. |
+| "First choice at the top. Reorder with the arrows, or drag the number." | Derived | Says how to operate a control whose affordance is not obvious, per Voice. |
+| "Nothing shortlisted yet. Choose Add to shortlist on a residence and it takes the first slot." | Derived | Empty state: why it is empty, and what fills it. |
+| "1st choice / 2nd choice / 3rd choice — empty" | Derived | Empty slot label. Shown only once at least one slot is filled; see ticket 04. |
+| "Add to shortlist" / "Shortlisted #N — remove" | Derived | Replaces "Rank it" and "Nth choice — remove". Names the Shortlist, which is the thing being built. |
+| "All 3 slots are full. Remove one to shortlist a different residence." | Derived | Blocked state: what unlocks the control. |
+| "Room type" / "Bathroom" | Derived | Filter pill labels. The two facts a student narrows on first. |
+| "Nothing matches both filters. No residence offers that room type with that bathroom. Widening either one brings residences back." | Derived | Empty state: why it is empty, and what fills it. |
+| Amenity chips: "Single room or Shared room", "Bathroom per floor", "Meal plan included", "N min walk", "Laundry in the building", "First years only" | Derived | Label maps in `fixtures.ts`. The API returns codes; these are the words. No cost — ADR-0003. |
+| "Already have a place in the city? I'll arrange my own housing" | Derived | The off-campus exit. Off campus is no longer half the step; this is the discreet path that remains, per ADR-0003. |
+| "Noted — you're housing yourself. Housing Services won't assign you a room, and there's no shortlist to build. Nothing else in enrollment depends on this." | Derived | Result statement for the exit: what it means and what it does not affect. |
+| "Want to look at tuition or housing protection?" | **Sheet** | Unchanged wording, moved behind the exit — the student arranging their own place is who the field is for. |
 
 ## Campus life
 
@@ -155,7 +173,8 @@ The concept of this screen is protected — Laura approved it twice and assertiv
 | --- | --- | --- |
 | "YOU'RE ENROLLED" | Derived | Unchanged. Approved. |
 | "Your record is live. Nothing needs you right now. We will tell you when something does." | **Sheet** | SC-023 / the Home "items needing attention" zero state, verbatim. |
-| "Your record is live. One thing is still open — your deposit, in the first card below." | Derived | The branch where the deposit was skipped. |
+| "Your record is live. One thing is still open: your deposit, in the first card below." | Derived | The branch where the deposit was skipped. Colon, not a dash — ticket 06. |
+| "You earned $30 bookstore credit on the way here. That's 170 points, waiting on your Aster account." | Derived | The closing Balance, ticket 05. Credit first, points second: the number was only ever a way of counting the credit (ADR-0002). Absent entirely at zero points. |
 | "Still outstanding. Your place is held until the deadline and not after it. Pay it, or ask for a waiver, from the Deposit step." | Derived | Returned/outstanding state: says what it is and what to do. |
 | The four "what happens next" cards | Derived | Voice. Each states when, then what. |
 | "Enrollment Agreement · signed" + date + reference | **Sheet** (rule) | Result statement, repeated here so the signature is a record rather than a control. |
