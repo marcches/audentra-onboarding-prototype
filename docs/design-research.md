@@ -391,3 +391,67 @@ faixa horizontal, não num painel alto) e a celebração segue com `SplitText` +
 confetti. A casca é justamente a parte do produto que **não** deve ter
 personalidade própria: ela é a moldura, e a régua que o cliente deu para ela
 foi Salesforce — "um sistema de verdade", não um conjunto de telas.
+
+## Ticket 03 — Points com destino: Balance, conversão e o momento do prêmio
+
+Referências citadas no ticket antes de propor a solução. O que saiu de cada uma,
+e o que foi recusado.
+
+### O que estava errado
+
+Um `+50` cinza ao lado do item já concluído no rail. É um **recibo**: aparece
+onde o trabalho já aconteceu, fica lá para sempre, e ainda pesava justamente no
+componente que a rodada anterior estava tentando aliviar. Nenhuma das
+referências abaixo mostra pontos assim.
+
+### Pontos são distância, nunca placar
+
+- [Everyday Rewards](https://mobbin.com/screens/c0d07517-325a-4d5c-8663-575ade1f2f00),
+  [Qantas](https://mobbin.com/screens/3685ad75-41b1-4520-9114-5d48576fa905),
+  [Ulta](https://mobbin.com/screens/5e1db78b-5bb0-4336-841e-7ed0d962030f): as
+  três dizem a mesma frase — "faltam N pontos para X". Nunca o número sozinho.
+  Daí o crédito da livraria sair em **blocos de $10** em vez de acumular por
+  centavo: um "$17,40 até agora" não tem próximo momento dentro dele; "faltam 10
+  pts para os próximos $10" tem. É o bloco que dá ao Balance o que contar.
+- [Navan](https://mobbin.com/screens/d13f4a74-9b7b-478a-b563-41a0ef35afbe): um
+  saldo de recompensa único morando na moldura. Confirma a decisão do ticket 01
+  de haver **um** Balance — aqui ele só ganhou o que dizer.
+
+### O `+10` antes da tarefa — recusado
+
+- [Langdock](https://mobbin.com/screens/065752db-06ad-4118-ad1c-8f95daa3f8a8)
+  mostra `+10` *antes* de cada tarefa, e é a resposta direta ao recibo. Tomamos
+  o registro convidativo e o anel de fração; **não** tomamos o preço por linha.
+  Ao lado de sete Quests isso é uma tabela de preços — exatamente o peso que o
+  cliente reclamou —, e a ADR-0002 já tinha fechado essa porta. O que sobra do
+  Langdock no rail é a barra de progresso dentro do bloco atual, dentro do
+  próprio Balance, e não uma coluna de números.
+- [Portrait](https://mobbin.com/screens/21e83614-0f58-429c-a84b-8e811abb64e8):
+  tarefas futuras como expectativa e não como preço. É o que a linha "faltam 25
+  pts para $30" faz sem precisar tocar em nenhuma linha do rail.
+
+### O prêmio como trajeto, não como selo
+
+Nenhuma referência resolvia "onde o ponto aparece no instante em que é ganho".
+A decisão é de mecanismo: o token sai do **ponto da ação** (o último
+`pointerdown`, que é literalmente onde a mão estava) e viaja até o Balance, onde
+é absorvido — e o total só muda quando ele chega. Duas consequências que
+valeram a escolha:
+
+- O provider observa o total e anima sozinho. Nenhum passo chama `award()`, então
+  nenhum passo futuro pode esquecer de chamar — o erro clássico de dois escritos
+  que precisam concordar.
+- Ele mora acima de `/onboarding`, não dentro do passo: o clique que ganha o
+  ponto é o mesmo que navega, e um provider dentro do passo seria desmontado no
+  meio do próprio voo.
+
+`prefers-reduced-motion` recebe o mesmo prêmio sem a viagem: o token aparece
+logo acima do Balance, fica legível por um segundo e some. O que a animação
+precisa dizer é "isto foi para lá" — chegando no lugar certo, ela ainda diz.
+
+### ReactBits
+
+`CountUp` avaliado e recusado para o Balance: ele anima ao entrar em viewport,
+uma vez, e o que este número precisa é reagir à *chegada* de um token. Uma mola
+de `motion` com `key` na contagem de pousos faz isso em três linhas e sem
+segunda fonte de verdade sobre o valor.

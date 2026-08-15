@@ -158,7 +158,7 @@ export function CelebrationDialog({
             </p>
             <p className="mt-1 text-small text-ink-600">
               Post it to Facebook or LinkedIn and make the news public. Entirely optional, and worth{" "}
-              {SHARE_POINTS} points if you do.
+              {SHARE_POINTS} points toward your bookstore credit if you do.
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <ShareLink
@@ -195,10 +195,14 @@ export function CelebrationDialog({
               </Button>
             </div>
 
+            {/* The `+N` itself flew to the Balance the moment this was set —
+                see `points-award.tsx`. What is left here is where it landed,
+                because the Balance is behind this dialog and the student
+                shouldn't have to close it to believe the points arrived. */}
             {state.offer.shared ? (
               <p className="mt-3 flex items-center justify-center gap-1.5 text-small font-bold text-mint-700">
-                <SparkleIcon weight="fill" aria-hidden className="size-4" />+{SHARE_POINTS} points
-                added
+                <SparkleIcon weight="fill" aria-hidden className="size-4" />
+                {SHARE_POINTS} points added to your Balance
               </p>
             ) : null}
           </div>

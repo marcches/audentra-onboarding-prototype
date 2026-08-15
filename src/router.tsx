@@ -5,6 +5,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import { PointsAwardProvider } from "@/components/points-award";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
 import { DepositRoute } from "@/routes/deposit";
@@ -59,11 +60,17 @@ const onboardingRoute = createRoute({
     from: search.from === "review" ? "review" : undefined,
   }),
   /* Row at every width: the rail hides itself below `lg`, so there is no
-     direction to switch. The shell's own column carries the recessed ground. */
+     direction to switch. The shell's own column carries the recessed ground.
+     The award provider wraps the whole of `/onboarding` rather than the step:
+     a Point is earned by the click that also navigates, and a provider inside
+     the step would be unmounted by that navigation halfway through the flight
+     it was animating. */
   component: () => (
-    <div className="flex min-h-dvh bg-canvas">
-      <Outlet />
-    </div>
+    <PointsAwardProvider>
+      <div className="flex min-h-dvh bg-canvas">
+        <Outlet />
+      </div>
+    </PointsAwardProvider>
   ),
 });
 

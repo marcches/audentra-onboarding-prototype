@@ -1,4 +1,4 @@
-Status: in-progress — 01 and 02 done, 03–07 open
+Status: in-progress — 01, 02 and 03 done, 04–07 open
 
 # Onboarding: Phases, shell, and the parts the last round missed
 
@@ -133,13 +133,15 @@ named out loud on the next call rather than discovered.
 |---|---|
 | 01 — The shell: Phases, recessed ground, fixed action bar, mobile-first | **done** |
 | 02 — Your offer in one viewport | **done** |
-| 03 — Points with a destination | ready-for-human |
+| 03 — Points with a destination | **done** |
 | 04 — Housing: eight Residences, a Shortlist of three | ready-for-human |
 | 05 — The Closing: Review & sign, and Deposit | ready-for-human |
 | 06 — Copy sweep | ready-for-human |
 | 07 — Family access: what they can actually see | ready-for-human |
 
-02–07 are all unblocked now: 01 was the only thing any of them were waiting on.
+04–07 are all unblocked: 01 was the only thing any of them were waiting on, and
+05's second dependency (how a completed flow reports its Points) is now answered
+by `points.ts` and the Balance.
 
 ### What 01 changed that the rest depend on
 
@@ -175,6 +177,24 @@ named out loud on the next call rather than discovered.
 - **The decline dialog and its state are gone** — `declineReasons`,
   `declineReason`, `declineNote`. Declining is one click and records only the
   answer and the timestamp.
+
+### What 03 changed that the rest can use
+
+- **`points.ts` is the only place a Point converts.** `CREDIT_PER_POINT_USD` and
+  `CREDIT_BLOCK_USD` are the two fixtures; `POINTS_PER_BLOCK` is derived and
+  `points.test.ts` fails if they ever disagree. Any screen printing a Points
+  figure calls `creditReleased` / `pointsToNextRelease` — never a bare number
+  (ADR-0002).
+- **`PointsAwardProvider` wraps `/onboarding` and animates by itself.** It
+  watches `totalPoints` and flies a `+N` from the last `pointerdown` to the
+  Balance. **A new point-earning action needs no award code** — write the
+  `patch` and the animation follows. Adding a Quest to `steps.ts` is enough.
+- **`Balance` renders `award.shownPoints`, not the live total**, so the number
+  changes as the token lands. Outside the provider (the style guide) it falls
+  back to the live total.
+- **05 inherits a cleaner Review header**: the per-group `pts` chip is gone and
+  the total now names its destination. The per-step time and required/optional
+  labels beside it are still 05's to remove.
 
 ### Known gaps, deliberate
 

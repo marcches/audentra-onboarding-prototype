@@ -13,7 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildAgreement, issueReference, legalName } from "@/lib/agreement";
 import { institution, offer } from "@/lib/fixtures";
-import { totalPoints } from "@/lib/points";
+import {
+  creditReleased,
+  formatCredit,
+  nextRelease,
+  pointsToNextRelease,
+  totalPoints,
+} from "@/lib/points";
 import { patch, useOnboarding } from "@/lib/store";
 import { buildSummary } from "@/lib/summary";
 import { cn } from "@/lib/utils";
@@ -396,8 +402,15 @@ function SummaryPanel({
         </div>
         {/* The running total — the sum of whatever was actually completed, not
             a hardcoded max. Sharing at the accept-offer moment adds to this
-            too, so it can read higher than the steps below add up to. */}
-        <p className="text-small font-bold text-violet-700">{points} points earned</p>
+            too, so it can read higher than the steps below add up to. Never a
+            bare figure: a Point is bookstore credit or it is a scoreboard
+            (ADR-0002). */}
+        <p className="text-small font-bold text-violet-700">
+          {points} points ·{" "}
+          {creditReleased(points) > 0
+            ? `${formatCredit(creditReleased(points))} bookstore credit`
+            : `${pointsToNextRelease(points)} to your first ${formatCredit(nextRelease(points))}`}
+        </p>
       </header>
 
       <div className="divide-y divide-ink-50">
@@ -410,9 +423,6 @@ function SummaryPanel({
                   About you's own section index. */}
               <span className="text-micro font-bold tracking-[0.06em] text-ink-400 uppercase">
                 ~{group.timeEstimateMinutes} min
-              </span>
-              <span className="text-micro font-bold tracking-[0.06em] text-mint-600 uppercase">
-                {group.points} pts
               </span>
               <span
                 className={cn(
