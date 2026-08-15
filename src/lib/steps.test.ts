@@ -1,158 +1,152 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  after,
   closing,
-  groupMinutes,
-  groupOf,
-  groupRequired,
   groups,
+  groupsFor,
   nextStep,
   phaseCount,
-  phaseNumber,
-  phaseOf,
   phases,
   previousStep,
   type StepId,
+  stepApplies,
   stepById,
-  stepCount,
-  stepIndex,
+  stepCountFor,
   steps,
+  stepsFor,
+  totalMinutesFor,
+  totalPointsAvailableFor,
 } from "@/lib/steps";
 
 /**
- * The spine, as `spec.md` states it:
+ * The spine, tested because everything counts from it.
  *
- * | Deciding          | Your offer                            |
- * | About you         | Identity & contact · Health information |
- * | Your life on campus | Housing · Campus life               |
- * | _Closing_         | Review & sign · Deposit               |
- *
- * These tests exist because every count in the UI derives from this file. The
- * rail's "three Phases", the segmented mobile bar and the Closing's exclusion
- * from the Phase count are all the same fact, and it should only be possible to
- * get it wrong in one place.
+ * `steps.ts` is the highest seam this repo has: the rail, the summary, the
+ * navigation, the Points total and every "N of M" in the UI all derive from it,
+ * so an assertion here covers a dozen screens at once. What it must never
+ * become is a restatement of the file — the tests below are about the *shape*
+ * (derivation, order, uniqueness, the conditional Step) rather than about
+ * whether Housing is worth thirty points.
  */
 
 describe("the spine", () => {
-  it("has exactly three Phases, in the spec's order", () => {
-    expect(phases.map((phase) => phase.id)).toEqual(["deciding", "about-you", "on-campus"]);
+  it("has ten Steps", () => {
+    expect(steps).toHaveLength(10);
+  });
+
+  it("has exactly three Phases, with the Closing and After outside them", () => {
     expect(phaseCount).toBe(3);
-  });
-
-  it("keeps the Closing out of the Phases", () => {
-    expect(phases).not.toContain(closing);
-    expect(phases.map((phase) => phase.id)).not.toContain(closing.id);
-    expect(closing.kind).toBe("closing");
     expect(phases.every((phase) => phase.kind === "phase")).toBe(true);
+    expect(closing.kind).toBe("closing");
+    expect(after.kind).toBe("after");
+    expect(groups.filter((group) => group.kind === "phase")).toHaveLength(3);
   });
 
-  it("orders the rail as the three Phases then the Closing", () => {
-    expect(groups).toEqual([...phases, closing]);
-  });
-
-  it("groups the Quests as the spec's table does", () => {
-    expect(groups.map((group) => group.steps.map((step) => step.id))).toEqual([
-      ["offer"],
-      ["identity-contact", "health"],
-      ["housing", "campus-life"],
-      ["review", "deposit"],
-    ]);
-  });
-});
-
-describe("the flat list, derived", () => {
-  it("is the groups flattened in flow order — never a second hand-kept list", () => {
+  it("derives the flat list from the groups rather than keeping a second one", () => {
+    // The bug this shape exists to prevent: two lists that have to agree.
     expect(steps).toEqual(groups.flatMap((group) => group.steps));
   });
 
-  it("counts Quests, not groups", () => {
-    expect(stepCount).toBe(steps.length);
-    expect(stepCount).toBe(7);
+  it("gives every Step a unique id and a unique path", () => {
+    expect(new Set(steps.map((step) => step.id)).size).toBe(steps.length);
+    expect(new Set(steps.map((step) => step.path)).size).toBe(steps.length);
   });
 
-  it("gives every Quest a unique id and a unique path", () => {
-    expect(new Set(steps.map((step) => step.id)).size).toBe(stepCount);
-    expect(new Set(steps.map((step) => step.path)).size).toBe(stepCount);
-  });
-});
-
-describe("the rename", () => {
-  it("has no step called about-you — that name belongs to the Phase now", () => {
-    expect(steps.map((step) => step.id)).not.toContain("about-you" as StepId);
-    expect(steps.some((step) => step.path.includes("about-you"))).toBe(false);
+  it("puts Health information immediately after Who you are", () => {
+    /* The whole point of moving it: the flow's three uploads are adjacent. */
+    const order = steps.map((step) => step.id);
+    expect(order.indexOf("health")).toBe(order.indexOf("who-you-are") + 1);
   });
 
-  it("carries Identity & contact in its place", () => {
-    const step = stepById("identity-contact");
-    expect(step.label).toBe("Identity & contact");
-    expect(step.path).toBe("/onboarding/identity-contact");
-  });
-
-  it("still names the Phase About you", () => {
-    expect(phases[1].label).toBe("About you");
+  it("keeps the Deposit as one entry, not three", () => {
+    expect(closing.steps.map((step) => step.id)).toEqual(["review", "deposit"]);
   });
 });
 
-describe("walking the flow", () => {
-  it("crosses a Phase boundary without noticing it", () => {
-    expect(nextStep("offer")?.id).toBe("identity-contact");
-    expect(nextStep("health")?.id).toBe("housing");
-    expect(previousStep("housing")?.id).toBe("health");
-  });
-
-  it("stops at both ends", () => {
-    expect(nextStep("deposit")).toBeUndefined();
-    expect(previousStep("offer")).toBeUndefined();
-  });
-
-  it("indexes against the flat list", () => {
-    expect(stepIndex("offer")).toBe(0);
-    expect(stepIndex("deposit")).toBe(stepCount - 1);
-  });
-});
-
-describe("finding a Quest's home", () => {
-  it("puts each Quest in the group that lists it", () => {
-    expect(groupOf("health").id).toBe("about-you");
-    expect(groupOf("campus-life").id).toBe("on-campus");
-    expect(groupOf("review")).toBe(closing);
-  });
-
-  it("reports no Phase for a Closing Quest — the Closing is not a Phase", () => {
-    expect(phaseOf("review")).toBeUndefined();
-    expect(phaseOf("deposit")).toBeUndefined();
-    expect(phaseOf("housing")?.id).toBe("on-campus");
-  });
-
-  it("numbers Phases from one, and refuses to number the Closing", () => {
-    expect(phaseNumber("deciding")).toBe(1);
-    expect(phaseNumber("on-campus")).toBe(3);
-    expect(phaseNumber(closing.id)).toBeUndefined();
-  });
-});
-
-describe("what a Phase row shows", () => {
-  it("sums its Quests' minutes rather than keeping its own figure", () => {
-    for (const group of groups) {
-      expect(groupMinutes(group)).toBe(
-        group.steps.reduce((total, step) => total + step.timeEstimateMinutes, 0),
-      );
+describe("the metadata every Quest carries", () => {
+  it("levels every worked Step at one to three minutes", () => {
+    /* The old problem was never the count. It was the distribution: one Step
+       of six minutes beside five of one. Enrolled is exempt — it is reached,
+       not worked through. */
+    for (const step of steps) {
+      if (step.id === "enrolled") continue;
+      expect(step.minutes, step.id).toBeGreaterThanOrEqual(1);
+      expect(step.minutes, step.id).toBeLessThanOrEqual(3);
     }
   });
 
-  it("is required when any Quest inside it is", () => {
-    // About you holds a required Quest (Identity & contact) and an optional one
-    // (Health information) — the Phase follows the required one.
-    expect(groupRequired(phases[1])).toBe(true);
-    expect(phases[1].steps.some((step) => !step.required)).toBe(true);
+  it("gives every Quest that can be completed a non-zero Point value", () => {
+    for (const step of steps) {
+      if (step.id === "enrolled") continue;
+      expect(step.points, step.id).toBeGreaterThan(0);
+    }
   });
 
-  it("is optional only when every Quest inside it is", () => {
-    expect(
-      groupRequired({
-        ...phases[0],
-        steps: phases[0].steps.map((s) => ({ ...s, required: false })),
-      }),
-    ).toBe(false);
+  it("gives Enrolled no Points, because arriving is not earning", () => {
+    expect(stepById("enrolled").points).toBe(0);
+  });
+
+  it("assigns every Step one of the five archetypes", () => {
+    const allowed = new Set(["decision", "form", "catalogue", "review", "celebration"]);
+    for (const step of steps) expect(allowed.has(step.archetype), step.id).toBe(true);
+  });
+});
+
+describe("Where you live now exists only for the statuses it applies to", () => {
+  const addressStep = stepById("where-you-live");
+
+  it("is absent from the spine for an international student", () => {
+    expect(stepApplies(addressStep, "international")).toBe(false);
+    expect(stepsFor("international").map((step) => step.id)).not.toContain("where-you-live");
+  });
+
+  it("is present for a citizen and for a permanent resident", () => {
+    for (const status of ["us-citizen", "permanent-resident"] as const) {
+      expect(stepsFor(status).map((step) => step.id)).toContain("where-you-live");
+    }
+  });
+
+  it("is still present before the question has been answered", () => {
+    /* A rail that shortened itself at the start would be telling the student
+       their answer had already been assumed. */
+    expect(stepsFor("").map((step) => step.id)).toContain("where-you-live");
+  });
+
+  it("changes every count derived from the spine", () => {
+    expect(stepCountFor("us-citizen")).toBe(10);
+    expect(stepCountFor("international")).toBe(9);
+    expect(totalMinutesFor("international")).toBeLessThan(totalMinutesFor("us-citizen"));
+    expect(totalPointsAvailableFor("international")).toBeLessThan(
+      totalPointsAvailableFor("us-citizen"),
+    );
+  });
+
+  it("leaves no empty group behind", () => {
+    for (const group of groupsFor("international")) {
+      expect(group.steps.length, group.id).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("navigation follows the student's own spine", () => {
+  it("walks the full flow for a citizen", () => {
+    expect(nextStep("health", "us-citizen")?.id).toBe("where-you-live");
+    expect(previousStep("who-we-call", "us-citizen")?.id).toBe("where-you-live");
+  });
+
+  it("steps over the absent address Step for an international student", () => {
+    /* The failure this prevents: Continue walking a student into a screen the
+       spine says they do not have. */
+    expect(nextStep("health", "international")?.id).toBe("who-we-call");
+    expect(previousStep("who-we-call", "international")?.id).toBe("health");
+  });
+
+  it("has nothing before the first Step and nothing after the last", () => {
+    const walk = stepsFor("us-citizen");
+    const first = walk[0].id as StepId;
+    const last = walk[walk.length - 1].id as StepId;
+    expect(previousStep(first, "us-citizen")).toBeUndefined();
+    expect(nextStep(last, "us-citizen")).toBeUndefined();
   });
 });

@@ -39,7 +39,7 @@ function detectWebgl2() {
  * Four treatments have died here and each one narrowed what this panel may be.
  * A 3D lanyard read as a technology demo. A printed invitation stated a
  * programme, campus and application number on a screen where the system does not
- * know who is looking (ADR-0006). An institutional lockup went for the same
+ * know who is looking. An institutional lockup went for the same
  * reason one step out: if the link carries no identity it carries no *tenant*
  * either, so Aster is something this screen learns at authentication, exactly
  * like the student's name. And a headline of my own — "One place for your

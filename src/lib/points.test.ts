@@ -1,20 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BOOKSTORE_LADDER,
   CREDIT_BLOCK_USD,
   CREDIT_PER_POINT_USD,
   creditReleased,
+  nextTarget,
   POINTS_PER_BLOCK,
   pointsToNextRelease,
   SHARE_POINTS,
+  totalPointsAvailable,
 } from "@/lib/points";
-import { steps } from "@/lib/steps";
+import { steps, totalPointsAvailableFor } from "@/lib/steps";
 
 /**
- * The conversion, tested because it is the whole of ADR-0002: a Point that
- * doesn't convert into a named thing is the bare scoreboard we are replacing.
- * These are fixture numbers — the assertions are about the *shape* holding
- * when a real rate replaces them, not about $0.20.
+ * The conversion, tested because it is the whole of ADR-0002: a Point that does
+ * not convert into a named thing is the bare scoreboard we are replacing. These
+ * are fixture numbers — the assertions are about the *shape* holding when a
+ * real rate replaces them, not about $0.20.
  */
 
 describe("bookstore credit", () => {
@@ -43,12 +46,44 @@ describe("bookstore credit", () => {
   });
 });
 
-describe("what the flow is worth", () => {
-  it("gives every Quest a non-zero value", () => {
-    for (const step of steps) expect(step.points).toBeGreaterThan(0);
+describe("the Balance always has an object to point at", () => {
+  it("names a target the student has not reached yet", () => {
+    const { target, pointsAway, reached } = nextTarget(0);
+    expect(reached).toBe(false);
+    expect(target).toBe(BOOKSTORE_LADDER[0]);
+    expect(pointsAway).toBeGreaterThan(0);
   });
 
-  /* A flow whose every Quest is finished and which still hasn't released a
+  it("moves up the ladder as credit is released", () => {
+    const first = BOOKSTORE_LADDER[0];
+    const enough = Math.ceil(first.usd / CREDIT_PER_POINT_USD);
+    expect(nextTarget(enough).target).toBe(BOOKSTORE_LADDER[1]);
+  });
+
+  it("never runs out of a target, even past the top rung", () => {
+    const last = BOOKSTORE_LADDER[BOOKSTORE_LADDER.length - 1];
+    const beyond = Math.ceil((last.usd * 4) / CREDIT_PER_POINT_USD);
+    const { target, reached } = nextTarget(beyond);
+    expect(reached).toBe(true);
+    expect(target).toBe(last);
+  });
+});
+
+describe("what the flow is worth", () => {
+  it("announces a total that includes the share award", () => {
+    /* Announced once, at the entrance. The share award is the one point-earning
+       action that is not a Step submission, so it cannot come from `steps.ts`
+       and would otherwise be missing from the promise. */
+    expect(totalPointsAvailable("us-citizen")).toBe(
+      totalPointsAvailableFor("us-citizen") + SHARE_POINTS,
+    );
+  });
+
+  it("offers an international student less, because they have one Quest fewer", () => {
+    expect(totalPointsAvailable("international")).toBeLessThan(totalPointsAvailable("us-citizen"));
+  });
+
+  /* A flow whose every Quest is finished and which still had not released a
      single block of credit would make the destination decorative. */
   it("releases credit for a student who finishes everything", () => {
     const everything = steps.reduce((sum, step) => sum + step.points, 0) + SHARE_POINTS;

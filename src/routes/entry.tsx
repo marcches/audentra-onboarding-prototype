@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsPanels, TabsTrigger } from "@/components/ui/tabs";
 import { Wordmark } from "@/components/wordmark";
 import { platform } from "@/lib/fixtures";
+import { totalPointsAvailable } from "@/lib/points";
+import { stepCountFor, totalMinutesFor } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 import {
   type CreateAccountValues,
@@ -98,6 +100,26 @@ export function EntryRoute() {
                   : "Use the email address and password you set up."}
             </p>
           </div>
+
+          {/* The total, announced **once**, before the first field of anything.
+              Melio's "Takes 4-5 minutes, each step is saved as you progress" and
+              Langdock's "0 / 595" crowning a checklist. Repeated per screen it
+              becomes a running remainder, which is a threat rather than an
+              orientation, so this is the only place in the flow it appears.
+
+              Read for the full spine, because the entry screen has not asked
+              Student status yet and cannot know whether this student has nine
+              Steps or ten. */}
+          <p className="flex flex-wrap items-baseline gap-x-1.5 text-small text-ink-500">
+            <span className="font-strong text-ink-700 numeric">
+              About {totalMinutesFor("")} minutes
+            </span>
+            <span>, saved as you go.</span>
+            <span className="numeric">
+              {stepCountFor("")} quests, worth {totalPointsAvailable("")} points toward credit at
+              the campus bookstore.
+            </span>
+          </p>
 
           <Tabs value={tab} onValueChange={(value) => setTab(value as "create" | "signin")}>
             {/* Sign in leads for a device that has been used before; a first

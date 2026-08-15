@@ -1,17 +1,16 @@
+import { organizationById } from "@/lib/catalogue";
 import {
   citiesByState,
-  citizenshipOptions,
-  clubs,
   disclosureScopeOptions,
-  protectionOptions,
   relationshipOptions,
-  residences,
   residencyVerificationOptions,
   studentRecord,
+  studentStatusOptions,
   type UsStateCode,
   usStates,
 } from "@/lib/fixtures";
-import { type PhaseId, phases, type StepId } from "@/lib/steps";
+import { residenceById } from "@/lib/housing";
+import { type StepId, stepById, stepsFor } from "@/lib/steps";
 import type { OnboardingState } from "@/lib/store";
 
 /**
@@ -20,36 +19,44 @@ import type { OnboardingState } from "@/lib/store";
  * Every row is derived from `localStorage`, never invented: a summary that
  * lists fields the flow never captured is worse than no summary, because it
  * teaches people not to read it. Anything genuinely unanswered says so and
- * links to the step where it lives.
+ * links to the Step where it lives.
+ *
+ * What changed in the rebuild: a section is now **one Step**, not one Phase.
+ * Each carries a status, a one-line digest for when it is closed, and its own
+ * single edit control. A collapsed section that says nothing is a section the
+ * student has to open to check, which defeats collapsing it.
  */
+
 export type SummaryRow = {
   label: string;
   value: string;
   /** True when the student skipped it, so the row can read as a gap not a fact. */
   missing?: boolean;
+  /**
+   * A long free-text answer. It gets a full-width block rather than a
+   * definition-list cell — prose squeezed into a two-column list is what makes
+   * a summary unreadable (Origin).
+   */
+  long?: boolean;
 };
 
+export type SectionStatus = "complete" | "attention" | "skipped";
+
 /** One Quest's worth of answers, with the route that edits them. */
-export type SummaryGroup = {
+export type SummarySection = {
   id: StepId;
   label: string;
   path: string;
+  minutes: number;
+  required: boolean;
   rows: SummaryRow[];
-};
-
-/**
- * A Phase's worth of Quests.
- *
- * The summary is grouped the way the flow is grouped, because the student
- * checking it is remembering the flow, not a list of routes. What is *not* here
- * any more is the per-Quest time estimate and required/optional tag: both moved
- * to the Phase rows in the rail, where they answer "what am I in for" before the
- * work rather than reporting it back afterwards, when neither can be acted on.
- */
-export type SummarySection = {
-  id: PhaseId;
-  label: string;
-  groups: SummaryGroup[];
+  status: SectionStatus;
+  /**
+   * One line that stands in for the section when it is closed — "Sunrise Hall ·
+   * Single · 3 preferences". Remote's group headers carry their own state for
+   * the same reason: a closed group still has to say something.
+   */
+  digest: string;
 };
 
 const NOT_ANSWERED = "Not answered";
@@ -63,20 +70,23 @@ function labelFor(
 
 /**
  * The permanent address, in the words a person reads rather than the values a
- * `<select>` stores. State and city are cascading selects now (see About
- * you's residence section), so what's in `identityContact.state`/`.city` is a postal
- * abbreviation and a slug — "CA", "los-angeles" — never what the agreement or
- * the summary should print.
+ * `<select>` stores. State and city are cascading selects, so what is stored is
+ * a postal abbreviation and a slug — "CA", "los-angeles" — never what the
+ * agreement or the summary should print.
  */
-export function formatAddress(about: OnboardingState["identityContact"]): string {
-  const stateLabel = labelFor(usStates, about.state) ?? about.state;
+export function formatAddress(live: OnboardingState["whereYouLive"]): string {
+  const stateLabel = labelFor(usStates, live.state) ?? live.state;
   const cityLabel =
-    citiesByState[about.state as UsStateCode]?.find((option) => option.value === about.city)
-      ?.label ?? about.city;
-  return [about.street, about.unit, cityLabel, stateLabel, about.postalCode]
+    citiesByState[live.state as UsStateCode]?.find((option) => option.value === live.city)?.label ??
+    live.city;
+  return [live.street, live.unit, cityLabel, stateLabel, live.postalCode]
     .filter(Boolean)
     .join(", ");
 }
+
+/* -------------------------------------------------------------------------
+   Rows, per Step
+   ---------------------------------------------------------------------- */
 
 function offerRows(state: OnboardingState): SummaryRow[] {
   const { response } = state.offer;
@@ -90,111 +100,33 @@ function offerRows(state: OnboardingState): SummaryRow[] {
   ];
 }
 
-function identityContactRows(state: OnboardingState): SummaryRow[] {
-  const about = state.identityContact;
-  const international = about.citizenship === "international";
-  const address = formatAddress(about);
-
-  const contacts = about.emergencyContacts.filter((contact) => contact.fullName.trim());
-  const scopes = about.disclosureScope
-    .map((value) => labelFor(disclosureScopeOptions, value))
-    .filter(Boolean)
-    .join(", ");
-  const familyRelationship = labelFor(relationshipOptions, about.familyMemberRelationship);
+function whoYouAreRows(state: OnboardingState): SummaryRow[] {
+  const who = state.whoYouAre;
+  const status = labelFor(studentStatusOptions, who.studentStatus);
 
   return [
     {
       label: "Legal name",
       value: `${studentRecord.legalFirstName} ${studentRecord.legalLastName}`,
     },
-    {
-      label: "Preferred name",
-      value: about.preferredName || "Same as legal name",
-    },
+    { label: "Preferred name", value: who.preferredName || "Same as legal name" },
+    { label: "Pronouns", value: who.pronouns || "Not given" },
     {
       label: "Mobile",
-      value: about.phone ? `${about.dialCode} ${about.phone}` : NOT_ANSWERED,
-      missing: !about.phone,
+      value: who.phone ? `${who.dialCode} ${who.phone}` : NOT_ANSWERED,
+      missing: !who.phone,
     },
     {
-      label: "Citizenship",
-      value: labelFor(citizenshipOptions, about.citizenship) ?? NOT_ANSWERED,
-      missing: !about.citizenship,
+      label: "Student status",
+      value: status ?? NOT_ANSWERED,
+      missing: !who.studentStatus,
     },
     {
-      label: "Permanent address",
-      value: international ? "Not applicable — international student" : address || NOT_ANSWERED,
-      missing: !international && !address,
-    },
-    {
-      label: "Residency check",
-      value: international
-        ? "Not applicable — international student"
-        : (labelFor(residencyVerificationOptions, about.residencyVerification) ?? NOT_ANSWERED),
-      missing: !international && !about.residencyVerification,
-    },
-    {
-      label: "Emergency contact",
-      value: contacts.length
-        ? contacts
-            .map((contact) => {
-              const relationship = labelFor(relationshipOptions, contact.relationship);
-              return relationship ? `${contact.fullName} (${relationship})` : contact.fullName;
-            })
-            .join(", ")
-        : NOT_ANSWERED,
-      missing: contacts.length === 0,
-    },
-    {
-      label: "Family access",
-      value: about.grantsFamilyAccess
-        ? `${about.familyMemberName || "Someone"}${familyRelationship ? ` (${familyRelationship})` : ""} — ${scopes || "no categories picked"}`
-        : "Nobody has access",
-    },
-  ];
-}
-
-function housingRows(state: OnboardingState): SummaryRow[] {
-  const housing = state.housing;
-
-  if (housing.arrangingOwn) {
-    return [
-      { label: "Where you'll live", value: "Arranging your own housing" },
-      {
-        label: "Tuition / housing protection",
-        value: labelFor(protectionOptions, housing.protectionInterest) ?? NOT_ANSWERED,
-        missing: !housing.protectionInterest,
-      },
-    ];
-  }
-
-  const ranked = housing.residenceRanking
-    .map((id) => residences.find((residence) => residence.id === id)?.name)
-    .filter(Boolean);
-
-  return [
-    {
-      label: "Shortlist",
-      // A middle dot, not the double space this used to use: HTML collapses
-      // runs of whitespace, so the separator was invisible and the shortlist
-      // arrived as one run-on line at the moment it is meant to be checked.
-      value: ranked.length
-        ? ranked.map((name, index) => `${index + 1}. ${name}`).join(" · ")
-        : "No preference given",
-      missing: ranked.length === 0,
-    },
-  ];
-}
-
-function campusLifeRows(state: OnboardingState): SummaryRow[] {
-  const life = state.campusLife;
-  const picked = life.clubs.map((id) => clubs.find((club) => club.id === id)?.name).filter(Boolean);
-
-  return [
-    {
-      label: "Clubs and interests",
-      value: picked.length ? picked.join(", ") : "Nothing picked",
-      missing: picked.length === 0,
+      label: "Identity document",
+      value: who.idDocuments.length
+        ? `${who.idDocuments.length} ${who.idDocuments.length === 1 ? "file" : "files"} attached`
+        : "Nothing attached",
+      missing: who.idDocuments.length === 0,
     },
   ];
 }
@@ -207,71 +139,268 @@ function healthRows(state: OnboardingState): SummaryRow[] {
       label: "Accommodations",
       value:
         health.accommodations === "yes"
-          ? "Yes — Accessibility Services will be in touch"
+          ? "Yes, Accessibility Services will be in touch"
           : health.accommodations === "no"
             ? "Not needed right now"
             : "Skipped in onboarding",
-      missing: false,
     },
   ];
 
   if (health.accommodations === "yes") {
     if (health.accommodationNote.trim()) {
-      rows.push({ label: "What would help", value: health.accommodationNote.trim() });
+      rows.push({ label: "What would help", value: health.accommodationNote.trim(), long: true });
     }
     rows.push({
       label: "Medical documentation",
       value: health.medicalDocuments.length
-        ? `${health.medicalDocuments.length} ${health.medicalDocuments.length === 1 ? "file" : "files"} attached`
+        ? `${health.medicalDocuments.length} attached`
         : "Nothing attached",
       missing: health.medicalDocuments.length === 0,
     });
-    rows.push({
-      label: "Immunization record",
-      value: health.immunizationDocuments.length
-        ? `${health.immunizationDocuments.length} ${health.immunizationDocuments.length === 1 ? "file" : "files"} attached`
-        : "Nothing attached",
-      missing: health.immunizationDocuments.length === 0,
-    });
+  }
+
+  rows.push({
+    label: "Immunization record",
+    value: health.immunizationDocuments.length
+      ? `${health.immunizationDocuments.length} attached`
+      : "Nothing attached, the portal will ask later",
+  });
+
+  return rows;
+}
+
+function whereYouLiveRows(state: OnboardingState): SummaryRow[] {
+  const live = state.whereYouLive;
+  const address = formatAddress(live);
+
+  return [
+    {
+      label: "Permanent address",
+      value: address || NOT_ANSWERED,
+      missing: !address,
+    },
+    {
+      label: "Residency check",
+      value: labelFor(residencyVerificationOptions, live.residencyVerification) ?? NOT_ANSWERED,
+      missing: !live.residencyVerification,
+    },
+  ];
+}
+
+function whoWeCallRows(state: OnboardingState): SummaryRow[] {
+  const call = state.whoWeCall;
+  const contacts = call.emergencyContacts.filter((contact) => contact.fullName.trim());
+
+  const rows: SummaryRow[] = [
+    {
+      label: "Emergency contact",
+      value: contacts.length
+        ? contacts
+            .map((contact) => {
+              const relationship = labelFor(relationshipOptions, contact.relationship);
+              return relationship ? `${contact.fullName} (${relationship})` : contact.fullName;
+            })
+            .join(", ")
+        : NOT_ANSWERED,
+      missing: contacts.length === 0,
+    },
+  ];
+
+  if (call.familyAccess.length === 0) {
+    rows.push({ label: "Family access", value: "Nobody has access" });
+  } else {
+    for (const grant of call.familyAccess) {
+      const relationship = labelFor(relationshipOptions, grant.relationship);
+      const scopes = grant.scope
+        .map((value) => labelFor(disclosureScopeOptions, value))
+        .filter(Boolean)
+        .join(", ");
+      rows.push({
+        label: `Access for ${grant.fullName || "someone"}`,
+        value: `${relationship ? `${relationship}, ` : ""}${grant.email || "no email"} · ${scopes || "no categories picked"}`,
+        missing: !grant.fullName || !grant.email || grant.scope.length === 0,
+        long: true,
+      });
+    }
   }
 
   return rows;
 }
 
+function housingRows(state: OnboardingState): SummaryRow[] {
+  const ranked = state.housing.residenceRanking
+    .map((id) => residenceById(id)?.name)
+    .filter(Boolean);
+
+  return [
+    {
+      label: "Shortlist",
+      value: ranked.length
+        ? ranked.map((name, index) => `${index + 1}. ${name}`).join(" · ")
+        : "No preference given",
+      missing: ranked.length === 0,
+    },
+    {
+      label: "What that means",
+      value: "A request, not an assignment. Housing Services assigns after the deadline.",
+    },
+  ];
+}
+
+function campusLifeRows(state: OnboardingState): SummaryRow[] {
+  const marked = state.campusLife.interests.map((id) => organizationById(id)?.name).filter(Boolean);
+
+  return [
+    {
+      label: "Interested in",
+      value: marked.length ? marked.join(", ") : "Nothing marked",
+      long: marked.length > 3,
+    },
+    {
+      label: "What that means",
+      value: "A route through the Involvement Fair. Not a membership.",
+    },
+  ];
+}
+
+/* -------------------------------------------------------------------------
+   Digests
+   ---------------------------------------------------------------------- */
+
+const DIGEST: Partial<Record<StepId, (state: OnboardingState) => string>> = {
+  offer: (state) =>
+    state.offer.response === "accepted"
+      ? "Accepted"
+      : state.offer.response === "declined"
+        ? "Declined"
+        : "No answer yet",
+  "who-you-are": (state) => {
+    const status = labelFor(studentStatusOptions, state.whoYouAre.studentStatus) ?? "No status";
+    const name = state.whoYouAre.preferredName || studentRecord.legalFirstName;
+    return `${name} · ${status} · ${state.whoYouAre.idDocuments.length} document${state.whoYouAre.idDocuments.length === 1 ? "" : "s"}`;
+  },
+  health: (state) =>
+    state.health.accommodations === "yes"
+      ? "Accommodation requested"
+      : state.health.accommodations === "no"
+        ? "No accommodation needed"
+        : "Skipped",
+  "where-you-live": (state) => formatAddress(state.whereYouLive) || "No address given",
+  "who-we-call": (state) => {
+    const contacts = state.whoWeCall.emergencyContacts.filter((c) => c.fullName.trim()).length;
+    const grants = state.whoWeCall.familyAccess.length;
+    return `${contacts} emergency contact${contacts === 1 ? "" : "s"} · ${grants === 0 ? "nobody has access" : `${grants} with access`}`;
+  },
+  housing: (state) => {
+    const ranked = state.housing.residenceRanking
+      .map((id) => residenceById(id)?.name)
+      .filter(Boolean);
+    return ranked.length ? `${ranked[0]} first · ${ranked.length} ranked` : "No preference given";
+  },
+  "campus-life": (state) => {
+    const count = state.campusLife.interests.length;
+    return count === 0 ? "Nothing marked" : `${count} organization${count === 1 ? "" : "s"} marked`;
+  },
+};
+
+/* -------------------------------------------------------------------------
+   Assembly
+   ---------------------------------------------------------------------- */
+
 /**
  * Which Quests read back, and how.
  *
  * The Closing is absent on purpose: Review & sign is the screen doing the
- * reading, and Deposit is settled after it. A summary that listed itself would
- * be a mirror facing a mirror.
+ * reading and Deposit is settled after it. A summary that listed itself would
+ * be a mirror facing a mirror. Enrolled is absent for the same reason.
  */
 const ROWS: Partial<Record<StepId, (state: OnboardingState) => SummaryRow[]>> = {
   offer: offerRows,
-  "identity-contact": identityContactRows,
+  "who-you-are": whoYouAreRows,
   health: healthRows,
+  "where-you-live": whereYouLiveRows,
+  "who-we-call": whoWeCallRows,
   housing: housingRows,
   "campus-life": campusLifeRows,
 };
 
+function statusOf(id: StepId, rows: SummaryRow[], state: OnboardingState): SectionStatus {
+  if (rows.some((row) => row.missing)) {
+    /* An optional Step nobody filled in is skipped, not broken. Telling a
+       student that skipping an optional Quest "needs attention" is the flow
+       contradicting its own word. */
+    return stepById(id).required ? "attention" : "skipped";
+  }
+  return submitted(id, state) ? "complete" : "skipped";
+}
+
+function submitted(id: StepId, state: OnboardingState): boolean {
+  switch (id) {
+    case "offer":
+      return state.offer.response !== null;
+    case "who-you-are":
+      return state.whoYouAre.submitted;
+    case "health":
+      return state.health.submitted;
+    case "where-you-live":
+      return state.whereYouLive.submitted;
+    case "who-we-call":
+      return state.whoWeCall.submitted;
+    case "housing":
+      return state.housing.submitted;
+    case "campus-life":
+      return state.campusLife.submitted;
+    default:
+      return false;
+  }
+}
+
 /**
- * Built by walking the spine, not by listing the Quests again here.
- *
- * The order is `steps.ts`'s order, which is also the order they were answered
- * in — a summary that reads back in a different order than it was filled in
- * makes checking it harder than it needs to be, and the previous hand-written
- * list could drift from the flow without anything failing to build.
+ * Built by walking the spine, not by listing the Quests again here — and the
+ * spine it walks is **this student's**, so an international student's summary
+ * has no address section rather than an address section saying "not
+ * applicable".
  */
 export function buildSummary(state: OnboardingState): SummarySection[] {
-  return phases
-    .map((phase) => ({
-      id: phase.id,
-      label: phase.label,
-      groups: phase.steps.flatMap((entry) => {
-        const rows = ROWS[entry.id];
-        return rows
-          ? [{ id: entry.id, label: entry.label, path: entry.path, rows: rows(state) }]
-          : [];
-      }),
-    }))
-    .filter((section) => section.groups.length > 0);
+  return stepsFor(state.whoYouAre.studentStatus).flatMap((step) => {
+    const rows = ROWS[step.id];
+    if (!rows) return [];
+    const built = rows(state);
+    return [
+      {
+        id: step.id,
+        label: step.label,
+        path: step.path,
+        minutes: step.minutes,
+        required: step.required,
+        rows: built,
+        status: statusOf(step.id, built, state),
+        digest: DIGEST[step.id]?.(state) ?? "",
+      },
+    ];
+  });
+}
+
+/**
+ * The completeness line: "14 answers across 5 sections · 1 needs attention".
+ *
+ * Both numbers are derived from the sections rather than counted by hand,
+ * because the screen's whole job is to tell the student whether they are done
+ * and a count that can drift is worse than no count.
+ */
+export function summaryCounts(sections: SummarySection[]) {
+  return {
+    answers: sections.reduce((total, section) => total + section.rows.length, 0),
+    sections: sections.length,
+    attention: sections.filter((section) => section.status === "attention").length,
+  };
+}
+
+/**
+ * Which sections open by default: those with a problem, and those short enough
+ * that opening them costs nothing. Long, clean sections start closed and speak
+ * through their digest (Employment Hero, Dialpad).
+ */
+export function opensByDefault(section: SummarySection): boolean {
+  return section.status === "attention" || section.rows.length <= 3;
 }

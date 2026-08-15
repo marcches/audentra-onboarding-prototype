@@ -1,14 +1,15 @@
 import { formatMoney } from "@/lib/fixtures";
-import { steps } from "@/lib/steps";
+import { type StudentStatusAnswer, steps, totalPointsAvailableFor } from "@/lib/steps";
 import { completedSteps, type OnboardingState } from "@/lib/store";
 
 /**
  * What a Point is worth, and what it is worth *for*.
  *
  * ADR-0002: a Point with no named destination is a scoreboard, and every
- * rewards UI worth copying (Everyday Rewards, Qantas, Ulta) shows points as
- * distance to a thing rather than as a score. Here the thing is credit at the
- * campus bookstore.
+ * rewards UI worth copying (Ulta's "10 Points / $0.00 Value", adiClub's "50
+ * points to spend", IHG's "20 more nights to your next Milestone") shows points
+ * as distance to a thing rather than as a score. Here the thing is credit at
+ * the campus bookstore.
  *
  * FIXTURE — both numbers below are plausible, not authoritative. The real rate
  * has to come from the institution before a student ever sees this. They live
@@ -51,15 +52,54 @@ export function formatCredit(usd: number): string {
 }
 
 /**
- * Awarded once, for using the celebration's share prompt — the one
- * point-earning action in this flow that isn't a step submission, so it can't
- * live in `steps.ts` next to the per-step values. A quick, plausible number in
- * the same spirit as the per-step points: enough to feel like a real bonus
- * next to a small step's ~10-15, not enough to dwarf About you's 50.
+ * What the credit actually buys, as objects rather than as amounts.
+ *
+ * "180 more for a $25 textbook" is a target; "180 points to go" is arithmetic.
+ * Shopee's progress bar ends in the prize's icon and IHG names the milestone,
+ * and both work for the same reason: a bar that ends in a number ends in
+ * nothing. FIXTURE, in the same spirit as the rate above.
+ */
+export const BOOKSTORE_LADDER = [
+  { usd: 10, label: "a notebook and pens", icon: "notebook" },
+  { usd: 25, label: "a course textbook", icon: "book" },
+  { usd: 50, label: "an Aster hoodie", icon: "shirt" },
+  { usd: 100, label: "your first term's books", icon: "books" },
+] as const;
+
+export type BookstoreTarget = (typeof BOOKSTORE_LADDER)[number];
+
+/**
+ * The next thing on the ladder this student has not reached, with what it costs
+ * in Points from where they are. The last rung repeats once passed: a Balance
+ * with nothing left to point at is the scoreboard again.
+ */
+export function nextTarget(points: number): {
+  target: BookstoreTarget;
+  pointsAway: number;
+  reached: boolean;
+} {
+  const spendable = creditReleased(points);
+  const target = BOOKSTORE_LADDER.find((rung) => rung.usd > spendable);
+  if (!target) {
+    const last = BOOKSTORE_LADDER[BOOKSTORE_LADDER.length - 1];
+    return { target: last, pointsAway: 0, reached: true };
+  }
+  return {
+    target,
+    pointsAway: Math.max(0, Math.ceil(target.usd / CREDIT_PER_POINT_USD) - points),
+    reached: false,
+  };
+}
+
+/**
+ * Awarded once, for using the share prompt — the one point-earning action in
+ * this flow that is not a Step submission, so it cannot live in `steps.ts`
+ * beside the per-Step values. Duolingo's "SHARE FOR A REWARD": sharing is
+ * itself a gain rather than a favour being asked.
  */
 export const SHARE_POINTS = 20;
 
-/** The sum of points from steps actually completed — never a hardcoded max. */
+/** The sum of Points from Steps actually completed — never a hardcoded max. */
 export function stepPoints(state: OnboardingState): number {
   const done = new Set(completedSteps(state));
   return steps.filter((step) => done.has(step.id)).reduce((sum, step) => sum + step.points, 0);
@@ -67,4 +107,13 @@ export function stepPoints(state: OnboardingState): number {
 
 export function totalPoints(state: OnboardingState): number {
   return stepPoints(state) + (state.offer.shared ? SHARE_POINTS : 0);
+}
+
+/**
+ * Every Point on offer for this student, announced once at the entrance and
+ * nowhere else. Langdock crowns its checklist with "0 / 595" and that is the
+ * whole of the promise; repeating it per screen turns it into a debt.
+ */
+export function totalPointsAvailable(status: StudentStatusAnswer): number {
+  return totalPointsAvailableFor(status) + SHARE_POINTS;
 }

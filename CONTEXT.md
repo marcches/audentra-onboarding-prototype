@@ -16,8 +16,11 @@ progress against. There are exactly three: _Deciding_, _About you_, _Your life
 on campus_.
 _Avoid_: stage, section, chapter
 
-> **About you** names the Phase, never a Step. The Step it used to name is
-> _Identity & contact_ — a Phase can be described loosely, a form cannot.
+> **About you** names the Phase, never a Step. It used to name a Step as well,
+> and then that Step became _Identity & contact_ carrying four subjects at
+> once. It is now four Steps — _Who you are_, _Health information_, _Where you
+> live now_, _Who we call, who can see_ — because a Phase can be described
+> loosely and a form cannot.
 
 **Step**:
 One screen inside a Phase, completable on its own and saved on its own.
@@ -33,13 +36,24 @@ Review & sign and Deposit — where the student confirms what they already gave,
 rather than giving something new. Deliberately outside the Phase count.
 _Avoid_: final phase, phase 4
 
+**Enrollment deposit**:
+The one fixed payment that secures the place, credited against the first term's
+bill rather than charged on top of it. It can be paid now, paid by the deadline,
+or waived — all three are ways of finishing, none is an exit.
+_Avoid_: fee, tuition, payment
+
 ## Progress and reward
 
 **Points**:
-What completing a Quest is worth. Shown at the moment they are earned and
-otherwise held in a single Balance — never printed next to every item as a
-standing price list.
+What completing a Quest is worth. Shown as a price on the Quest being worked and
+the one after it, and as a receipt once earned — the same tag doing both jobs.
+Never a price list of the whole flow. The total available is announced once, at
+the entrance.
 _Avoid_: score, XP, credits
+
+> The price and the receipt are one object, not two. What travels to the Balance
+> is the tag the student was already looking at; a figure that appears only on
+> completion makes the journey decoration rather than a transaction.
 
 **Balance**:
 The one place the student's running Points total lives, always shown against
@@ -77,9 +91,52 @@ The three Residences a student ranks, in order, out of the full catalogue. A
 statement of preference, never an assignment — the housing office assigns.
 _Avoid_: choice, booking, selection
 
+## Campus life
+
+**Organization**:
+A student-run group at Aster — a club, a sport club, a chapter, a publication, a
+governing body. What the catalogue is made of. It carries a category, a joining
+process, a weekly time commitment and a cost per semester, because those are the
+questions a student actually has before walking up to a table.
+_Avoid_: club, society, activity
+
+**Interest list**:
+The Organizations a student marks during onboarding. A statement of curiosity,
+never membership: joining happens in person, after classes begin. What the list
+produces is a route through the Involvement Fair, not a roster.
+_Avoid_: selection, picks, my clubs, joined
+
+**Involvement Fair**:
+The in-person event in the first weeks of term where a student actually joins an
+Organization. It is why nothing in this Phase is a commitment, and it is the
+destination the Interest list is a route to.
+_Avoid_: club fair, activities day
+
+## Health
+
+**Accommodation**:
+Something the university adjusts for a student with a disability or health
+condition. Disclosing the need is optional here and required later in the
+portal — a difference the step has to say out loud rather than imply.
+_Avoid_: special needs, disability question
+
+**Immunization record**:
+The proof of vaccination the university holds on file. Collected beside the
+medical documentation an Accommodation needs, because both are uploads about
+health and asking for them in two different places is what made this feel
+scattered.
+_Avoid_: vaccine card, shots
+
 ## Family and identity
 
 **Family access**:
 A named person granted sight of specified parts of the student's record, under
 FERPA. Carries a name, an email, a relationship, and the scope granted.
 _Avoid_: guardian, parent permission, FERPA form
+
+**Eligible student**:
+What FERPA calls a student once the right to their education record has passed
+from their parents to them — on turning 18, or on entering a postsecondary
+institution at any age. Every student in this flow is one, which is the whole
+reason they are the one granting Family access rather than being granted it.
+_Avoid_: adult student, of age

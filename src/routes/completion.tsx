@@ -1,401 +1,302 @@
-import {
-  CalendarBlankIcon,
-  EnvelopeSimpleIcon,
-  HouseLineIcon,
-  IdentificationCardIcon,
-  SparkleIcon,
-  WalletIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretDownIcon, CheckIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
+import confetti from "canvas-confetti";
 import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
+import { Balance } from "@/components/balance";
+import { PricePill, usePointsAward } from "@/components/points-award";
+import { ShareCard } from "@/components/share-card";
+import { IconTile, Panel, Well } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/wordmark";
-import { legalName } from "@/lib/agreement";
-import { formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
-import { creditReleased, formatCredit, totalPoints } from "@/lib/points";
-import { resetOnboarding, useOnboarding } from "@/lib/store";
+import { enrollment, institution, studentRecord } from "@/lib/fixtures";
+import { residenceById } from "@/lib/housing";
+import { creditReleased, formatCredit, SHARE_POINTS, totalPoints } from "@/lib/points";
+import { groupsFor } from "@/lib/steps";
+import { completedSteps, patch, studentStatus, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-const LEGAL_NAME = legalName();
-
-const SplitText = React.lazy(() => import("@/components/reactbits/SplitText"));
-const LightRays = React.lazy(() => import("@/components/reactbits/LightRays"));
+import { receiptCopy } from "@/routes/deposit";
 
 /**
- * The deposit is the only thing on this screen that can still be outstanding.
- * Skipping the step leaves it unanswered, and an arrival screen that says
- * "nothing else is waiting on you today" over an unpaid deposit is how a
- * student misses the deadline believing their place is held.
- */
-type ArrivalCard = {
-  icon: React.ReactNode;
-  when: string;
-  title: string;
-  detail: string;
-  /** Spans both columns. See the note on the deposit card. */
-  wide?: boolean;
-};
-
-const OUTSTANDING_DEPOSIT: ArrivalCard = {
-  icon: <WalletIcon weight="duotone" aria-hidden className="size-5" />,
-  when: `By ${formatDeadline(offer.responseDeadline)}`,
-  title: `Your ${formatMoney(offer.depositAmount, offer.depositCurrency)} deposit`,
-  detail:
-    "Still outstanding. Your place is held until the deadline and not after it. Pay it, or ask for a waiver, from the Deposit step.",
-  /**
-   * Full width, which solves two things at once.
-   *
-   * Four cards make a clean 2×2; adding a fifth left it stranded beside a hole
-   * the width of a card, and a screen about arriving cannot end on a gap. It is
-   * also the only card here that asks for something, so the row of its own is
-   * the emphasis it should have had anyway — the copy above points at it as
-   * "the first card below".
-   */
-  wide: true,
-};
-
-const NEXT_STEPS: ArrivalCard[] = [
-  {
-    icon: <EnvelopeSimpleIcon weight="duotone" aria-hidden className="size-5" />,
-    when: "Within 3 working days",
-    title: "Your Aster account",
-    detail:
-      "Login details for email, the library and the student portal arrive at the address you signed up with.",
-  },
-  {
-    icon: <IdentificationCardIcon weight="duotone" aria-hidden className="size-5" />,
-    when: "From July",
-    title: "Your student ID",
-    detail: "We will ask you for a photo. Nothing to do until then.",
-  },
-  {
-    icon: <HouseLineIcon weight="duotone" aria-hidden className="size-5" />,
-    when: "After the response deadline",
-    title: "Your room",
-    detail: `${institution.housingOffice} assigns rooms once everyone has answered, and emails you the building and the move-in window.`,
-  },
-  {
-    icon: <CalendarBlankIcon weight="duotone" aria-hidden className="size-5" />,
-    when: "Two weeks before term",
-    title: "Registration opens",
-    detail: `You'll pick courses for ${offer.startingTerm} with an advisor. Nothing to prepare before then.`,
-  },
-];
-
-/**
- * The completion screen.
+ * Enrolled: hand over an object, not a message.
  *
- * Not a step — the trail still counts six, and this is deliberately absent from
- * `steps.ts`. It is the arrival, and the live product has none: the finish
- * button sticks on "Finishing onboarding…" and nobody has ever seen what is on
- * the other side.
+ * The research was unanimous, and it is not what a bigger confetti burst would
+ * suggest: the products that end a flow well **hand over a thing**. CRED
+ * activates a membership, Qonto and Zing deliver a card, Qantas delivers a
+ * membership number. None of them delivers a sentence.
  *
- * It plays as a sequence rather than appearing all at once, because arriving is
- * a moment and a moment has an order to it: the ground, the eyebrow, then the
- * sentence completing itself across two lines, then what happens next.
+ * It absorbs the deposit receipt, so the flow has **one** ending rather than
+ * two in a row with opposing registers. A sober receipt followed by a
+ * celebration is an anticlimax; the receipt lives here as a collapsible Well,
+ * subordinate to the object, and the tax-relevant information is a section
+ * rather than a screen.
  *
- * Two earlier drafts are worth knowing about. The first put the headline on a
- * split-flap board — mechanical and legible, but it read as a departures screen
- * when what this needed was to speak to a person. The second ran a campus
- * photograph behind everything, which put mid-tones under the largest type on
- * the screen and gave the most important words the worst contrast on the page.
- *
- * Still no confetti. That belongs to accepting the offer; running it twice
- * devalues both.
+ * The primary action is **spending** the credit, not closing the page (Alan's
+ * "Use your berries"). Done is secondary, sharing is tertiary.
  */
 export function CompletionRoute() {
-  const reduceMotion = useReducedMotion();
   const state = useOnboarding();
-  /* Beat 0 is everything static. Beat 1 brings the headline in after the
-     greeting has had a moment to land. Reduced motion starts at the end. */
-  const [beat, setBeat] = React.useState(reduceMotion ? 1 : 0);
+  const award = usePointsAward();
+  const reduceMotion = useReducedMotion();
 
-  /* Only one answer settles the deposit: deferring it to the deadline. There is
-     no gateway behind "pay now" and nothing in the prototype can mark the
-     deposit paid, so treating that choice as settled would be this screen
-     telling a student their place is secure on the strength of a button press
-     that took no money. */
-  const depositOutstanding = state.deposit.choice !== "pay-by-deadline";
-  const nextSteps = depositOutstanding ? [OUTSTANDING_DEPOSIT, ...NEXT_STEPS] : NEXT_STEPS;
+  const points = totalPoints(state);
+  const credit = creditReleased(points);
+  const done = new Set(completedSteps(state));
+  const groups = groupsFor(studentStatus(state)).filter((group) => group.kind !== "after");
+  const residence = residenceById(state.housing.residenceRanking[0] ?? "");
+  const shared = state.offer.shared;
 
+  const [showReceipt, setShowReceipt] = React.useState(false);
+
+  /* Short, and behind the card. The weight comes from the object arriving, not
+     from particles: nine hundred milliseconds is enough to register and short
+     enough that it is over before the card has finished landing. */
   React.useEffect(() => {
     if (reduceMotion) return;
-    const timer = window.setTimeout(() => setBeat(1), 620);
+    const timer = window.setTimeout(() => {
+      confetti({
+        particleCount: 90,
+        spread: 70,
+        startVelocity: 32,
+        ticks: 120,
+        origin: { y: 0.42 },
+        zIndex: 0,
+        colors: ["#6a38ff", "#1e5bff", "#00c49a"],
+      });
+    }, 320);
     return () => window.clearTimeout(timer);
   }, [reduceMotion]);
 
-  const rise = (delay: number) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 18 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
-        };
+  const outcome = receiptCopy(state.deposit.choice, state.deposit.method);
 
   return (
-    <main className="on-dark relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10 text-white">
-      {/* Near-black ground rather than a photograph.
-          A campus shot was tried here and pulled: every candidate put mid-tones
-          straight behind the headline, so the biggest type on the screen had
-          the worst contrast on it, and no amount of scrim fixed that without
-          reducing the photo to a texture. A dark field with light moving
-          through it says "arrival" without competing for the same pixels. */}
-      <div aria-hidden className="absolute inset-0 -z-20 bg-ink-950" />
+    <main className="relative isolate min-h-dvh bg-canvas decision-ground">
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-5 py-12">
+        {/* Voice carries this, not an illustration. */}
+        <p className="text-micro font-bold tracking-[0.18em] text-violet-600 uppercase">Enrolled</p>
+        <h1 className="mt-2 text-center text-h1 text-ink-900 text-balance sm:text-display">
+          That is it. You are an {institution.short} student.
+        </h1>
+        <p className="mt-2 max-w-md text-center text-lead text-ink-600">
+          We will write to you in July with your room and your move-in window.
+        </p>
 
-      {reduceMotion ? null : (
-        <div aria-hidden className="absolute inset-0 -z-10 opacity-70">
-          <React.Suspense fallback={null}>
-            <LightRays
-              raysOrigin="top-center"
-              raysColor="#8a5cff"
-              raysSpeed={0.7}
-              lightSpread={1.1}
-              rayLength={2.4}
-              fadeDistance={1.4}
-              saturation={0.85}
-              followMouse={false}
-              noiseAmount={0.06}
-              distortion={0.04}
-            />
-          </React.Suspense>
-        </div>
-      )}
-
-      {/* The still floor under the rays, and what the screen is when the canvas
-          never boots. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(80%_60%_at_50%_0%,color-mix(in_oklab,var(--color-violet-500)_26%,transparent),transparent_70%),radial-gradient(60%_50%_at_50%_100%,color-mix(in_oklab,var(--color-azure-500)_16%,transparent),transparent_70%)]"
-      />
-
-      <div className="flex w-full max-w-[52rem] flex-col items-center gap-7 text-center">
-        <motion.div {...rise(0)}>
-          <Wordmark tone="on-dark" />
+        {/* The object. It arrives with a flip-in from nothing, and this is the
+            one screen where a real timeline would earn `gsap` — a single
+            rotateY with an overshoot does not, so `motion` keeps it. */}
+        <motion.div
+          initial={reduceMotion ? false : { rotateY: 92, opacity: 0, y: 24 }}
+          animate={{ rotateY: 0, opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          style={{ perspective: 1200 }}
+          className="mt-8"
+        >
+          <StudentCard residence={residence?.name} />
         </motion.div>
 
-        <div className="space-y-4">
-          <motion.p
-            {...rise(0.1)}
-            className="text-micro font-bold tracking-[0.18em] text-white/55 uppercase"
-          >
-            {institution.name} · {offer.startingTerm}
-          </motion.p>
+        {/* The journey as a receipt: Phases with checks and their Points,
+            totalling into a full-size Balance with its conversion (Headway,
+            Greenlight). */}
+        <Panel title="What you did" className="mt-10 w-full">
+          <ol className="space-y-4">
+            {groups.map((group) => (
+              <li key={group.id}>
+                <p className="field-label">{group.label}</p>
+                <ul className="mt-1.5 space-y-1">
+                  {group.steps.map((step) => {
+                    const complete = done.has(step.id);
+                    return (
+                      <li key={step.id} className="flex items-center gap-2.5">
+                        <span
+                          className={cn(
+                            "flex size-4 shrink-0 items-center justify-center rounded-full",
+                            complete ? "bg-mint-500 text-white" : "bg-ink-100",
+                          )}
+                        >
+                          {complete ? (
+                            <CheckIcon weight="bold" aria-hidden className="size-2.5" />
+                          ) : null}
+                        </span>
+                        <span
+                          className={cn(
+                            "flex-1 text-body",
+                            complete ? "text-ink-800" : "text-ink-400",
+                          )}
+                        >
+                          {step.label}
+                        </span>
+                        {complete && step.points > 0 ? (
+                          <PricePill points={step.points} size="rail" earned />
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ol>
 
-          {/* The h1 carries the sentence for assistive tech in one go; the two
-              animated lines below it are the same words, drawn. */}
-          <h1 className="sr-only">You're enrolled</h1>
+          <div className="mt-6 border-t border-ink-100 pt-5">
+            <Balance variant="full" />
+          </div>
+        </Panel>
 
-          {/* One line, set the way the wordmark is set: caps, black weight,
-              wide tracking. It ties the biggest words in the product back to
-              the mark at the top of the same screen, and it reads as a stamp
-              rather than as a sentence.
-
-              Still delivered in two beats — the pronoun, then the word that
-              carries the news — so the line completes in front of you instead
-              of arriving finished. The verb takes the mint the rest of the flow
-              uses for "done". */}
-          <p
-            aria-hidden
-            className="arrival-headline flex flex-wrap items-baseline justify-center gap-x-[0.3em] pb-2 text-[clamp(1.9rem,6.4vw,4.25rem)] leading-[1.05] font-black tracking-[0.06em] uppercase"
-          >
-            <ArrivalLine text="You're" reduceMotion={reduceMotion} />
-            <span className="text-mint-500">
-              {beat === 0 ? (
-                /* Holds the width the word will occupy, so its arrival doesn't
-                   re-centre the line under the reader. */
-                <span className="invisible">enrolled</span>
-              ) : (
-                <ArrivalLine text="enrolled" reduceMotion={reduceMotion} lift />
-              )}
-            </span>
-          </p>
-
-          <motion.p {...rise(1.5)} className="mx-auto max-w-[36rem] text-lead text-white/75">
-            {depositOutstanding
-              ? "Your record is live. One thing is still open: your deposit, in the first card below."
-              : "Your record is live. Nothing needs you right now. We will tell you when something does."}
-          </motion.p>
-        </div>
-
-        <ClosingBalance points={totalPoints(state)} rise={rise} />
-
-        {/* Grid items stretch by default, so the two cards in a row already
-            share a height whatever their text runs to. Deliberately *not*
-            `auto-rows-fr`, which equalises every row against the tallest and
-            leaves the single-card deposit row padded out with empty space. */}
-        <ul className="grid w-full gap-3 text-left sm:grid-cols-2">
-          {nextSteps.map((entry, index) => (
-            <motion.li
-              key={entry.title}
-              {...rise(1.68 + index * 0.09)}
-              className={cn(
-                "flex gap-3.5 rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-4 backdrop-blur-sm",
-                entry.wide && "sm:col-span-2",
-              )}
-            >
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-white/12 text-white">
-                {entry.icon}
-              </span>
-              <div className="space-y-1">
-                <p className="text-micro font-bold tracking-[0.06em] text-mint-500 uppercase">
-                  {entry.when}
-                </p>
-                <p className="text-body font-bold text-white">{entry.title}</p>
-                <p className="text-small text-white/65">{entry.detail}</p>
-              </div>
-            </motion.li>
-          ))}
-        </ul>
-
-        {/* The signature, as a record.
-            The link here used to go back to an editable pad, which undoes the
-            feeling of having signed something: the thing you are shown when you
-            ask "what did I sign" should be the signed article, with its date and
-            its reference, not the control that made it. */}
-        {state.review.submitted ? (
-          <motion.div
-            {...rise(1.9)}
-            className="w-full rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-5 text-left backdrop-blur-sm"
-          >
-            <p className="text-micro font-bold tracking-[0.06em] text-white/55 uppercase">
-              Enrollment Agreement · signed
-            </p>
-            <div className="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-              <p
-                className="text-[2rem] leading-none text-white"
-                style={{ fontFamily: "var(--font-script)" }}
-              >
-                {state.review.signatureMode === "draw" && state.review.drawnSignature ? (
-                  <img
-                    src={state.review.drawnSignature}
-                    alt={`Signature of ${LEGAL_NAME}`}
-                    /* The pad draws in navy on a light ground; on this dark
-                       field it has to be inverted to be visible at all. */
-                    className="h-14 w-auto max-w-full invert"
-                  />
-                ) : (
-                  state.review.typedSignature.trim() || LEGAL_NAME
-                )}
-              </p>
-              <p className="text-small text-white/60">
-                {new Date(state.review.signedAt ?? Date.now()).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-                {state.review.reference ? ` · ${state.review.reference}` : ""}
-              </p>
-            </div>
-          </motion.div>
-        ) : null}
-
-        <motion.div {...rise(2)} className="flex flex-col items-center gap-3">
-          <Button asChild size="lg" variant="secondary">
-            <Link to="/onboarding/review">Read my agreement again</Link>
-          </Button>
-          {/* A prototype gets walked through more than once. This is the reset,
-              labelled as what it is rather than dressed up as a product link. */}
+        {/* The deposit receipt, subordinate. Collapsed by default, so it does
+            not force a long scroll past the thing being celebrated. */}
+        <div className="mt-4 w-full">
           <button
             type="button"
-            onClick={() => {
-              resetOnboarding();
-              window.location.href = "/entry";
-            }}
-            className="text-small text-white/50 underline underline-offset-4 transition-colors hover:text-white/80"
+            onClick={() => setShowReceipt((current) => !current)}
+            aria-expanded={showReceipt}
+            className="row-nudge flex w-full items-center gap-2 rounded-[var(--radius-field)] bg-well px-4 py-3 text-left"
           >
-            Prototype: clear everything and start again
+            <CaretDownIcon
+              weight="bold"
+              aria-hidden
+              className={cn(
+                "size-4 text-ink-400 transition-transform duration-[var(--duration-base)]",
+                !showReceipt && "-rotate-90",
+              )}
+            />
+            <span className="flex-1 text-body font-strong text-ink-800">Your deposit receipt</span>
+            <span className="text-small text-ink-500 numeric">{outcome.amount}</span>
           </button>
-        </motion.div>
+
+          {showReceipt ? (
+            <Well className="mt-2 space-y-3">
+              <dl className="space-y-1.5">
+                <Row label="Reference" value={state.deposit.reference || "pending"} />
+                <Row label="Method" value={outcome.method} />
+                <Row label="Amount" value={outcome.amount} />
+              </dl>
+              <ol className="space-y-1.5 border-t border-ink-100 pt-3">
+                {outcome.next.map((line, index) => (
+                  <li key={line} className="flex gap-2.5 text-small text-ink-600">
+                    <span className="numeric text-ink-400">{index + 1}.</span>
+                    {line}
+                  </li>
+                ))}
+              </ol>
+            </Well>
+          ) : null}
+        </div>
+
+        {/* Primary action is spending, not closing. */}
+        <div className="mt-8 flex w-full flex-col items-center gap-3">
+          {/* Spending is the primary action, not closing. At zero credit the
+              verb still points at the bookstore rather than offering to spend
+              nothing, which would read as a bug rather than as a balance. */}
+          <Button type="button" size="lg" className="w-full max-w-sm">
+            {credit > 0 ? `Spend ${formatCredit(credit)} at the bookstore` : "Open the bookstore"}
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost">
+              <Link to="/onboarding/review">Done for now</Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={shared}
+              onClick={() => {
+                if (shared) return;
+                patch("offer", { shared: true });
+                award?.celebrate("share", SHARE_POINTS);
+              }}
+            >
+              <ShareNetworkIcon weight="fill" aria-hidden className="size-4" />
+              {shared ? "Shared" : "Share this"}
+            </Button>
+          </div>
+        </div>
+
+        {/* The 4:5 card with four metrics, over a gradient ground. */}
+        <div className="mt-10">
+          <ShareCard
+            eyebrow="Enrolled"
+            headline={`I am an ${institution.short} student.`}
+            metrics={[
+              { label: "Quests", value: String(done.size) },
+              { label: "Points", value: String(points) },
+              { label: "Residence", value: residence?.name ?? "To be assigned" },
+              { label: "Enrolled", value: String(enrollment.entryYear) },
+            ]}
+          />
+        </div>
       </div>
     </main>
   );
 }
 
-/**
- * Where the Points ended up.
- *
- * The Balance is in the rail on every step and the rail is not on this screen,
- * so without this the running total the student watched climb all flow simply
- * stops existing at the moment it is finally spendable. Stated as credit first
- * and points second: the number was only ever a way of counting the credit
- * (ADR-0002).
- *
- * No countdown to the next block here. Everywhere else "N points to your next
- * $10" is an invitation, and there is nothing left to do — an unreachable
- * target on the arrival screen reads as a debt, not a reward.
- */
-function ClosingBalance({
-  points,
-  rise,
-}: {
-  points: number;
-  rise: (delay: number) => Record<string, unknown>;
-}) {
-  const released = creditReleased(points);
-
-  /* Nothing to report is not the same as reporting nothing. "You earned 0
-     points" on the arrival screen is a worse moment than no band at all — it
-     is the product volunteering that the student got nothing. Reachable in
-     practice: every Quest that awards points can be skipped or arrived at
-     out of order. */
-  if (points === 0) return null;
-
+function Row({ label, value }: { label: string; value: string }) {
   return (
-    <motion.div
-      {...rise(1.58)}
-      className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-[var(--radius-card)] border border-mint-500/25 bg-mint-500/10 px-5 py-3.5 text-center backdrop-blur-sm"
-    >
-      <SparkleIcon weight="fill" aria-hidden className="size-5 text-mint-500" />
-      <p className="text-body text-white/75">
-        {released > 0 ? (
-          <>
-            You earned{" "}
-            <span className="font-bold text-white">{formatCredit(released)} bookstore credit</span>{" "}
-            on the way here. That's {points} points, waiting on your Aster account.
-          </>
-        ) : (
-          <>
-            You earned <span className="font-bold text-white">{points} points</span> on the way
-            here. They sit on your Aster account as bookstore credit.
-          </>
-        )}
-      </p>
-    </motion.div>
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="text-small text-ink-500">{label}</dt>
+      <dd className="font-mono text-small text-ink-800">{value}</dd>
+    </div>
   );
 }
 
 /**
- * One line of the headline. `lift` is the second line's bigger entrance — it is
- * the word carrying the news, so it travels further and lands later.
+ * The object itself: name, enrolment ID, the Residence they ranked first, and
+ * the entry year. This is what gets screenshotted, and designing for that is
+ * the point.
  */
-function ArrivalLine({
-  text,
-  reduceMotion,
-  lift = false,
-}: {
-  text: string;
-  reduceMotion: boolean | null;
-  lift?: boolean;
-}) {
-  if (reduceMotion) return <span>{text}</span>;
-
+function StudentCard({ residence }: { residence?: string }) {
   return (
-    <React.Suspense fallback={<span className="invisible">{text}</span>}>
-      <SplitText
-        text={text}
-        tag="span"
-        splitType="chars"
-        delay={lift ? 38 : 30}
-        duration={lift ? 1 : 0.85}
-        ease="power4.out"
-        threshold={0}
-        rootMargin="0px"
-        from={{ opacity: 0, y: lift ? 72 : 48, scale: 0.94, filter: "blur(12px)" }}
-        to={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+    <div className="brand-gradient relative isolate flex aspect-[1.586/1] w-[22rem] flex-col justify-between overflow-hidden rounded-[var(--radius-slab)] p-5 text-white shadow-lift sm:w-[26rem]">
+      <span
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[radial-gradient(70%_60%_at_85%_10%,rgb(255_255_255/0.26),transparent_70%)]"
       />
-    </React.Suspense>
+
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[0.625rem] font-bold tracking-[0.14em] uppercase opacity-80">
+            {institution.name}
+          </p>
+          <p className="text-small opacity-80">Student card</p>
+        </div>
+        <IconTile size="sm" className="bg-white/20 text-white">
+          <span className="text-small font-bold">
+            {studentRecord.legalFirstName[0]}
+            {studentRecord.legalLastName[0]}
+          </span>
+        </IconTile>
+      </div>
+
+      <div>
+        <p className="text-h2 font-bold">
+          {studentRecord.legalFirstName} {studentRecord.legalLastName}
+        </p>
+        {/* Uneven columns: the enrolment ID is the longest string on the card
+            and an even third wraps it onto two lines, which on a card that is
+            meant to be screenshotted is the one thing that must not happen. */}
+        <dl className="mt-3 grid grid-cols-[1.5fr_1fr_0.6fr] gap-3">
+          <div>
+            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+              Enrolment ID
+            </dt>
+            <dd className="text-small font-bold numeric">{enrollment.id}</dd>
+          </div>
+          <div>
+            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+              Residence
+            </dt>
+            <dd className="truncate text-small font-bold">{residence ?? "To be assigned"}</dd>
+          </div>
+          <div>
+            <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
+              Class of
+            </dt>
+            <dd className="text-small font-bold numeric">{enrollment.classOf}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <Wordmark className="absolute right-5 bottom-5 h-3 opacity-70" tone="knockout" />
+    </div>
   );
 }

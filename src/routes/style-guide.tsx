@@ -1,11 +1,23 @@
 import { ArrowRightIcon, SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
-
+import { Balance } from "@/components/balance";
 import { Field, ReadOnlyField } from "@/components/field";
+import { ImageViewerProvider, useImageViewer } from "@/components/image-viewer";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
 import { PhoneInput } from "@/components/phone-input";
+import { PricePill } from "@/components/points-award";
+import {
+  FlatCard,
+  IconTile,
+  OnGround,
+  Panel,
+  PanelDivider,
+  SectionLabel,
+  SelectionMark,
+  Well,
+} from "@/components/surfaces";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Wordmark } from "@/components/wordmark";
+import { residences } from "@/lib/housing";
 
 const SWATCHES: { name: string; token: string; hex: string; note: string }[] = [
   {
@@ -98,6 +111,67 @@ export function StyleGuideRoute() {
           <div className="brand-gradient mt-4 flex h-16 items-center justify-center rounded-[var(--radius-card)] text-body font-bold text-white">
             Brand gradient — reserved for live progress and the accept moment
           </div>
+        </Section>
+
+        <Section
+          title="The four surfaces"
+          caption="One step of luminance and at most one border between any two. Shadow is not a level: it belongs to what genuinely floats."
+        >
+          <SurfaceDemo />
+        </Section>
+
+        <Section
+          title="The three Ground exceptions"
+          caption="The only places content sits directly on the recessed page. Each names itself in code, so a fourth cannot be added quietly."
+        >
+          <GroundDemo />
+        </Section>
+
+        <Section
+          title="The five archetypes"
+          caption="Every route is one of these and composes from its parts. The archetype is read from steps.ts, never passed by the route."
+        >
+          <ArchetypeDemo />
+        </Section>
+
+        <Section
+          title="Selection, emphasis and motion"
+          caption="Selection is fill and a check. Emphasis is a ring glow. Nothing scales, grows, thickens a border or lifts on hover."
+        >
+          <StateDemo />
+        </Section>
+
+        <Section
+          title="Points as a transaction"
+          caption="The same tag is the price beforehand and the receipt afterwards, and it is the object that flies to the Balance."
+        >
+          <div className="flex flex-wrap items-start gap-6">
+            <div className="space-y-2">
+              <p className="field-label">Price</p>
+              <PricePill points={30} />
+            </div>
+            <div className="space-y-2">
+              <p className="field-label">Receipt</p>
+              <PricePill points={30} earned />
+            </div>
+            <div className="space-y-2">
+              <p className="field-label">In flight, 56px</p>
+              <PricePill points={30} size="flight" earned />
+            </div>
+            <div className="w-56 space-y-2">
+              <p className="field-label">The Balance</p>
+              <Balance />
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="The image viewer"
+          caption="Click any photograph. Arrow keys and Esc work, the filmstrip jumps, and the page behind does not move."
+        >
+          <ImageViewerProvider>
+            <ViewerDemo />
+          </ImageViewerProvider>
         </Section>
 
         <Section title="Type" caption="Satoshi throughout. Display sizes are tightly tracked.">
@@ -180,14 +254,14 @@ export function StyleGuideRoute() {
             <OptionCard
               value="on-campus"
               id="sg-on-campus"
-              label="On campus"
-              hint="In an Aster residence"
+              label="U.S. citizen"
+              consequence="We will ask for your U.S. passport."
             />
             <OptionCard
               value="off-campus"
               id="sg-off-campus"
-              label="Off campus"
-              hint="Your own place nearby"
+              label="International student"
+              consequence="We will ask for your home country passport. No U.S. address needed."
             />
           </RadioGroup>
           <label
@@ -322,5 +396,229 @@ function Section({
       </div>
       {children}
     </section>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   The foundation, demonstrated.
+
+   This is the proof ticket 01 shipped. A surface language written down in a
+   document and drawn nowhere is a surface language the next round reads
+   differently.
+   ------------------------------------------------------------------------ */
+
+function SurfaceDemo() {
+  return (
+    <div className="rounded-[var(--radius-card)] bg-ground p-5">
+      <p className="mb-3 field-label">Ground, which holds titles, section labels and spacing</p>
+      <Panel
+        title="Panel"
+        description="Elevated, framing one subject. Optional header and footer."
+        action={
+          <Button variant="ghost" size="sm">
+            One action
+          </Button>
+        }
+        footerMeta="Metadata at the left"
+        footer={
+          <Button variant="secondary" size="sm">
+            The way out
+          </Button>
+        }
+      >
+        <p className="text-body text-ink-700">
+          A Panel may contain anything, including Wells and internal dividers. Never another
+          identical Panel.
+        </p>
+        <PanelDivider />
+        <Well label="Well">
+          <p className="text-small text-ink-600">
+            Inset within a Panel: read-only summaries, file lists, dropzones, previews and grids.
+            Darker than the Panel, never darker than the Ground. Never the primary action.
+          </p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+            {[0, 1, 2].map((index) => (
+              <FlatCard as="li" key={index} className="p-3">
+                <p className="text-small text-ink-700">Flat card</p>
+              </FlatCard>
+            ))}
+          </ul>
+        </Well>
+        <div className="mt-3">
+          <Well dashed>
+            <p className="text-center text-small text-ink-500">
+              A dashed Well is a dropzone: an invitation, not a record.
+            </p>
+          </Well>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function GroundDemo() {
+  return (
+    <div className="space-y-4 rounded-[var(--radius-card)] bg-ground p-5">
+      <SectionLabel description="1. A label for the panel below it, which cannot live inside the thing it names.">
+        Section label
+      </SectionLabel>
+
+      <OnGround reason="catalogue" as="section">
+        <p className="mb-2 text-small text-ink-500">
+          2. A catalogue that is the screen. Framing it puts a white box on a grey page containing
+          white cards.
+        </p>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {[0, 1, 2].map((index) => (
+            <FlatCard as="li" key={index} className="p-3">
+              <p className="text-small text-ink-700">Catalogue item</p>
+            </FlatCard>
+          ))}
+        </ul>
+      </OnGround>
+
+      <OnGround reason="checkout-asymmetry" as="section" className="grid gap-3 sm:grid-cols-3">
+        <div className="sm:col-span-2">
+          <p className="text-small text-ink-500">
+            3. The checkout, where only the summary is framed. Framing both halves would erase the
+            emphasis that makes the summary the summary.
+          </p>
+        </div>
+        <Panel title="Deposit">
+          <p className="text-body font-strong text-ink-900 numeric">$500 due today</p>
+        </Panel>
+      </OnGround>
+    </div>
+  );
+}
+
+const ARCHETYPES: { name: string; rule: string }[] = [
+  {
+    name: "decision",
+    rule: "Exactly one viewport at any width. If it does not fit it loses content, not the constraint.",
+  },
+  { name: "form", rule: "A measured column of Panels. Scrolls." },
+  { name: "catalogue", rule: "The collection is the screen, on the Ground, at full width." },
+  {
+    name: "review",
+    rule: "Reads answers back, then asks for a signature. The one documented exception to the viewport rule.",
+  },
+  { name: "celebration", rule: "Hands over an object. No rail, no action bar." },
+];
+
+function ArchetypeDemo() {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {ARCHETYPES.map((archetype) => (
+        <li key={archetype.name}>
+          <Panel className="h-full">
+            <p className="font-mono text-small text-violet-700">{archetype.name}</p>
+            <p className="mt-1 text-small leading-5 text-ink-600">{archetype.rule}</p>
+          </Panel>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function StateDemo() {
+  const [selected, setSelected] = React.useState(1);
+
+  return (
+    <div className="space-y-5">
+      <Well label="Selection is fill and a check, never elevation">
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {[0, 1, 2].map((index) => (
+            <FlatCard
+              as="li"
+              key={index}
+              selected={selected === index}
+              interactive
+              className="cursor-pointer p-3"
+              onClick={() => setSelected(index)}
+            >
+              <span className="flex items-center gap-2">
+                <SelectionMark selected={selected === index} />
+                <span className="text-small text-ink-700">Option {index + 1}</span>
+              </span>
+            </FlatCard>
+          ))}
+        </ul>
+      </Well>
+
+      <div className="flex flex-wrap items-center gap-5">
+        <span className="rounded-[var(--radius-field)] bg-panel px-3 py-2 text-small ring-glow">
+          Ring glow
+        </span>
+        <span className="rounded-[var(--radius-field)] bg-panel px-3 py-2 text-small ring-glow-mint">
+          Ring glow, done
+        </span>
+        <IconTile size="lg">
+          <SparkleIcon weight="fill" aria-hidden className="size-6" />
+        </IconTile>
+        <span className="text-small text-ink-500">Icon tile, 12% brand, never behind text</span>
+      </div>
+
+      <Well label="Row hover nudges its own content, it does not lift the row">
+        <ul>
+          {["First row", "Second row", "Third row"].map((label) => (
+            <li
+              key={label}
+              className="row-nudge rounded-[var(--radius-field)] px-3 py-2 hover:bg-ink-50"
+            >
+              <span className="text-small text-ink-700">{label}</span>
+            </li>
+          ))}
+        </ul>
+      </Well>
+
+      <Well label="The motion scale, named once and composed from">
+        <ul className="grid gap-2 sm:grid-cols-4">
+          {[
+            ["--duration-quick", "120ms"],
+            ["--duration-base", "220ms"],
+            ["--duration-slow", "360ms"],
+            ["--duration-stage", "560ms"],
+          ].map(([token, value]) => (
+            <li key={token} className="text-small">
+              <p className="font-mono text-ink-700">{token}</p>
+              <p className="text-ink-400 numeric">{value}</p>
+            </li>
+          ))}
+        </ul>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-4">
+          {["--ease-out-soft", "--ease-out-expo", "--ease-overshoot", "--ease-in-out-soft"].map(
+            (token) => (
+              <li key={token} className="font-mono text-small text-ink-700">
+                {token}
+              </li>
+            ),
+          )}
+        </ul>
+      </Well>
+    </div>
+  );
+}
+
+function ViewerDemo() {
+  const viewer = useImageViewer();
+  const sample = residences
+    .slice(0, 4)
+    .flatMap((residence) => residence.photos.map((photo) => ({ ...photo, label: residence.name })));
+
+  return (
+    <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      {sample.map((photo, index) => (
+        <li key={photo.src}>
+          <button
+            type="button"
+            onClick={(event) => viewer.open(sample, index, event)}
+            className="block aspect-square w-full overflow-hidden rounded-[var(--radius-field)]"
+          >
+            <img src={photo.src} alt={photo.alt} className="size-full object-cover" />
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

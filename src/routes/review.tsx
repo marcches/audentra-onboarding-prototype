@@ -1,61 +1,61 @@
-import { ArrowRightIcon, PencilSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  CaretDownIcon,
+  CheckCircleIcon,
+  PencilSimpleIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
-import { Field } from "@/components/field";
-import { Notice } from "@/components/notice";
+import { AwardStage, PricePill, usePointsAward } from "@/components/points-award";
 import { SignatureLine } from "@/components/signature-line";
 import { type DrawnSignature, SignaturePad } from "@/components/signature-pad";
-import { BackButton, Panel, StepShell, useStepNav } from "@/components/step-shell";
+import { BackButton, StepShell, useStepNav } from "@/components/step-shell";
+import { Panel, SectionLabel, Well } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildAgreement, issueReference, legalName } from "@/lib/agreement";
-import { institution, offer } from "@/lib/fixtures";
-import {
-  creditReleased,
-  formatCredit,
-  nextRelease,
-  pointsToNextRelease,
-  totalPoints,
-} from "@/lib/points";
+import { stepById } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
-import { buildSummary } from "@/lib/summary";
+import { buildSummary, opensByDefault, type SummarySection, summaryCounts } from "@/lib/summary";
 import { cn } from "@/lib/utils";
 
 const LEGAL_NAME = legalName();
 
 /**
- * Review & sign.
+ * Review & sign: the answers come first.
  *
- * The document is the left column and it is a document: a formatted sheet with
- * the student's own answers set into its sentences, not a summary of fields
- * beside a packet of generic text. Reading your own programme, your own
- * address and your own housing ranking inside the clauses is what makes this an
- * agreement about you.
+ * The screen the client bats an eye at and cannot identify. The diagnosis is
+ * structural, not decorative: **the order was inverted.** It opened on an
+ * unlabelled legal document, and "Your answers" — the review of everything, the
+ * reason the screen exists — sat below the fold under a Points figure.
  *
- * The right column carries the summary — every line linking back to the step
- * that produced it, which costs nothing because each step is already its own
- * route — and the signature controls.
+ * Corrected order: a status header saying what this is and how complete it is,
+ * then the student's own answers, then the agreement, then signing. The student
+ * checks their own data *before* reading the document built from it (Zillow's
+ * lease review, GoFundMe's fixed purpose rail, Gusto's "Step 4 of 4 · Review").
  *
- * No confetti. That belongs to accepting the offer, and there is product
- * precedent for getting exactly this wrong.
- *
- * Note for the demo: the primary source doesn't cover this step. It is a
- * proposal.
+ * This screen is the documented exception to the one-viewport rule: the object
+ * of the decision is a legally binding document, so it scrolls **inside its own
+ * Panel** and the signing bar is fixed outside it. A previous round made the
+ * whole page the only scroll container specifically to support the read gate;
+ * the gate follows the scroll into the panel here.
  */
 export function ReviewRoute() {
   const state = useOnboarding();
   const { next, goNext } = useStepNav("review");
+  const award = usePointsAward();
   const review = state.review;
-  const summary = buildSummary(state);
+  const step = stepById("review");
+
+  const sections = buildSummary(state);
+  const counts = summaryCounts(sections);
   const clauses = buildAgreement(state);
-  const points = totalPoints(state);
 
   const signatureRef = React.useRef<HTMLDivElement>(null);
-  /* Bumped on confirm. It is what tells the signature block to play its one
-     application — a boolean could not distinguish "signed" from "sign again". */
   const [applyToken, setApplyToken] = React.useState(0);
 
   const signature =
@@ -65,17 +65,7 @@ export function ReviewRoute() {
     review.typedSignature.trim().toLowerCase() === LEGAL_NAME.toLowerCase();
   const canSign = review.documentRead && review.consented && Boolean(signature) && typedMatches;
 
-  /* Fires from a scroll handler many times a second, so it reads the current
-     value through a ref and keeps its own identity stable. */
-  const readRef = React.useRef(review.documentRead);
-  readRef.current = review.documentRead;
-
-  const markRead = React.useCallback(() => {
-    if (readRef.current) return;
-    patch("review", { documentRead: true });
-  }, []);
-
-  function sign() {
+  const sign = () => {
     patch("review", {
       submitted: true,
       signedAt: new Date().toISOString(),
@@ -84,25 +74,18 @@ export function ReviewRoute() {
       reference: review.reference || issueReference(),
     });
     setApplyToken((token) => token + 1);
-    /* The signature is applied *on the document*, so the page goes there to
-       watch it happen. Signing and then seeing nothing move is the version of
-       this that reads as another field being filled. */
     window.setTimeout(() => {
       signatureRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
     }, 60);
-  }
+    award?.celebrate("review", step.points);
+  };
 
   return (
     <StepShell
       current="review"
-      title="Read it, then sign it"
-      lead="Your answers are written into the agreement below. Read to the end — signing unlocks when you have."
-      /* The one action that has to be reachable at every scroll position is
-         signing — which is exactly what the fixed bar is for, and why the
-         sticky panel this replaces is no longer needed. What stays in the
-         column is the *choosing* half: type or draw, and the consent tick.
-         Reading order is now the honest one — the agreement, then how you sign
-         it, then the answers it was built from. */
+      title="Review &amp; sign"
+      lead="Check what you told us, then sign the enrollment agreement built from it."
+      headerAside={<PricePill points={step.points} stepId="review" earned={review.submitted} />}
       saved={!review.submitted}
       actions={
         review.submitted ? (
@@ -118,354 +101,352 @@ export function ReviewRoute() {
           <>
             <BackButton current="review" />
             <Button type="button" size="lg" disabled={!canSign} onClick={sign}>
-              Sign the agreement
+              Sign and continue
+              <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
             </Button>
           </>
         )
       }
     >
-      <AgreementSheet
+      {/* 1 · The status header. What this screen is, one sentence of purpose,
+          the position in a known sequence, and a completeness line. The Points
+          figure lives here rather than beside the answers, where it competed
+          with the sections' own meaning. */}
+      <Well strong className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <div>
+          <p className="text-[0.6875rem] font-bold tracking-[0.06em] text-ink-400 uppercase">
+            Last quest before the deposit
+          </p>
+          <p className="mt-0.5 text-body text-ink-700 numeric">
+            {counts.answers} answers across {counts.sections} sections ·{" "}
+            {counts.attention === 0 ? (
+              <span className="text-mint-deep">nothing outstanding</span>
+            ) : (
+              <span className="font-strong text-danger-600">
+                {counts.attention} needs attention
+              </span>
+            )}
+          </p>
+        </div>
+        {review.submitted ? (
+          <p className="flex items-center gap-2 text-small font-strong text-mint-deep">
+            <CheckCircleIcon weight="fill" aria-hidden className="size-4" />
+            Signed. Reference {review.reference}
+          </p>
+        ) : null}
+      </Well>
+
+      {/* 2 · Your answers, above the agreement. */}
+      <SectionLabel description="Fix anything wrong before you sign. Editing an answer re-opens this for signing.">
+        Your answers
+      </SectionLabel>
+      {/* `items-start` so a short section does not stretch to the height of the
+          tall one beside it. A grid row that stretches leaves a block of empty
+          white inside a card, which reads as a section with something missing
+          from it. */}
+      <div className="grid items-start gap-3 lg:grid-cols-2">
+        {sections.map((section) => (
+          <AnswerSection key={section.id} section={section} />
+        ))}
+      </div>
+
+      {/* 3 · The agreement, scrolling inside its own Panel. */}
+      <SectionLabel description="Two documents, written out in full. Scroll to the end before you sign.">
+        Your enrollment agreement
+      </SectionLabel>
+      <Agreement
         clauses={clauses}
-        onRead={markRead}
-        signatureRef={signatureRef}
-        review={review}
-        applyToken={applyToken}
+        read={review.documentRead}
+        onRead={() => patch("review", { documentRead: true })}
       />
-      <SignPanel typedMatches={typedMatches} />
-      <SummaryPanel summary={summary} points={points} />
+
+      {/* 4 · Signing. */}
+      <Panel title="Sign it">
+        {/* The line that makes a U.S. reader recognise this as a signature
+            rather than as another field (Oyster, DocuSign). */}
+        <p className="text-small leading-5 text-ink-500">
+          By signing electronically you agree that your electronic signature is the legal equivalent
+          of your handwritten one, and that Aster may keep and send these records electronically.
+        </p>
+
+        <Tabs
+          className="mt-4"
+          value={review.signatureMode}
+          onValueChange={(value) => patch("review", { signatureMode: value as "type" | "draw" })}
+        >
+          <TabsList>
+            <TabsTrigger value="type">Type it</TabsTrigger>
+            <TabsTrigger value="draw">Draw it</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="type" className="mt-3">
+            <label htmlFor="typed-signature" className="field-label">
+              Type your full legal name
+            </label>
+            <Input
+              id="typed-signature"
+              className="mt-2 font-script text-h2"
+              placeholder={LEGAL_NAME}
+              value={review.typedSignature}
+              disabled={review.submitted}
+              onChange={(event) => patch("review", { typedSignature: event.target.value })}
+            />
+            {review.typedSignature.trim() && !typedMatches ? (
+              <p className="mt-2 flex items-center gap-1.5 text-small text-danger-600">
+                <WarningCircleIcon weight="fill" aria-hidden className="size-4" />
+                Type it exactly as {LEGAL_NAME}.
+              </p>
+            ) : null}
+          </TabsContent>
+
+          <TabsContent value="draw" className="mt-3">
+            <SignaturePad
+              label="Sign with your mouse or finger"
+              value={review.drawnSignature}
+              strokes={review.drawnStrokes}
+              onChange={(drawn: DrawnSignature) =>
+                patch("review", {
+                  drawnSignature: drawn.dataUrl,
+                  drawnStrokes: drawn.strokes,
+                  drawnSize: drawn.size,
+                })
+              }
+            />
+          </TabsContent>
+        </Tabs>
+
+        <label htmlFor="consent" className="mt-4 flex cursor-pointer items-start gap-3">
+          <Checkbox
+            id="consent"
+            checked={review.consented}
+            disabled={!review.documentRead || review.submitted}
+            onCheckedChange={(checked) => patch("review", { consented: checked === true })}
+          />
+          <span className="text-small leading-5 text-ink-700">
+            I have read both documents and I agree to be legally bound by them.
+          </span>
+        </label>
+
+        {!review.documentRead ? (
+          <p className="mt-2 text-small text-ink-400">Keep reading to the end to sign.</p>
+        ) : null}
+
+        <div ref={signatureRef} className="mt-5">
+          <SignatureLine
+            name={LEGAL_NAME}
+            mode={review.signatureMode}
+            typed={review.typedSignature}
+            drawnStrokes={review.drawnStrokes}
+            drawnSize={review.drawnSize}
+            drawnImage={review.drawnSignature}
+            signedAt={review.signedAt}
+            reference={review.reference}
+            applyToken={applyToken}
+          />
+        </div>
+      </Panel>
+
+      <AwardStage stepId="review" headline="Signed and filed.">
+        <Button type="button" size="lg" onClick={goNext}>
+          Continue
+          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+        </Button>
+      </AwardStage>
     </StepShell>
   );
 }
 
 /**
- * The agreement, on a sheet.
+ * One section: a card, not a `divide-y` band. The header carries the section
+ * name, a status pill, a chevron and **exactly one Edit** — Edit used to be per
+ * group, which multiplied buttons and flattened the hierarchy.
  *
- * Scrolls inside itself with the acceptance unlocking at the end, which Laura
- * approved explicitly — "perfeito, aí você obrigou a rodar aqui pra baixo, pra
- * dizer que leu".
+ * Expanded by default where there is a problem or where there are few rows;
+ * collapsed otherwise, and a collapsed section still shows its one-line digest,
+ * because closing a section should not blind you to it.
  */
-function AgreementSheet({
-  clauses,
-  onRead,
-  signatureRef,
-  review,
-  applyToken,
-}: {
-  clauses: ReturnType<typeof buildAgreement>;
-  onRead: () => void;
-  signatureRef: React.Ref<HTMLDivElement>;
-  review: ReturnType<typeof useOnboarding>["review"];
-  applyToken: number;
-}) {
-  const endRef = React.useRef<HTMLDivElement>(null);
-
-  /**
-   * "Read to the end", observed rather than measured.
-   *
-   * This used to be a scroll handler on a 34rem box inside the page. Three
-   * scroll containers ended up stacked on this screen — the page, the context
-   * column and the document — so a wheel gesture scrolled whichever one the
-   * pointer happened to be over, ran to its end, and then handed the rest to
-   * the page in a lurch. A legal document read through a 34rem window was the
-   * lesser problem.
-   *
-   * Now the document is simply as tall as it is and the page is the only thing
-   * that scrolls. An observer on a sentinel after the last clause is what marks
-   * it read, which is both simpler and more honest than a scroll arithmetic
-   * check: it fires when the end of the text has actually been on screen.
-   */
-  React.useEffect(() => {
-    const end = endRef.current;
-    if (!end) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          /* Reached, or already gone past.
-             `isIntersecting` alone is not enough: a jump — End, a scrollbar
-             drag, a fragment link, or arriving back on an already-scrolled
-             page — can take the sentinel from below the fold to above it
-             without it ever being sampled on screen, and the gate would then
-             refuse to open for someone who had read the whole document.
-
-             "Past" is tested against the *top* of the viewport, not the bottom:
-             the sentinel has to be genuinely above the fold. Measuring against
-             the bottom instead also matches the first observation on a page
-             whose layout has not settled — everything reports near zero for a
-             frame — which opened the gate on arrival, before a word was read. */
-          const viewportTop = entry.rootBounds?.top ?? 0;
-          if (entry.isIntersecting || entry.boundingClientRect.bottom < viewportTop) {
-            onRead();
-            return;
-          }
-        }
-      },
-      // A little short of the true bottom edge, so the last line has to be
-      // properly on screen rather than clipped against it.
-      { rootMargin: "0px 0px -8% 0px" },
-    );
-    observer.observe(end);
-    return () => observer.disconnect();
-  }, [onRead]);
+function AnswerSection({ section }: { section: SummarySection }) {
+  const [open, setOpen] = React.useState(() => opensByDefault(section));
 
   return (
-    <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-200 bg-surface shadow-card">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-ink-100 px-6 py-4">
-        <h2 className="text-h3 text-ink-900">Enrollment Agreement</h2>
-        <p className="text-small text-ink-500">
-          {institution.name} · {offer.startingTerm}
-        </p>
-      </header>
+    <Panel
+      className={cn(section.status === "attention" && "border-danger-100")}
+      bodyClassName="p-0"
+    >
+      <div className="flex items-start gap-2 px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          aria-expanded={open}
+          className="row-nudge flex min-w-0 flex-1 items-start gap-2 text-left"
+        >
+          <CaretDownIcon
+            weight="bold"
+            aria-hidden
+            className={cn(
+              "mt-1 size-4 shrink-0 text-ink-400 transition-transform duration-[var(--duration-base)]",
+              !open && "-rotate-90",
+            )}
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="text-body font-strong text-ink-900">{section.label}</span>
+              <StatusPill status={section.status} />
+              {/* Per-Step time and required/optional return here, read from
+                  `steps.ts`. A previous round implemented these and then
+                  removed them; they come back by explicit decision. */}
+              <span className="text-[0.6875rem] text-ink-400 numeric">
+                {section.minutes} min · {section.required ? "Required" : "Optional"}
+              </span>
+            </span>
+            {/* The digest. A closed section still says something. */}
+            {!open ? (
+              <span className="mt-0.5 block truncate text-small text-ink-500">
+                {section.digest}
+              </span>
+            ) : null}
+          </span>
+        </button>
 
-      <div className="px-6 py-6 sm:px-8">
-        <div className="space-y-5">
+        <Button asChild variant="ghost" size="sm">
+          <Link to={section.path} search={{ from: "review" }}>
+            <PencilSimpleIcon aria-hidden className="size-4" />
+            Edit
+            <span className="sr-only"> {section.label}</span>
+          </Link>
+        </Button>
+      </div>
+
+      {open ? (
+        <dl className="space-y-1 border-t border-ink-100 px-4 py-3">
+          {section.rows.map((row) =>
+            /* A long free-text answer gets a full-width block. Prose squeezed
+               into a two-column list is what makes a summary unreadable. */
+            row.long ? (
+              <div key={row.label} className="py-1.5">
+                <dt className="text-small text-ink-500">{row.label}</dt>
+                <dd
+                  className={cn(
+                    "mt-1 rounded-[var(--radius-field)] bg-well px-3 py-2 text-small leading-5",
+                    row.missing ? "text-danger-600" : "text-ink-800",
+                  )}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ) : (
+              <div
+                key={row.label}
+                className="flex items-baseline justify-between gap-4 border-b border-ink-100/70 py-1.5 last:border-0"
+              >
+                <dt className="text-small text-ink-500">{row.label}</dt>
+                <dd
+                  className={cn(
+                    "text-right text-small font-strong",
+                    row.missing ? "text-danger-600" : "text-ink-800",
+                  )}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ),
+          )}
+        </dl>
+      ) : null}
+    </Panel>
+  );
+}
+
+function StatusPill({ status }: { status: SummarySection["status"] }) {
+  const copy =
+    status === "complete" ? "Complete" : status === "attention" ? "Needs attention" : "Skipped";
+  return (
+    <span
+      className={cn(
+        "rounded-[var(--radius-pill)] px-2 py-0.5 text-[0.625rem] font-bold tracking-[0.06em] uppercase",
+        status === "complete" && "bg-mint-50 text-mint-deep",
+        status === "attention" && "bg-danger-50 text-danger-600",
+        status === "skipped" && "bg-ink-50 text-ink-500",
+      )}
+    >
+      {copy}
+    </span>
+  );
+}
+
+/**
+ * The agreement, scrolling **inside its own Panel** with the read gate attached
+ * to that scroller rather than to the page.
+ *
+ * This is the documented exception to the one-viewport rule, and it is the only
+ * one: the object of the decision is a legally binding document, and a document
+ * that cannot be scrolled cannot be read to the end.
+ */
+function Agreement({
+  clauses,
+  read,
+  onRead,
+}: {
+  clauses: ReturnType<typeof buildAgreement>;
+  read: boolean;
+  onRead: () => void;
+}) {
+  const readRef = React.useRef(read);
+  readRef.current = read;
+
+  const onScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      if (readRef.current) return;
+      const element = event.currentTarget;
+      if (element.scrollTop + element.clientHeight >= element.scrollHeight - 24) onRead();
+    },
+    [onRead],
+  );
+
+  return (
+    <Panel
+      flush
+      footerMeta={
+        read ? (
+          <span className="flex items-center gap-1.5 text-mint-deep">
+            <CheckCircleIcon weight="fill" aria-hidden className="size-4" />
+            Read in full
+          </span>
+        ) : (
+          "Keep reading to the end to sign"
+        )
+      }
+    >
+      <div
+        onScroll={onScroll}
+        className="max-h-[26rem] overflow-y-auto px-4 py-4 sm:px-6"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: the read gate depends on this region being scrolled, so a keyboard user has to be able to reach and scroll it.
+        tabIndex={0}
+        aria-label="Enrollment agreement"
+        role="region"
+      >
+        <ol className="space-y-5">
           {clauses.map((clause) => (
-            <article key={clause.number} className="space-y-1.5">
-              <h3 className="text-body font-bold text-ink-900">
-                <span className="text-ink-400">{clause.number}. </span>
+            <li key={clause.number}>
+              <p className="text-small font-bold text-ink-900">
+                <span className="numeric">{clause.number}. </span>
                 {clause.heading}
-              </h3>
-              {/* The runs, not a paragraph of prose with the values summarised
-                  underneath. Anything bold came from an answer the student
-                  gave, which makes the bold its own audit trail. */}
-              <p className="text-body leading-7 text-ink-700">
+              </p>
+              <p className="mt-1 max-w-prose text-small leading-6 text-ink-700">
                 {clause.runs.map((run, index) => (
                   <React.Fragment key={`${clause.number}-${index}`}>
                     {run.emphasis ? (
-                      <strong className="font-bold text-ink-900">{run.text}</strong>
+                      <strong className="font-strong text-ink-900">{run.text}</strong>
                     ) : (
                       run.text
                     )}
                   </React.Fragment>
                 ))}
               </p>
-            </article>
+            </li>
           ))}
-
-          {/* The end of the text. Crossing it is what marks the agreement read
-              — placed before the signature block, because the block is a
-              control and the clauses are the thing to have read. */}
-          <div ref={endRef} aria-hidden className="h-px" />
-
-          <div ref={signatureRef}>
-            <SignatureLine
-              name={LEGAL_NAME}
-              mode={review.signatureMode}
-              typed={review.typedSignature.trim()}
-              drawnStrokes={review.drawnStrokes}
-              drawnSize={review.drawnSize}
-              drawnImage={review.drawnSignature}
-              signedAt={review.submitted ? review.signedAt : null}
-              reference={review.reference}
-              applyToken={applyToken}
-            />
-          </div>
-        </div>
-      </div>
-
-      {review.documentRead ? null : (
-        <p className="flex items-center gap-2 border-t border-ink-100 bg-ink-50/60 px-6 py-3 text-small text-ink-600">
-          <WarningCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-amber-500" />
-          Read to the end of the agreement. Signing unlocks when you have.
-        </p>
-      )}
-    </section>
-  );
-}
-
-/**
- * How you sign: type it or draw it, then tick the consent.
- *
- * The act of signing is the button in the fixed bar; this panel is the choice
- * that feeds it. Splitting the two is what let the panel stop being sticky.
- */
-function SignPanel({ typedMatches }: { typedMatches: boolean }) {
-  const state = useOnboarding();
-  const review = state.review;
-
-  if (review.submitted) {
-    return (
-      <Panel title="Signed">
-        <Notice tone="success" title="Your agreement is signed">
-          Signed on{" "}
-          {new Date(review.signedAt ?? Date.now()).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-          . Reference {review.reference}. It is on the sheet above, and changing an answer re-opens
-          it for signing.
-        </Notice>
-      </Panel>
-    );
-  }
-
-  return (
-    <Panel title="Sign" description="Type your name or draw it. Both count the same here.">
-      <Tabs
-        value={review.signatureMode}
-        onValueChange={(value) => patch("review", { signatureMode: value as "type" | "draw" })}
-      >
-        <TabsList>
-          <TabsTrigger value="type">Type it</TabsTrigger>
-          <TabsTrigger value="draw">Draw it</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="type">
-          <Field
-            label="Your signature"
-            htmlFor="typed-signature"
-            hint={`Type your full name to sign: ${LEGAL_NAME}.`}
-            error={
-              review.typedSignature.trim() && !typedMatches
-                ? `The name you typed does not match your name on record. Type it exactly as ${LEGAL_NAME}.`
-                : undefined
-            }
-          >
-            <Input
-              id="typed-signature"
-              value={review.typedSignature}
-              onChange={(event) => patch("review", { typedSignature: event.target.value })}
-              placeholder={LEGAL_NAME}
-              autoComplete="off"
-              // The live preview: it reads as a signature while it is typed,
-              // before anything is committed.
-              className="text-[1.5rem] leading-none"
-              style={{ fontFamily: "var(--font-script)" }}
-            />
-          </Field>
-        </TabsContent>
-
-        <TabsContent value="draw">
-          <SignaturePad
-            label={`Draw the signature for ${LEGAL_NAME}`}
-            value={review.drawnSignature}
-            strokes={review.drawnStrokes}
-            onChange={(drawn: DrawnSignature) =>
-              patch("review", {
-                drawnSignature: drawn.dataUrl,
-                drawnStrokes: drawn.strokes,
-                drawnSize: drawn.size,
-              })
-            }
-          />
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex items-start gap-3 border-t border-ink-100 pt-4">
-        <Checkbox
-          id="review-consent"
-          checked={review.consented}
-          disabled={!review.documentRead}
-          onCheckedChange={(checked) => patch("review", { consented: checked === true })}
-          className="mt-0.5"
-        />
-        {/* Sentence case, not the small-caps `Label` used for field names —
-            this is a statement being agreed to, not the name of a control. */}
-        <label
-          htmlFor="review-consent"
-          className={cn(
-            "text-small leading-5 select-none",
-            review.documentRead ? "text-ink-700" : "text-ink-400",
-          )}
-        >
-          I have read the agreement and I agree to it.
-        </label>
+        </ol>
       </div>
     </Panel>
-  );
-}
-
-/**
- * What the agreement says, and how to fix it.
- *
- * Below the document rather than beside it: it is an appendix to the thing being
- * signed, it is long, and the two columns it sits between are the document and
- * the one control that has to stay put.
- */
-function SummaryPanel({
-  summary,
-  points,
-}: {
-  summary: ReturnType<typeof buildSummary>;
-  points: number;
-}) {
-  return (
-    <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-200 bg-surface shadow-card">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-ink-100 px-6 py-4">
-        <div className="space-y-1">
-          <h2 className="text-h3 text-ink-900">Your answers</h2>
-          <p className="text-small text-ink-500">
-            These are what the agreement above says. If a line is wrong, edit takes you to it and
-            brings you back.
-          </p>
-        </div>
-        {/* The running total — the sum of whatever was actually completed, not
-            a hardcoded max. Sharing at the accept-offer moment adds to this
-            too, so it can read higher than the steps below add up to. Never a
-            bare figure: a Point is bookstore credit or it is a scoreboard
-            (ADR-0002). */}
-        <p className="text-small font-bold text-violet-700">
-          {points} points ·{" "}
-          {creditReleased(points) > 0
-            ? `${formatCredit(creditReleased(points))} bookstore credit`
-            : `${pointsToNextRelease(points)} to your first ${formatCredit(nextRelease(points))}`}
-        </p>
-      </header>
-
-      {/* Grouped by Phase, the way the flow is grouped and the way the student
-          remembers filling it in. What used to sit in these headers — a time
-          estimate and a Required/Optional tag per Quest — is gone: both live on
-          the Phase rows in the rail now, where they are read before the work
-          rather than reported back after it, when neither can be acted on. */}
-      <div className="divide-y divide-ink-100">
-        {summary.map((section) => (
-          <section key={section.id}>
-            <h3 className="bg-ink-50/60 px-6 py-2 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
-              {section.label}
-            </h3>
-
-            <div className="divide-y divide-ink-50">
-              {section.groups.map((group) => (
-                <div key={group.id} className="px-6 py-4">
-                  <header className="flex items-center gap-2">
-                    <h4 className="flex-1 text-body font-bold text-ink-900">{group.label}</h4>
-                    <Button asChild variant="ghost" size="sm">
-                      {/* `from=review` is what the destination step reads to
-                          offer the way back — see ReturnToReview in
-                          step-shell.tsx. */}
-                      <Link to={group.path} search={{ from: "review" as const }}>
-                        <PencilSimpleIcon aria-hidden className="size-4" />
-                        Edit
-                        <span className="sr-only"> {group.label}</span>
-                      </Link>
-                    </Button>
-                  </header>
-                  {/* Two columns of label→value once there is room for them.
-                      These are short facts being checked at a glance, not prose
-                      — in one column they were a 700px ribbon of mostly empty
-                      line. */}
-                  <dl className="mt-1.5 grid gap-x-8 gap-y-1 sm:grid-cols-2">
-                    {group.rows.map((row) => (
-                      <div key={row.label} className="flex gap-3 text-small">
-                        <dt className="w-[9rem] shrink-0 text-ink-500">{row.label}</dt>
-                        <dd
-                          className={cn(
-                            "min-w-0 flex-1",
-                            row.missing ? "text-ink-400 italic" : "text-ink-800",
-                          )}
-                        >
-                          {row.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </section>
   );
 }

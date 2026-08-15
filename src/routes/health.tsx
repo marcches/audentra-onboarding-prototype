@@ -1,134 +1,168 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { DocumentUpload } from "@/components/document-upload";
 import { Field } from "@/components/field";
-import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
-import { BackButton, Panel, SectionTitle, StepShell, useStepNav } from "@/components/step-shell";
+import { AwardStage, PricePill, usePointsAward } from "@/components/points-award";
+import { BackButton, StepShell, steadyAction, useStepNav } from "@/components/step-shell";
+import { Panel, PanelDivider } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { institution } from "@/lib/fixtures";
+import { stepById } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 
 /**
- * Health information, split out of Campus life.
+ * Health information: the Step the client described as having a strange flow.
  *
- * The accommodation question used to sit under "Clubs and interests", which
- * put a disability disclosure one scroll away from picking a club — the wrong
- * neighbour for something this sensitive, and with nowhere for the medical
- * documentation and immunization record the real portal eventually asks for.
- * The question itself, and its "don't write medical details here" warning,
- * are unchanged; what's new is the two uploads that appear once the answer is
- * yes, and a step of its own to hold them.
+ * It keeps its own place in the spine — the research argued against dissolving
+ * it into Who you are — but it **moved to immediately after Who you are**, so
+ * the three uploads of the whole flow (Identity document, medical
+ * documentation, Immunization record) are adjacent rather than scattered across
+ * two Phases. Deputy and Revolut both give document collection its own rail
+ * entry for the same reason.
  *
- * Optional throughout, like every accommodation-adjacent question in this
- * flow: skipping it doesn't block Review & sign or the deposit, and the copy
- * says so.
+ * Why it stays a Step, in order of weight:
+ *
+ * 1. It is the **only optional Step in its Phase**, and folding it into a
+ *    required one would put optional information inside a mandatory screen.
+ * 2. It carries two uploads and a conditional, which is exactly the shape that
+ *    produced the "About you is a mess" complaint when four such things shared
+ *    one screen.
+ * 3. Deputy and Revolut both do it.
+ *
+ * The **Immunization record is asked for regardless of the accommodation
+ * answer.** Gating it on disability was part of what made the flow read as
+ * strange, and it is a record Aster holds for every student.
  */
 export function HealthRoute() {
   const state = useOnboarding();
-  const { next, goNext: advance } = useStepNav("health");
   const health = state.health;
+  const award = usePointsAward();
+  const { goNext } = useStepNav("health");
+  const step = stepById("health");
+  const reduceMotion = useReducedMotion();
 
-  /* Skipping is not answering — same rule as Campus life next door. Both
-     buttons used to collapse into one "submitted: true" write, which would
-     tell Review & sign this question had been answered when the student had
-     deliberately passed on it. */
-  const goNext = (answered: boolean) => {
-    if (answered) patch("health", { submitted: true });
-    advance();
+  const set = (changes: Partial<typeof health>) => patch("health", changes);
+
+  const save = () => {
+    patch("health", { submitted: true });
+    award?.celebrate("health", step.points);
   };
 
   return (
     <StepShell
       current="health"
       title="Health information"
-      lead="Optional — skipping it doesn't block your enrollment. Some accommodations need documentation before they can be arranged."
+      lead="Optional here. The student portal will ask for it later either way."
+      headerAside={<PricePill points={step.points} stepId="health" earned={health.submitted} />}
       actions={
         <>
           <BackButton current="health" />
-          <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
-            Skip
+          <Button type="button" variant="ghost" onClick={goNext}>
+            Skip for now
           </Button>
-          <Button type="button" size="lg" onClick={() => goNext(true)}>
-            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
-            <span className="sm:hidden">Next</span>
+          <Button type="button" size="lg" className={steadyAction} onClick={save}>
+            Save and continue
             <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
           </Button>
         </>
       }
     >
-      <Panel className="space-y-4">
-        <SectionTitle description="Ask Disability Services to contact you. Do not upload medical records here.">
-          Do you need any accommodations?
-        </SectionTitle>
+      <Panel as="fieldset">
+        {/* The sensitive question says why it is asked, once, before it asks
+            (Remote). Flat register: this is the one screen in the flow where
+            warmth would read as intrusive. */}
+        <fieldset>
+          <legend className="field-label">
+            Do you need an accommodation for a disability or health condition?
+          </legend>
+          <p className="mt-1 text-small text-ink-500">
+            Accessibility Services uses this to reach you before term starts. Nobody teaching you
+            sees it.
+          </p>
+          <RadioGroup
+            className="mt-3 grid gap-2.5 sm:grid-cols-2"
+            value={health.accommodations}
+            onValueChange={(value) => set({ accommodations: value as "yes" | "no" })}
+          >
+            <OptionCard
+              id="accommodations-yes"
+              value="yes"
+              label="Yes, I would like to talk to Accessibility Services"
+            />
+            <OptionCard id="accommodations-no" value="no" label="No, not right now" />
+          </RadioGroup>
+        </fieldset>
 
-        <RadioGroup
-          value={health.accommodations}
-          onValueChange={(value) => patch("health", { accommodations: value as "yes" | "no" })}
-        >
-          <OptionCard
-            value="yes"
-            id="accommodations-yes"
-            label="Yes, contact me"
-            hint="Disability Services will contact you by email within 3 working days"
-          />
-          <OptionCard
-            value="no"
-            id="accommodations-no"
-            label="No, not right now"
-            hint="You can ask at any point in the year"
-          />
-        </RadioGroup>
-
-        {health.accommodations === "yes" ? (
-          <div className="space-y-5">
-            {/* This warning is load-bearing, not boilerplate: this box is not a
-                medical record and is not stored like one. */}
-            <Notice tone="caution" title="Do not put medical details here">
-              A sentence about what would help is enough. Disability Services will tell you what
-              they need, over a channel built for it.
-            </Notice>
-
-            <Field
-              label="What would help?"
-              htmlFor="accommodation-note"
-              optional
-              hint="Skip it if you would rather talk to a person first."
+        {/* Born below the control that revealed it, in the same Panel. */}
+        <AnimatePresence initial={false}>
+          {health.accommodations === "yes" ? (
+            <motion.div
+              initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+              className="overflow-hidden"
             >
-              <Textarea
-                id="accommodation-note"
-                value={health.accommodationNote}
-                onChange={(event) => patch("health", { accommodationNote: event.target.value })}
-                placeholder="A note-taker in lectures, step-free routes between buildings…"
-              />
-            </Field>
+              <div className="space-y-4 pt-5">
+                <Field label="What would help?" htmlFor="accommodation-note" optional>
+                  <Textarea
+                    id="accommodation-note"
+                    rows={3}
+                    placeholder="Anything you want them to know before they call"
+                    value={health.accommodationNote}
+                    onChange={(event) => set({ accommodationNote: event.target.value })}
+                  />
+                </Field>
 
-            {/* Both uploads are optional and both say so on the field itself —
-                the hints under them were repeating the word a third time. */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <DocumentUpload
-                label="Medical documentation"
-                files={health.medicalDocuments}
-                onChange={(files) => patch("health", { medicalDocuments: files })}
-              />
+                <div>
+                  <p className="field-label">Medical documentation</p>
+                  <p className="mt-1 mb-2 text-small text-ink-500">
+                    A letter or report from a clinician.
+                  </p>
+                  <DocumentUpload
+                    label="Medical documentation"
+                    files={health.medicalDocuments}
+                    onChange={(files) => set({ medicalDocuments: files })}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
-              <DocumentUpload
-                label="Immunization record"
-                files={health.immunizationDocuments}
-                onChange={(files) => patch("health", { immunizationDocuments: files })}
-              />
-            </div>
-          </div>
-        ) : null}
+        <PanelDivider />
 
-        {health.accommodations === "no" ? (
-          <Notice tone="info" title="Nothing is recorded">
-            Ask {institution.housingOffice} or Disability Services whenever you need to.
-          </Notice>
-        ) : null}
+        {/* Sibling Well under its own label, never gated on the answer above
+            (Lindy's two file Wells under one heading). */}
+        <div>
+          <p className="field-label">Immunization record</p>
+          <p className="mt-1 mb-2 text-small text-ink-500">
+            Aster holds this on file for every student, whatever you answered above.
+          </p>
+          <DocumentUpload
+            label="Immunization record"
+            files={health.immunizationDocuments}
+            onChange={(files) => set({ immunizationDocuments: files })}
+          />
+        </div>
       </Panel>
+
+      {/* Optionality is stated plainly, and so is the consequence of skipping.
+          Laura was explicit that this difference has to be said, not implied. */}
+      <p className="text-small text-ink-500">
+        Skipping is fine here. The portal will require your immunization record before you register
+        for classes.
+      </p>
+
+      <AwardStage stepId="health" headline="Noted, and kept private.">
+        <Button type="button" size="lg" onClick={goNext}>
+          Continue
+          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+        </Button>
+      </AwardStage>
     </StepShell>
   );
 }

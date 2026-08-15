@@ -1,39 +1,39 @@
 import * as React from "react";
 
-import { housingAvailability, residences } from "@/lib/fixtures";
-import type { StepId } from "@/lib/steps";
+import { housingAvailability, residences } from "@/lib/housing";
+import type { StepId, StudentStatusAnswer } from "@/lib/steps";
 
 /**
  * Everything the student has entered, in one object, mirrored to localStorage
  * on every write. That is the whole of "your progress is saved automatically"
- * (user story 26) for a prototype with no backend — and it is also what makes
- * a hard refresh mid-form non-destructive, which is the thing reviewers
- * actually poke at.
+ * for a prototype with no backend — and it is also what makes a hard refresh
+ * mid-form non-destructive, which is the thing reviewers actually poke at.
  */
 
 /**
  * Bumped whenever a stored value can no longer be interpreted by this build.
  *
- * v4, for Housing: `housing.intent` is gone and `housing.arrangingOwn` has
- * taken its place, and the residence ids in `residenceRanking` were renumbered
- * when the catalogue went from three to eight. A v3 blob would restore
- * `arrangingOwn: false` — correct by accident — over a student who had answered
- * "off campus", which is the failure that looks like the form ignoring them.
+ * v5, for the rebuild: `identityContact` is gone, split into `whoYouAre`,
+ * `whereYouLive` and `whoWeCall` following the three Steps that replaced it.
+ * `citizenship` became `studentStatus` with a smaller set of values —
+ * "eligible-noncitizen" no longer exists, and a stored blob carrying it would
+ * put a student in a branch the spine has no address Step for. Housing lost
+ * `arrangingOwn` with the off-campus exit, `campusLife.clubs` became
+ * `campusLife.interests` against a completely different catalogue, and the
+ * deposit grew a method and a reference. The shallow merge below is forgiving
+ * about *missing* keys, so a v4 blob would not error — it would quietly restore
+ * an empty About you over answers the student had given, which is worse than a
+ * clean slate because it looks like data loss rather than a reset.
  *
- * v3, for the Phases round: the `aboutYou` slice is now `identityContact`,
- * following the step it belongs to. The shallow merge below is forgiving about
- * *missing* keys, so a v2 blob would not error — it would quietly restore an
- * empty Identity & contact over answers the student had actually given, which
- * is worse than a clean slate because it looks like data loss rather than a
- * reset.
+ * v4, for Housing: `housing.intent` gone, `arrangingOwn` in its place, and the
+ * residence ids renumbered when the catalogue went from three to eight.
  *
- * v2, for round 3: two housing intents were removed, the review slice replaced
- * `readDocuments` with `documentRead` and gained the signature strokes, and the
- * deposit lost its paid flags. Keys whose *meaning* changed are exactly what
- * the merge cannot help with — a v1 blob would restore `intent: "commuting"`
- * against a list that no longer contains it.
+ * v3, for the Phases round: the `aboutYou` slice became `identityContact`.
+ *
+ * v2, for round 3: two housing intents removed, the review slice replaced
+ * `readDocuments` with `documentRead`, and the deposit lost its paid flags.
  */
-const STORAGE_KEY = "audentra.onboarding.v4";
+const STORAGE_KEY = "audentra.onboarding.v5";
 
 export type EntryState = {
   /** Live draft of the create-account email field — changes on every keystroke. */
@@ -48,25 +48,68 @@ export type EntryState = {
   phone: string;
   signInEmail: string;
   accountCreated: boolean;
-  /**
-   * Has this device ever got someone in — created an account or signed in?
-   *
-   * This is the whole of the entry screen's memory, and it decides which tab
-   * opens and which words the heading uses. It exists because the premise the
-   * screen was built on turned out to be false: it assumed everyone arrived
-   * from an invitation link and therefore had no account, so it always opened
-   * on Create account and always addressed a stranger. A returning student
-   * opening the portal for the fifth time is the ordinary case, not the edge
-   * one.
-   */
+  /** Has this device ever got someone in? Decides which tab opens. */
   hasAuthenticated: boolean;
 };
 
 export type OfferState = {
   response: "accepted" | "declined" | null;
   respondedAt: string | null;
-  /** Whether the celebration's share prompt has been used. Awards points once — see `lib/points.ts`. */
+  /** Whether the celebration's share prompt has been used. Awards Points once. */
   shared: boolean;
+};
+
+/**
+ * One attached document. The file itself is never kept — this state is mirrored
+ * to localStorage and a `File` does not survive that trip, nor should it. What
+ * is kept is what the list needs to render and what the size limit needs to add
+ * up.
+ */
+export type UploadedFile = {
+  name: string;
+  size: number;
+};
+
+/**
+ * Who the student is, and the one answer that shapes the rest of the flow.
+ *
+ * Student status is answered *before* any document is requested, so the request
+ * is never generic. It also decides whether `Where you live now` exists — see
+ * `steps.ts`.
+ */
+export type WhoYouAreState = {
+  preferredName: string;
+  pronouns: string;
+  dialCode: string;
+  phone: string;
+  studentStatus: StudentStatusAnswer;
+  /** The Identity document the answered status calls for. */
+  idDocuments: UploadedFile[];
+  submitted: boolean;
+};
+
+/** Optional throughout: it never blocks Review & sign or Deposit. */
+export type HealthState = {
+  accommodations: "yes" | "no" | "";
+  accommodationNote: string;
+  medicalDocuments: UploadedFile[];
+  /** Asked of everyone, regardless of the accommodation answer. */
+  immunizationDocuments: UploadedFile[];
+  submitted: boolean;
+};
+
+/** Absent entirely for an international student — the Step does not exist. */
+export type WhereYouLiveState = {
+  street: string;
+  unit: string;
+  /** A slug, scoped to `state`. Never what the summary prints. */
+  city: string;
+  /** A USPS abbreviation. Never what the summary prints. */
+  state: string;
+  postalCode: string;
+  country: string;
+  residencyVerification: string;
+  submitted: boolean;
 };
 
 export type EmergencyContact = {
@@ -78,76 +121,48 @@ export type EmergencyContact = {
 };
 
 /**
- * One attached identity document. The file itself is never kept — this state is
- * mirrored to localStorage and a `File` does not survive that trip, nor should
- * it. What is kept is what the list needs to render and what the size limit
- * needs to add up.
+ * One person granted sight of part of the record, under FERPA.
+ *
+ * Four fields, and the fourth is the one that had never been built: the scope.
+ * Laura listed all four on the call — "precisa do nome completo, precisa do
+ * e-mail, precisa do parentesco, e o que vai ter acesso." More than one person
+ * can be granted access and each is an independent record, which is why this is
+ * a list rather than four fields on the slice.
  */
-export type UploadedFile = {
-  name: string;
-  size: number;
+export type FamilyAccessGrant = {
+  id: string;
+  fullName: string;
+  email: string;
+  relationship: string;
+  scope: string[];
 };
 
-export type IdentityContactState = {
-  openSections: string[];
-  /** Identity documents attached. Optional — the sheet marks this field `n`. */
-  idDocuments: UploadedFile[];
-  /** True once a document has been "read". The extraction itself is simulated. */
-  idExtracted: boolean;
-  preferredName: string;
-  pronouns: string;
-  dialCode: string;
-  phone: string;
-  citizenship: string;
-  street: string;
-  unit: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  residencyVerification: string;
+export type WhoWeCallState = {
   emergencyContacts: EmergencyContact[];
-  grantsFamilyAccess: boolean;
-  familyMemberName: string;
-  familyMemberEmail: string;
-  familyMemberRelationship: string;
-  disclosureScope: string[];
+  familyAccess: FamilyAccessGrant[];
   submitted: boolean;
 };
 
 export type HousingState = {
-  /**
-   * The off-campus exit. False is the ordinary path — the student is looking at
-   * the catalogue — so this is not a three-way answer with the residences down
-   * one arm of it, which is what it replaced.
-   */
-  arrangingOwn: boolean;
-  /** Residence ids, best first. At most `housingAvailability.shortlistSize` of them. */
+  /** Residence ids, best first. At most `housingAvailability.shortlistSize`. */
   residenceRanking: string[];
-  protectionInterest: string;
   submitted: boolean;
 };
 
 export type CampusLifeState = {
-  clubs: string[];
-  submitted: boolean;
-};
-
-/** Split out of Campus life — see `steps.ts`. Optional throughout: it never blocks Review & sign or Deposit. */
-export type HealthState = {
-  accommodations: "yes" | "no" | "";
-  accommodationNote: string;
-  medicalDocuments: UploadedFile[];
-  immunizationDocuments: UploadedFile[];
+  /**
+   * Organizations marked as interesting. Not a membership and not a roster:
+   * joining happens in person at the Involvement Fair, and what this list
+   * produces is a route through it. See `CONTEXT.md`.
+   */
+  interests: string[];
   submitted: boolean;
 };
 
 /**
- * One sampled point of a drawn signature, with the moment it was made.
- *
- * The timestamp is what makes the replay the student's own hand rather than a
- * generic line-drawing animation: the pauses, the fast strokes and the slow
- * ones all come back at the speed they were made.
+ * One sampled point of a drawn signature, with the moment it was made. The
+ * timestamp is what makes the replay the student's own hand rather than a
+ * generic line-drawing animation.
  */
 export type SignaturePoint = { x: number; y: number; t: number };
 
@@ -169,26 +184,42 @@ export type ReviewState = {
   submitted: boolean;
 };
 
+/** How the deposit is being settled. All three are ways of finishing. */
+export type DepositChoice = "pay-now" | "pay-by-deadline" | "waiver" | "";
+
+/** Which of the checkout's three screens is showing. One rail entry, three screens. */
+export type DepositScreen = "secure" | "double-check" | "receipt";
+
 export type DepositState = {
-  choice: "pay-now" | "pay-by-deadline" | "waiver" | "";
+  screen: DepositScreen;
+  choice: DepositChoice;
+  /** Only meaningful under `pay-now`. A bank transfer settles as processing. */
+  method: "card" | "bank-transfer" | "";
+  cardName: string;
+  cardNumber: string;
   waiverReason: string;
+  /** Issued when the checkout completes, so the receipt can be re-read. */
+  reference: string;
+  settledAt: string | null;
   submitted: boolean;
 };
 
 export type OnboardingState = {
   entry: EntryState;
   offer: OfferState;
-  identityContact: IdentityContactState;
+  whoYouAre: WhoYouAreState;
+  health: HealthState;
+  whereYouLive: WhereYouLiveState;
+  whoWeCall: WhoWeCallState;
   housing: HousingState;
   campusLife: CampusLifeState;
-  health: HealthState;
   review: ReviewState;
   deposit: DepositState;
 };
 
-/** Unique per contact, independent of position — rows can be removed. */
-export function newContactId() {
-  return `contact-${crypto.randomUUID()}`;
+/** Unique per row, independent of position — rows can be removed. */
+export function newRowId(prefix: string) {
+  return `${prefix}-${crypto.randomUUID()}`;
 }
 
 export const emptyEmergencyContact = (id: string): EmergencyContact => ({
@@ -197,6 +228,14 @@ export const emptyEmergencyContact = (id: string): EmergencyContact => ({
   relationship: "",
   dialCode: "+1",
   phone: "",
+});
+
+export const emptyFamilyAccess = (id: string): FamilyAccessGrant => ({
+  id,
+  fullName: "",
+  email: "",
+  relationship: "",
+  scope: [],
 });
 
 const initialState: OnboardingState = {
@@ -214,38 +253,13 @@ const initialState: OnboardingState = {
     respondedAt: null,
     shared: false,
   },
-  identityContact: {
-    openSections: ["identity"],
-    idDocuments: [],
-    idExtracted: false,
+  whoYouAre: {
     preferredName: "",
     pronouns: "",
     dialCode: "+1",
     phone: "",
-    citizenship: "",
-    street: "",
-    unit: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "US",
-    residencyVerification: "",
-    emergencyContacts: [emptyEmergencyContact("contact-1")],
-    grantsFamilyAccess: false,
-    familyMemberName: "",
-    familyMemberEmail: "",
-    familyMemberRelationship: "",
-    disclosureScope: [],
-    submitted: false,
-  },
-  housing: {
-    arrangingOwn: false,
-    residenceRanking: [],
-    protectionInterest: "",
-    submitted: false,
-  },
-  campusLife: {
-    clubs: [],
+    studentStatus: "",
+    idDocuments: [],
     submitted: false,
   },
   health: {
@@ -253,6 +267,29 @@ const initialState: OnboardingState = {
     accommodationNote: "",
     medicalDocuments: [],
     immunizationDocuments: [],
+    submitted: false,
+  },
+  whereYouLive: {
+    street: "",
+    unit: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "US",
+    residencyVerification: "",
+    submitted: false,
+  },
+  whoWeCall: {
+    emergencyContacts: [emptyEmergencyContact("contact-1")],
+    familyAccess: [],
+    submitted: false,
+  },
+  housing: {
+    residenceRanking: [],
+    submitted: false,
+  },
+  campusLife: {
+    interests: [],
     submitted: false,
   },
   review: {
@@ -268,8 +305,14 @@ const initialState: OnboardingState = {
     submitted: false,
   },
   deposit: {
+    screen: "secure",
     choice: "",
+    method: "",
+    cardName: "",
+    cardNumber: "",
     waiverReason: "",
+    reference: "",
+    settledAt: null,
     submitted: false,
   },
 };
@@ -285,10 +328,12 @@ function read(): OnboardingState {
     const merged: OnboardingState = {
       entry: { ...initialState.entry, ...parsed.entry },
       offer: { ...initialState.offer, ...parsed.offer },
-      identityContact: { ...initialState.identityContact, ...parsed.identityContact },
+      whoYouAre: { ...initialState.whoYouAre, ...parsed.whoYouAre },
+      health: { ...initialState.health, ...parsed.health },
+      whereYouLive: { ...initialState.whereYouLive, ...parsed.whereYouLive },
+      whoWeCall: { ...initialState.whoWeCall, ...parsed.whoWeCall },
       housing: { ...initialState.housing, ...parsed.housing },
       campusLife: { ...initialState.campusLife, ...parsed.campusLife },
-      health: { ...initialState.health, ...parsed.health },
       review: { ...initialState.review, ...parsed.review },
       deposit: { ...initialState.deposit, ...parsed.deposit },
     };
@@ -297,8 +342,7 @@ function read(): OnboardingState {
        invisibly in the Shortlist: it takes a slot, it moves when the arrows
        move it, and it prints as nothing in the summary and the agreement. The
        version bump above is the first line of defence; this is the one that
-       survives a fixture edit without one. Trimming to `shortlistSize` covers
-       the other direction — an institution that used to accept five. */
+       survives a fixture edit without one. */
     merged.housing.residenceRanking = merged.housing.residenceRanking
       .filter((id) => residences.some((residence) => residence.id === id))
       .slice(0, housingAvailability.shortlistSize);
@@ -338,10 +382,12 @@ function getSnapshot() {
 /** The slices the Review & sign summary reads back and the packet covers. */
 const SIGNED_OVER: (keyof OnboardingState)[] = [
   "offer",
-  "identityContact",
+  "whoYouAre",
+  "health",
+  "whereYouLive",
+  "whoWeCall",
   "housing",
   "campusLife",
-  "health",
 ];
 
 export function patch<K extends keyof OnboardingState>(
@@ -354,16 +400,11 @@ export function patch<K extends keyof OnboardingState>(
    * Editing an answer un-signs the packet.
    *
    * Review & sign tells the student "changing an answer above re-opens this for
-   * signing", and until now nothing did that: the green "Signed on <date>"
-   * notice and the ticked consent box survived any later edit, so a FERPA
-   * release could sit there presented as signed against answers that had since
-   * changed. The rule belongs here rather than in the review screen because
-   * this is the one place every answer is written.
-   *
-   * `documentRead` resets with the rest of it. The answers are written into the
-   * agreement's clauses, so editing one rewrites the document — and leaving the
-   * read gate satisfied would let the student re-sign text they have never seen,
-   * which is the one thing that gate exists to prevent.
+   * signing", and the rule belongs here rather than in the review screen
+   * because this is the one place every answer is written. `documentRead`
+   * resets with the rest of it: the answers are written into the agreement's
+   * clauses, so editing one rewrites the document, and leaving the read gate
+   * satisfied would let the student re-sign text they have never seen.
    */
   if (SIGNED_OVER.includes(slice) && state.review.submitted) {
     state = {
@@ -396,14 +437,24 @@ export function useOnboarding(): OnboardingState {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
-/** Which steps count as done, for the sidebar's progress read-out. */
+/**
+ * The Student status, which the spine reads to decide whether `Where you live
+ * now` exists. One accessor, so no screen reaches into the slice for it.
+ */
+export function studentStatus(current: OnboardingState): StudentStatusAnswer {
+  return current.whoYouAre.studentStatus;
+}
+
+/** Which Steps count as done, for the rail's progress read-out. */
 export function completedSteps(current: OnboardingState): StepId[] {
   const done: StepId[] = [];
   if (current.offer.response !== null) done.push("offer");
-  if (current.identityContact.submitted) done.push("identity-contact");
+  if (current.whoYouAre.submitted) done.push("who-you-are");
+  if (current.health.submitted) done.push("health");
+  if (current.whereYouLive.submitted) done.push("where-you-live");
+  if (current.whoWeCall.submitted) done.push("who-we-call");
   if (current.housing.submitted) done.push("housing");
   if (current.campusLife.submitted) done.push("campus-life");
-  if (current.health.submitted) done.push("health");
   if (current.review.submitted) done.push("review");
   if (current.deposit.submitted) done.push("deposit");
   return done;

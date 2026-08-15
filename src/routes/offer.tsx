@@ -1,235 +1,259 @@
-import { ArrowRightIcon, CheckCircleIcon, ProhibitIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  CalendarBlankIcon,
+  HouseLineIcon,
+  ShieldCheckIcon,
+  WalletIcon,
+} from "@phosphor-icons/react";
+import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
-import { StepShell, useStepNav } from "@/components/step-shell";
+import { Acceptance } from "@/components/acceptance";
+import { PricePill } from "@/components/points-award";
+import { BackButton, StepShell } from "@/components/step-shell";
+import { IconTile, Panel } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
+import { Overlay } from "@/components/ui/overlay";
+import { Textarea } from "@/components/ui/textarea";
 import { campusPhotos, formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
+import { stepById } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
-import { cn } from "@/lib/utils";
-
-/* The celebration drags in GSAP and canvas-confetti — a third of the bundle for
-   one moment nobody reaches on first paint. Loaded when it is actually needed. */
-const CelebrationDialog = React.lazy(() =>
-  import("@/components/celebration-dialog").then((module) => ({
-    default: module.CelebrationDialog,
-  })),
-);
-
-const DEPOSIT = formatMoney(offer.depositAmount, offer.depositCurrency);
-const DEADLINE = formatDeadline(offer.responseDeadline);
 
 /**
- * The offer, in one viewport.
+ * Your offer: the `decision` archetype's first instance, and the flow's biggest
+ * emotional moment.
  *
- * What this replaces was a 200px hero, a four-cell grid with a line of prose
- * under every cell, a deposit section, and a numbered "What happens when you
- * accept" — four full-width slabs and about two and a half screens. Laura's
- * constraint was specific about the fix: "esses cards estão muito grandes… eu
- * não quero também empilhar" — the cards get *smaller*, they do not get turned
- * into a taller column. So the facts are now one hairline grid of small cells
- * (Cake Equity), with the deposit as the single coloured tile because it is the
- * number that decides anything; the hero is a 96px band; and the consequences
- * of accepting moved into the celebration, where the student has actually asked
- * the question.
+ * Two problems, both measured rather than felt. **452px of dead canvas at
+ * 1440×900** — measured last round and filed rather than fixed — and an
+ * acceptance dialog the client wants to be, in Laura's words, *"um popupzão"*.
+ *
+ * The dead canvas is not solved by making the content taller. It is solved by
+ * the composition Upwork uses: the right column is not a summary of the left,
+ * it is **the other party**. The piece (photograph, wash, wordmark, programme)
+ * and the act (facts, deposit, reassurance, consequence) are two halves that
+ * stretch to the same height and fill the usable viewport between them. The
+ * canvas beneath takes a very low gradient so the piece rests rather than
+ * floats (Mistral).
+ *
+ * **"What accepting does" lives here, not in the celebration.** Stating the
+ * consequence before the decision is the honest pattern (Preply), and it is
+ * what fills the column. The consequence is that the celebration is now made of
+ * emotion, Points and sharing rather than information, which is the thing the
+ * client actually asked for.
  */
 export function OfferRoute() {
   const state = useOnboarding();
-  const { goNext } = useStepNav("offer");
+  const navigate = useNavigate();
+  const step = stepById("offer");
+
+  const [declining, setDeclining] = React.useState(false);
+  const [declineNote, setDeclineNote] = React.useState("");
   const [celebrating, setCelebrating] = React.useState(false);
 
-  const response = state.offer.response;
+  const answered = state.offer.response !== null;
 
-  function respond(answer: "accepted" | "declined") {
-    patch("offer", { response: answer, respondedAt: new Date().toISOString() });
-    if (answer === "accepted") setCelebrating(true);
-  }
+  const accept = () => {
+    patch("offer", { response: "accepted", respondedAt: new Date().toISOString() });
+    setCelebrating(true);
+  };
+
+  const decline = () => {
+    patch("offer", { response: "declined", respondedAt: new Date().toISOString() });
+    setDeclining(false);
+    navigate({ to: "/onboarding/who-you-are" });
+  };
 
   return (
     <StepShell
       current="offer"
-      title="Your offer"
-      lead="Read it, then accept or decline. You answer once — changing it afterwards goes through Admissions."
-      saved={false}
+      title="Your place at Aster"
+      lead="Everything below is the offer as it stands. Read it, then tell us."
+      headerAside={<PricePill points={step.points} stepId="offer" earned={answered} />}
       actions={
-        response === null ? (
-          <Decision onAccept={() => respond("accepted")} onDecline={() => respond("declined")} />
-        ) : (
-          <RecordedResponse />
-        )
+        <>
+          <BackButton current="offer" />
+          {/* One click, no two-step confirmation on the way in. Declining opens
+              a confirmation because it is the irreversible one. */}
+          <Button type="button" variant="ghost" onClick={() => setDeclining(true)}>
+            I am not taking this place
+          </Button>
+          <Button type="button" size="lg" onClick={accept}>
+            Accept my place
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
       }
     >
-      <section className="overflow-hidden rounded-[var(--radius-slab)] border border-ink-100 bg-surface shadow-card">
-        {/* The photo survives; the 200px of it does not. A band is enough to say
-            "this is a place you would go to" — which is the whole job it was
-            doing — and it is the cheapest 100px on the screen to give back. */}
-        <div className="relative isolate flex h-24 flex-col justify-center px-5 text-white sm:px-6">
-          <img
-            src={campusPhotos.offer.src}
-            alt={campusPhotos.offer.alt}
-            className="absolute inset-0 -z-20 size-full object-cover"
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-12">
+        <ThePiece />
+        <TheAct />
+      </div>
+
+      <Acceptance open={celebrating} onOpenChange={setCelebrating} />
+
+      <Overlay
+        open={declining}
+        onOpenChange={setDeclining}
+        title="Turning down your place"
+        description="We will let Admissions know. Nothing else happens, and you can write to them if you change your mind."
+      >
+        <div className="mt-5 space-y-4">
+          <label htmlFor="decline-note" className="field-label block">
+            Anything you want to tell us? (optional)
+          </label>
+          <Textarea
+            id="decline-note"
+            rows={3}
+            value={declineNote}
+            onChange={(event) => setDeclineNote(event.target.value)}
           />
-          <div
-            aria-hidden
-            className="absolute inset-0 -z-10 bg-gradient-to-r from-ink-950/95 via-ink-950/85 to-violet-700/60"
-          />
-          <p className="text-micro font-bold tracking-[0.06em] text-white/70 uppercase">
-            Offer of admission · {institution.name}
-          </p>
-          <h2 className="mt-1 text-h2 font-black tracking-[-0.03em] text-white">
-            {offer.programme}
-          </h2>
-          {/* One line, and only where a line's worth of it actually fits: a
-              truncated half-sentence on a phone reads as a bug, not as brevity. */}
-          <p className="mt-0.5 hidden truncate text-small text-white/75 sm:block">
-            {offer.programmeDescription}
-          </p>
+          <div className="flex justify-end gap-2.5">
+            <Button type="button" variant="ghost" onClick={() => setDeclining(false)}>
+              Go back
+            </Button>
+            <Button type="button" variant="danger" onClick={decline}>
+              Send my answer
+            </Button>
+          </div>
         </div>
-
-        {/* Hairline grid: the gap *is* the border, so four facts cost four small
-            cells and no card chrome. No line of explanation under any of them —
-            "The degree awarded" under Degree was the label read back slowly,
-            and that per-field commentary is exactly what she was asking about
-            when she said "será que é necessário isso mesmo?". */}
-        {/* Hairline grid, five cells. The deadline joined them when the bar
-            became a constant 4.5rem: it is a *fact of the offer* — the same
-            kind of thing as the campus and the term — and it was only in the
-            footer because the footer was where the decision was. The coloured
-            tile stays last, and takes the full width on a phone where five
-            cells leave it alone on its row anyway. */}
-        <dl className="grid grid-cols-2 gap-px border-t border-ink-100 bg-ink-100 sm:grid-cols-5">
-          <Fact label="Degree" value={offer.degree} />
-          <Fact label="Starting term" value={offer.startingTerm} />
-          <Fact label="Campus" value={offer.campus} />
-          <Fact label="Respond by" value={DEADLINE} />
-          {/* The one coloured tile, for the one number that changes what anybody
-              does next. */}
-          <Fact label="Enrollment deposit" value={DEPOSIT} tinted className="max-sm:col-span-2" />
-        </dl>
-
-        {/* The reassurance, beside the thing it reassures about. It answers a
-            question asked while *reading* — "does this cost me anything?" — and
-            the footer is where you decide, not where you read. The two
-            sentences that used to say this in two places are one now; the
-            "only Admissions can reopen it" half went with them, because the
-            step's own lead already says it. */}
-        <p className="border-t border-ink-100 px-5 py-3 text-small text-ink-500 sm:px-6">
-          Nothing is charged today. Accepting reserves your place and opens the rest of enrollment;
-          the deposit is asked for at the last step and credited against your first term's tuition.
-        </p>
-      </section>
-
-      <React.Suspense fallback={null}>
-        {celebrating ? (
-          <CelebrationDialog
-            open
-            onOpenChange={setCelebrating}
-            onContinue={() => {
-              setCelebrating(false);
-              goNext();
-            }}
-          />
-        ) : null}
-      </React.Suspense>
+      </Overlay>
     </StepShell>
   );
 }
 
-function Fact({
-  label,
-  value,
-  tinted = false,
-  className,
-}: {
-  label: string;
-  value: string;
-  tinted?: boolean;
-  className?: string;
-}) {
+/**
+ * The piece: art as a **vertical band of fixed width**, never a background
+ * behind the text (Frame.io, Runway). Nothing floats in the middle of the
+ * image; the wordmark sits at the top and the programme at the base, in the
+ * art's own footer.
+ *
+ * On a phone the band **shrinks rather than disappearing** (Monzo), and the
+ * programme description is cut — the first thing a `decision` screen loses when
+ * it will not fit.
+ */
+function ThePiece() {
   return (
-    <div className={cn("px-5 py-4", tinted ? "bg-violet-50" : "bg-surface", className)}>
-      <dt className="field-label">{label}</dt>
-      <dd
-        className={
-          tinted
-            ? "text-lead font-black tracking-[-0.02em] text-violet-700"
-            : "text-lead font-bold text-ink-900"
-        }
-      >
-        {value}
-      </dd>
+    <div className="relative isolate overflow-hidden rounded-[var(--radius-card)] lg:col-span-5">
+      <img
+        src={campusPhotos.offer.src}
+        alt={campusPhotos.offer.alt}
+        className="absolute inset-0 -z-10 size-full object-cover"
+      />
+      <span
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(6_18_42/0.72)_0%,rgb(6_18_42/0.28)_45%,rgb(6_18_42/0.88)_100%)]"
+      />
+
+      <div className="flex h-24 flex-col justify-between p-4 text-white sm:h-28 lg:h-full lg:p-6">
+        <p className="text-micro font-bold tracking-[0.14em] uppercase opacity-90">
+          {institution.name}
+        </p>
+        <div>
+          <p className="text-h3 font-bold sm:text-h2">{offer.programme}</p>
+          <p className="text-small opacity-90">
+            {offer.degree} · {offer.startingTerm}
+          </p>
+          {/* Cut on mobile. The description is the first thing to go when a
+              decision screen has to lose content rather than the constraint. */}
+          <p className="mt-2 hidden max-w-sm text-small leading-5 opacity-85 lg:block">
+            {offer.programmeDescription}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
 
+const FACTS = [
+  { label: "Programme", value: offer.programme },
+  { label: "Degree", value: offer.degree },
+  { label: "Starts", value: offer.startingTerm },
+  { label: "Campus", value: offer.campus },
+  { label: "Respond by", value: formatDeadline(offer.responseDeadline) },
+];
+
+/** The three rows mobile keeps. Five label→value rows do not fit beside a bar. */
+const MOBILE_FACTS = new Set(["Programme", "Starts", "Respond by"]);
+
+const CONSEQUENCES = [
+  {
+    Icon: ShieldCheckIcon,
+    text: `Holds your place in ${offer.programme} for ${offer.startingTerm}.`,
+  },
+  { Icon: HouseLineIcon, text: "Opens housing, so you can rank where you want to live." },
+  {
+    Icon: CalendarBlankIcon,
+    text: `Starts the deposit clock. You have until ${formatDeadline(offer.responseDeadline)} to pay it.`,
+  },
+];
+
 /**
- * The decision, in the fixed bar — one row, inside the constant 4.5rem.
+ * The act: stacked bands separated by hairlines inside one Panel, because they
+ * are sequential parts of one subject with no independent actions (lululemon).
+ * Four framed boxes in a column is the stacking the client has objected to
+ * twice.
  *
- * Upwork's shape, and for Upwork's reason: one solid button for the answer
- * almost everybody is giving, the other answer as a link that is plainly there
- * but is not competing for the eye.
- *
- * It used to be three rows — reassurance, buttons, deadline — which is why this
- * step asked the shell for a 6.5rem bar and then gave it back the moment an
- * answer was recorded, moving the column's bottom padding with it. Both extra
- * rows moved into the body: the deadline into the facts grid, the reassurance
- * beside the offer it reassures about. What does not fit in the bar is not bar.
- *
- * Declining is one click. The confirmation dialog it used to open asked for a
- * reason and a note before it would take the answer, which is a survey charging
- * admission to a door the student is trying to walk out of.
+ * The facts are `label → value` **rows**, not a five-cell grid. A grid of five
+ * makes the reader scan in two directions to answer "when does it start".
  */
-function Decision({ onAccept, onDecline }: { onAccept: () => void; onDecline: () => void }) {
+function TheAct() {
   return (
-    <>
-      <Button
-        type="button"
-        variant="link"
-        size="sm"
-        className="mr-auto px-0 text-ink-500 underline hover:text-ink-700"
-        onClick={onDecline}
-      >
-        Decline<span className="hidden sm:inline"> this offer</span>
-      </Button>
-      <Button type="button" size="lg" onClick={onAccept}>
-        <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
-        Accept<span className="hidden sm:inline"> my place</span>
-      </Button>
-    </>
-  );
-}
+    <Panel className="flex flex-col lg:col-span-7" bodyClassName="flex flex-1 flex-col">
+      <dl className="divide-y divide-ink-100">
+        {FACTS.map((fact) => (
+          <div
+            key={fact.label}
+            className={
+              MOBILE_FACTS.has(fact.label)
+                ? "flex items-baseline justify-between gap-4 py-2"
+                : "hidden items-baseline justify-between gap-4 py-2 lg:flex"
+            }
+          >
+            <dt className="text-small text-ink-500">{fact.label}</dt>
+            <dd className="text-body font-strong text-ink-900">{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
 
-function RecordedResponse() {
-  const state = useOnboarding();
-  const { next, goNext } = useStepNav("offer");
-  const accepted = state.offer.response === "accepted";
-  const when = formatRespondedAt(state.offer.respondedAt);
+      {/* The deposit is its own block with the deadline beside it, not a loose
+          line in a footer (Kiwi.com). */}
+      <div className="mt-4 flex items-center gap-4 rounded-[var(--radius-field)] bg-well p-4">
+        <IconTile size="lg">
+          <WalletIcon weight="fill" aria-hidden className="size-6" />
+        </IconTile>
+        <div className="min-w-0 flex-1">
+          <p className="text-h3 text-ink-900 numeric">
+            {formatMoney(offer.depositAmount, offer.depositCurrency)}
+          </p>
+          <p className="text-small text-ink-600">
+            Enrollment deposit, credited against your first term's tuition, not charged on top of
+            it.
+          </p>
+        </div>
+      </div>
 
-  return (
-    <>
-      <p className="mr-auto flex items-center gap-2 text-small text-ink-600">
-        {accepted ? (
-          <CheckCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-mint-600" />
-        ) : (
-          <ProhibitIcon weight="fill" aria-hidden className="size-4 shrink-0 text-ink-400" />
-        )}
-        <span className="hidden sm:inline">
-          {accepted ? "Accepted" : "Declined"} on {when}
-        </span>
+      {/* Migrated out of the celebration. Stating the consequence before the
+          decision is the honest place for it. Not carried to mobile. */}
+      <div className="mt-5 hidden border-t border-ink-100 pt-4 lg:block">
+        <p className="field-label">What accepting does</p>
+        <ul className="mt-3 space-y-2.5">
+          {CONSEQUENCES.map((line) => (
+            <li key={line.text} className="flex items-start gap-3">
+              <IconTile size="sm">
+                <line.Icon weight="fill" aria-hidden className="size-4" />
+              </IconTile>
+              <span className="pt-1.5 text-body text-ink-700">{line.text}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* The reassurance sits immediately above the bar, as a quiet block
+          rather than as fine print (Artsy). */}
+      <p className="mt-auto pt-4 text-small text-ink-500">
+        Accepting does not lock you in for good. You can withdraw in writing any time before term
+        starts.
       </p>
-      <Button type="button" size="lg" onClick={goNext}>
-        <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
-        <span className="sm:hidden">Next</span>
-        <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-      </Button>
-    </>
+    </Panel>
   );
-}
-
-function formatRespondedAt(iso: string | null) {
-  if (!iso) return "today";
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 }

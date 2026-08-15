@@ -2,6 +2,7 @@ import { FileArrowUpIcon, FilePdfIcon, ImageIcon, TrashIcon } from "@phosphor-ic
 import * as React from "react";
 
 import { Notice } from "@/components/notice";
+import { IconTile } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import type { UploadedFile } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -86,13 +87,17 @@ export function DocumentUpload({
           accept(event.dataTransfer.files);
         }}
         className={cn(
-          "flex flex-col items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed px-5 py-7 text-center transition-colors",
-          dragging ? "border-violet-500 bg-violet-50/60" : "border-ink-200 bg-ink-50/50",
+          /* The dropzone is a dashed Well: the only thing recessed here, and
+             an invitation rather than a record (PayPal). The uploaded file
+             leaves it and becomes a row in the sibling Well below, so the Well
+             never accumulates state. */
+          "flex flex-col items-center gap-3 rounded-[var(--radius-field)] border border-dashed px-5 py-6 text-center transition-colors",
+          dragging ? "border-violet-500 bg-violet-50/60" : "border-ink-200 bg-transparent",
         )}
       >
-        <span className="flex size-11 items-center justify-center rounded-[12px] bg-violet-50 text-violet-600">
+        <IconTile size="md">
           <FileArrowUpIcon weight="duotone" aria-hidden className="size-5.5" />
-        </span>
+        </IconTile>
         <div className="space-y-1">
           <p className="text-body font-bold text-ink-900">{label}</p>
           <p className="text-small text-ink-500">
@@ -118,11 +123,11 @@ export function DocumentUpload({
       </div>
 
       {files.length > 0 ? (
-        <ul className="space-y-2">
+        <ul className="space-y-2 rounded-[var(--radius-field)] bg-well p-2">
           {files.map((file, index) => (
             <li
               key={`${file.name}-${index}`}
-              className="flex items-center gap-3 rounded-[var(--radius-field)] border border-ink-100 bg-surface px-3.5 py-2.5"
+              className="flex items-center gap-3 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-3.5 py-2.5"
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-ink-50 text-ink-500">
                 {file.name.toLowerCase().endsWith(".pdf") ? (

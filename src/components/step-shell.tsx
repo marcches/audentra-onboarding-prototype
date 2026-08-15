@@ -4,21 +4,26 @@ import type * as React from "react";
 
 import { PhaseBar, StepRail } from "@/components/step-rail";
 import { Button } from "@/components/ui/button";
-import { nextStep, previousStep, type StepId } from "@/lib/steps";
+import { type Archetype, nextStep, previousStep, type StepId, stepById } from "@/lib/steps";
+import { studentStatus, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
- * Where Back and Continue actually go, derived from `steps.ts`.
+ * Where Back and Continue actually go, derived from `steps.ts` *and* from the
+ * student's own answer.
  *
  * Every step used to name its neighbour as a literal path, which meant the flow
- * order lived in seven files as well as in `steps.ts`. Reordering the spine
- * into Phases moved three of those neighbours, and a literal would have been
- * wrong in each place without anything failing to build.
+ * order lived in seven files as well as in `steps.ts`. It now also depends on
+ * Student status: `Where you live now` does not exist for an international
+ * student, so Continue from Health information lands on `Who we call` for them
+ * and on the address Step for everyone else. A literal path would have walked
+ * that student into a screen the spine says they do not have.
  */
 export function useStepNav(current: StepId) {
   const navigate = useNavigate();
-  const back = previousStep(current);
-  const next = nextStep(current);
+  const status = studentStatus(useOnboarding());
+  const back = previousStep(current, status);
+  const next = nextStep(current, status);
 
   return {
     back,
@@ -35,12 +40,10 @@ export function useStepNav(current: StepId) {
 /**
  * The floor width for a primary action whose label changes with state.
  *
- * A button that reads "Skip for now" at zero and "Continue with 3 clubs" after
- * three picks resizes itself as you work, which is the same defect as a block
- * being born mid-column — moved into the one piece of furniture that is
- * supposed to never move. The floor is measured, not guessed: the widest label
- * the flow produces is "Continue with 9 clubs" at 249px, so the floor is 16rem
- * with a couple of pixels to spare and every label lays out inside it.
+ * A button that reads "Skip for now" at zero and "Continue with 3 residences"
+ * after three picks resizes itself as you work, which is the same defect as a
+ * block being born mid-column — moved into the one piece of furniture that is
+ * supposed to never move.
  */
 export const steadyAction = "min-w-[16rem] justify-between";
 
@@ -53,9 +56,7 @@ function useArrivedFromReview() {
 /**
  * Back, in the fixed bar. Absent on the first step, where there is nowhere to
  * go, and absent when the student arrived from the Review summary — there
- * `ReturnToReview` occupies this slot instead. Two answers to "where do I go
- * back to?" in one bar is the student choosing between two returns, and the
- * `steps.ts`-derived one is the wrong answer when you did not arrive by Next.
+ * `ReturnToReview` occupies this slot instead.
  */
 export function BackButton({ current }: { current: StepId }) {
   const { back, goBack } = useStepNav(current);
@@ -74,17 +75,10 @@ export function BackButton({ current }: { current: StepId }) {
 /**
  * The return half of the Review & sign round trip.
  *
- * The summary's edit links carry `?from=review`; without something reading it,
- * "the edit link takes you straight to it and brings you back here" was only
- * half true.
- *
  * It lives in the bar, not above the title. Rendered in the column it was a
  * block born from a query parameter, so the same step's `h1` sat ~2.5rem lower
- * when reached from the summary than when reached by Next — one of the four
- * causes of the position flick the client reported. The bar is where the
- * question "where do I go back to?" already has a button, so it takes that one
- * over rather than adding a row. Rendered by the shell so every step gets it,
- * including Offer, which has no Back of its own but is in the summary.
+ * when reached from the summary than when reached by Next — the exact drift the
+ * ruler's second line forbids.
  */
 function ReturnToReview() {
   const fromReview = useArrivedFromReview();
@@ -102,28 +96,39 @@ function ReturnToReview() {
 }
 
 /**
- * The step layout: rail, one column of panels on a recessed ground, and a fixed
- * action bar at the foot.
+ * How wide each archetype's column is.
  *
- * Two things went out with this rewrite. The third column — `context` — is
- * gone: it was a place to put things, which meant every step found something to
- * put there, and it cost the layout 1280px before it could exist at all.
- * Anything that lived there now has a home in the single column, above the fold
- * where it is actually read. And the step no longer renders on a white canvas:
- * the ground is recessed and the content sits in white panels, which is what
- * makes it read as an application rather than as a document (Deel, Mixpanel,
- * Clay).
+ * The archetype is read from `steps.ts`, never passed by the route, which is
+ * what "a route cannot compose outside its archetype" has to mean if it is to
+ * mean anything: a screen cannot decide to be wider than the kind of screen it
+ * is. `celebration` is absent because a celebration is not a Step layout — it
+ * has no rail and no action bar, and it renders outside this shell.
  *
- * Mobile is a layout, not a narrowing: segmented Phase bar at the top, one
- * column, the same action bar pinned to the bottom.
+ * The drift invariant this does *not* break: the ruler says the same Step lands
+ * in the same place however you arrived at it (user story 60). Two different
+ * archetypes composing differently is the archetype doing its job.
+ */
+const MEASURE: Record<Exclude<Archetype, "celebration">, string> = {
+  decision: "max-w-[var(--decision-measure)]",
+  form: "max-w-[var(--step-measure)]",
+  catalogue: "max-w-[var(--catalogue-measure)]",
+  review: "max-w-[var(--catalogue-measure)]",
+};
+
+/**
+ * The step layout: rail, one column on a recessed Ground, and a fixed action
+ * bar at the foot.
  *
  * The shell has no escape hatches, and that is the point. It used to take
  * `centered` (only Offer set it) and `actionBarHeight` (only Offer set it, and
  * only while unanswered), and between them a step could move its own `h1` by
  * half a viewport and change the column's bottom padding mid-answer. Both are
- * gone: every step anchors its title at the same pixel and the bar is a
- * constant 4.5rem, so divergence is not a rule anyone has to remember — it is
- * unexpressible. See the stillness ruler in `docs/design-research.md`.
+ * gone: the bar is a constant 4.5rem and the column's width comes from the
+ * archetype rather than from the screen, so divergence is not a rule anyone has
+ * to remember — it is unexpressible.
+ *
+ * Mobile is a layout, not a narrowing: segmented Phase bar at the top, one
+ * column, the same action bar pinned to the bottom.
  */
 export function StepShell({
   current,
@@ -131,6 +136,7 @@ export function StepShell({
   lead,
   actions,
   saved = true,
+  headerAside,
   children,
 }: {
   current: StepId;
@@ -142,29 +148,56 @@ export function StepShell({
    * used to be a scroll away from wherever the student had finished reading.
    */
   actions?: React.ReactNode;
-  /** The autosave line. Steps with nothing to save (Review's signed state) turn it off. */
+  /** The autosave line. Steps with nothing to save turn it off. */
   saved?: boolean;
+  /**
+   * Sits on the title's own row, at the right — the Quest's price, and nothing
+   * else. It is beside the `h1` rather than above it, so it cannot move the
+   * title down when it appears.
+   */
+  headerAside?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const step = stepById(current);
+  const archetype = step.archetype === "celebration" ? "form" : step.archetype;
+
   return (
     <>
       <StepRail current={current} />
-      <div className="flex min-w-0 flex-1 flex-col bg-canvas">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col bg-canvas",
+          /* The one non-signal gradient admitted under a whole screen. A
+             decision with 450px of white beneath it reads as unfinished; the
+             same decision resting on a very low wash reads as placed. */
+          archetype === "decision" && "decision-ground",
+        )}
+      >
         <PhaseBar current={current} />
         {/* The bar is fixed, so the column ends above it rather than under it.
             `--action-bar-height` is the one number both sides read, and it is a
             constant — nothing sets it per step. */}
-        <main className="flex flex-1 flex-col px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7">
-          {/* `header` is the first child, and the ruler says nothing may be born
-              above it. Anything that appears by state — the return to Review
-              was the one offender — goes in the bar or is an overlay, because a
-              block that grows above the title moves the whole screen. */}
-          <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-4">
-            {/* No "Step N of 7". The rail and the segmented bar both show
-                position already, and it was being repeated in text besides. */}
-            <header className="space-y-1">
-              <h1 className="text-h2 text-ink-900 sm:text-h1">{title}</h1>
-              {lead ? <div className="text-body text-ink-600">{lead}</div> : null}
+        <main
+          className={cn(
+            "flex flex-1 flex-col px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7",
+            /* A `decision` occupies exactly one viewport at any width. If it
+               does not fit it loses content, not the constraint — which is why
+               the mobile offer cuts the programme description and the "what
+               accepting does" block rather than letting the page scroll. */
+            archetype === "decision" && "h-dvh overflow-hidden",
+          )}
+        >
+          {/* `header` is the first child, and the ruler says nothing may be
+              born above it. Anything that appears by state goes in the bar, on
+              the header's own row, or is an overlay — a block that grows above
+              the title moves the whole screen. */}
+          <div className={cn("mx-auto flex w-full flex-1 flex-col gap-4", MEASURE[archetype])}>
+            <header className="flex items-start gap-4">
+              <div className="min-w-0 flex-1 space-y-1">
+                <h1 className="text-h2 text-ink-900 sm:text-h1">{title}</h1>
+                {lead ? <div className="text-body text-ink-600">{lead}</div> : null}
+              </div>
+              {headerAside ? <div className="shrink-0">{headerAside}</div> : null}
             </header>
             {children}
           </div>
@@ -182,9 +215,8 @@ export function StepShell({
 
 /**
  * The fixed action bar. One piece of furniture, in the same place on every step
- * and in both layouts — Deel puts Exit/Continue in a footer bar, Zopa and Alan
- * pin the button to the bottom on the phone, and the reason is the same in both
- * cases: the way out of a step should not depend on where you have scrolled to.
+ * and in both layouts — the way out of a step should not depend on where you
+ * have scrolled to.
  *
  * The autosave line rides along because "did that save?" is a question people
  * ask at the moment they are about to leave, not a moment earlier.
@@ -198,7 +230,7 @@ export function ActionBar({
 }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-surface/95 backdrop-blur lg:left-56">
-      <div className="mx-auto flex h-[var(--action-bar-height)] w-full max-w-[var(--step-measure)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[var(--action-bar-height)] w-full max-w-[var(--catalogue-measure)] items-center gap-3 px-4 sm:px-6 lg:px-8">
         {saved ? (
           <p className="hidden items-center gap-2 text-small text-ink-500 sm:flex">
             <CloudCheckIcon weight="fill" aria-hidden className="size-4 text-mint-600" />
@@ -211,70 +243,4 @@ export function ActionBar({
   );
 }
 
-/**
- * A white panel on the recessed ground. The unit the whole flow is built from —
- * no step renders content directly onto the canvas.
- *
- * This replaces both `ContextPanel` (which only ever appeared in the dead third
- * column) and the loose sections that used to sit on white. `title` is
- * optional: plenty of panels are a single group of fields that the step's own
- * heading has already introduced, and a heading per panel was a good part of
- * the bulk the client was complaining about.
- */
-export function Panel({
-  as: Tag = "section",
-  title,
-  description,
-  aside = false,
-  className,
-  children,
-}: {
-  /**
-   * `fieldset` where the panel *is* a group of related controls — a panel with
-   * a legend that isn't a fieldset is a heading pretending to be one.
-   */
-  as?: "section" | "fieldset";
-  title?: string;
-  description?: React.ReactNode;
-  /**
-   * A panel carrying context rather than input — what used to be the third
-   * column. Tinted rather than white so it reads as reference beside the work,
-   * now that it no longer has a column of its own to say so.
-   */
-  aside?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tag
-      className={cn(
-        "rounded-[var(--radius-card)] border p-4 sm:p-5",
-        aside ? "border-ink-100 bg-ink-50/60" : "border-ink-100 bg-surface shadow-soft",
-        className,
-      )}
-    >
-      {title ? (
-        <div className="mb-3 space-y-0.5">
-          <h2 className="text-h3 text-ink-900">{title}</h2>
-          {description ? <p className="text-small text-ink-500">{description}</p> : null}
-        </div>
-      ) : null}
-      {children}
-    </Tag>
-  );
-}
-
-export function SectionTitle({
-  children,
-  description,
-}: {
-  children: React.ReactNode;
-  description?: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-0.5">
-      <h2 className="text-h3 text-ink-900">{children}</h2>
-      {description ? <p className="text-small text-ink-600">{description}</p> : null}
-    </div>
-  );
-}
+export { Panel, PanelDivider, SectionLabel, Well } from "@/components/surfaces";

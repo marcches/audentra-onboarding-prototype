@@ -5,6 +5,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import { ImageViewerProvider } from "@/components/image-viewer";
 import { PointsAwardProvider } from "@/components/points-award";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
@@ -12,10 +13,13 @@ import { DepositRoute } from "@/routes/deposit";
 import { EntryRoute } from "@/routes/entry";
 import { HealthRoute } from "@/routes/health";
 import { HousingRoute } from "@/routes/housing";
-import { IdentityContactRoute } from "@/routes/identity-contact";
+
 import { OfferRoute } from "@/routes/offer";
 import { ReviewRoute } from "@/routes/review";
 import { StyleGuideRoute } from "@/routes/style-guide";
+import { WhereYouLiveRoute } from "@/routes/where-you-live";
+import { WhoWeCallRoute } from "@/routes/who-we-call";
+import { WhoYouAreRoute } from "@/routes/who-you-are";
 
 /**
  * Code-based routing on purpose: no generated route tree to keep in sync, so
@@ -67,9 +71,15 @@ const onboardingRoute = createRoute({
      it was animating. */
   component: () => (
     <PointsAwardProvider>
-      <div className="flex min-h-dvh bg-canvas">
-        <Outlet />
-      </div>
+      {/* The viewer wraps the whole of `/onboarding` so any photograph in the
+          flow can open it, and so the page behind it stays mounted while it is
+          open — a viewer that unmounted its own trigger could not return focus
+          to it. */}
+      <ImageViewerProvider>
+        <div className="flex min-h-dvh bg-canvas">
+          <Outlet />
+        </div>
+      </ImageViewerProvider>
     </PointsAwardProvider>
   ),
 });
@@ -88,10 +98,22 @@ const offerRoute = createRoute({
   component: OfferRoute,
 });
 
-const identityContactRoute = createRoute({
+const whoYouAreRoute = createRoute({
   getParentRoute: () => onboardingRoute,
-  path: "identity-contact",
-  component: IdentityContactRoute,
+  path: "who-you-are",
+  component: WhoYouAreRoute,
+});
+
+const whereYouLiveRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: "where-you-live",
+  component: WhereYouLiveRoute,
+});
+
+const whoWeCallRoute = createRoute({
+  getParentRoute: () => onboardingRoute,
+  path: "who-we-call",
+  component: WhoWeCallRoute,
 });
 
 const housingRoute = createRoute({
@@ -125,9 +147,10 @@ const depositRoute = createRoute({
 });
 
 /**
- * The arrival screen sits outside `/onboarding` because it is not a step: it
- * has no rail, no counter and no place in `steps.ts`, and nesting it under the
- * step layout would give it all three.
+ * Enrolled sits outside `/onboarding` because it is a `celebration`: it has no
+ * rail and no action bar, and nesting it under the step layout would give it
+ * both. It *is* in `steps.ts` — the rail should show the destination — but it
+ * is reached rather than worked through.
  */
 const completionRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -143,10 +166,12 @@ const routeTree = rootRoute.addChildren([
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,
-    identityContactRoute,
+    whoYouAreRoute,
+    healthRoute,
+    whereYouLiveRoute,
+    whoWeCallRoute,
     housingRoute,
     campusLifeRoute,
-    healthRoute,
     reviewRoute,
     depositRoute,
   ]),

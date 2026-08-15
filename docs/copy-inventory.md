@@ -1,191 +1,519 @@
-# Copy inventory — round 4
+# Copy inventory
 
-Updated for the Phases round, not rewritten. Only the strings these decisions
-renamed, invented or orphaned were touched: the Housing section (rebuilt in
-ticket 04), the Offer's reassurance and share prompt, About you's disclosure
-scopes, and Completion's Balance line. Everything else is round 3's and was
-approved as it stands.
+Every string the student reads, by Step, in its final wording, with the register
+marked. **Screens are built from this file.** A screen ticket that invents a
+string instead of taking it from here has skipped ticket 03, and the previous
+round is the evidence for why that matters: its copy ticket was ninth of nine,
+written against screens that already existed, which is why the client says the
+input text was never fixed.
 
-Every string of interface text in the prototype, by screen, with where it came
-from. Two origins only:
+## Two registers, declared
 
-- **Sheet** — copied from `raw/data/2026-08-08-audentra-student-portal-fields.md`
-  (the Student Portal Fields table, the Scenarios table, or the Message Library
-  tab). Not rewritten, not paraphrased. These need no wordsmithing review.
-- **Derived** — not in the sheet, written here against a named Message Library
-  rule. **These are the ones to read closely.** Each carries the rule it was
-  written against, so the review question is "does it obey that rule?" rather
-  than "do you like it?".
+Not one voice averaged across the flow. That average is what produces "your form
+was submitted successfully!".
 
-The rules referenced, from the Message Library tab:
+| Register | Where | What it sounds like |
+|---|---|---|
+| **Warm** | Your offer, the acceptance, every Points award, Campus life, Enrolled | Direct, second person, short. The brief via Laura was *"faça parte desse time"*, not *"compartilhe se quiser"*. |
+| **Flat** | Who you are, Health information, Where you live now, Who we call, Review & sign, Deposit | Precise, unadorned. Money, FERPA, immigration status and signatures do not want personality. |
 
-| Rule | What it requires |
-| --- | --- |
-| Field helper text | States what is wanted and why. Never repeats the label. |
-| Inline validation | Names the field, states what is wrong, states what is acceptable. |
-| Submit error | States whether anything was saved, sent or charged. Never blames the student for a system failure. |
-| Confirmation | Omitted where the result is already visible on screen. |
-| Result statement | Persistent. Carries the date and any reference the student may need to quote. |
-| Empty state | States why it is empty and what would fill it. Never renders as blank space. |
-| Confirmation dialogue | The confirm control is labelled with the action, not with "Yes". |
-| Convention — voice | Addresses the student directly. Avoids system language. |
+The seam between them is a Step boundary, never a paragraph boundary.
+
+## Rules
+
+- A radio option carries its own consequence in its label (Fiverr's "U.S. tax
+  authorities might request Form W-9"), never in a footnote under the group.
+- A question that needs justifying says why it is asked, **once** (Remote's "We
+  need this to determine which tax forms you need").
+- Helper text survives only where a field is genuinely ambiguous. Laura: *"tem
+  explicação em cada um deles, será que é necessário isso mesmo?"* The helper
+  text is itself part of the bulk being scrolled past.
+- **No em dashes.** Requested directly by the client on the call.
+- Buttons are named for what comes next, never "Submit". Where money is
+  involved the button carries the amount.
+- What you will need is listed before the first field, not discovered mid-form.
 
 ---
 
 ## Entry
 
-| String | Origin | Note |
-| --- | --- | --- |
-| "Aster University enrollment" | Derived | Page title. Names the portal, not the visitor — the old heading guessed at the person's situation ("Welcome back" for someone with no account). |
-| "Your account holds your offer, your checklist and your documents." | Derived | Voice. Says what the account is for, one sentence. |
-| "This becomes how you sign in." | **Sheet** | Email address helper. |
-| "We use this for reminders only if you choose text." | **Sheet** | Mobile phone helper. |
-| "At least 12 characters, including a letter and a number." | **Sheet** (pattern) | Sheet has "At least {n} characters"; the two extra conditions are this prototype's password rule and are named because the rule enforces them. |
-| "Enter a valid email address." | **Sheet** | Inline validation. |
-| "Enter a valid phone number, including the country code." | **Sheet** | Inline validation. Cited in the Message Library as the worked example of the rule. |
-| "Enter your mobile number, including the country code." | Derived | Inline validation, empty case. Same shape as the sheet's non-empty case. |
-| "That number is too short / too long. It should be 7 to 14 digits after the country code." | Derived | Inline validation. States what is acceptable, which is the half most length errors omit. |
-| "Your password needs at least 12 characters." | **Sheet** (pattern) | Sheet: "Your password does not meet the requirements: {unmet requirements listed}." Rendered here as one message per unmet requirement. |
-| "These do not match. Type the same password in both fields." | Derived | Inline validation. |
-| "Nothing was created. An account already exists for {email}. Sign in instead, or contact Admissions at {email}." | **Sheet** | Submit error — the sheet's own string, with "Nothing was created" as the title because the rule requires stating whether anything was saved. |
-| "Nothing was sent. There is no account for {email}. Create one above — what you have typed here is kept." | Derived | Submit error. States that nothing was sent and that nothing is lost. |
-| "Email and text messages are switched off in this preview. Nothing will arrive in your inbox. Your account still works." | Derived | Page banner. A prototype-only condition, so the sheet has nothing for it. |
-| "All of Aster, in one place. / Enrollment, documents and payments." | Derived | The one institutional line on the brand panel (ADR-0006). Asserts nothing about the individual. |
+**Register:** warm.
 
-## Offer
+| Slot | String |
+|---|---|
+| Heading (new) | Welcome to Aster |
+| Heading (returning) | Welcome back |
+| Lead | Your place is waiting. Sign in and we will pick up where you left off. |
+| Tab | Create account · Sign in |
+| Email label | Email address |
+| Password label | Password |
+| Password help | At least 12 characters, with a letter and a number. |
+| Mobile label | Mobile number |
+| Submit (new) | Create your account |
+| Submit (returning) | Sign in |
+| Footer | Trouble getting in? Write to support@audentra.com |
 
-| String | Origin | Note |
-| --- | --- | --- |
-| "Your offer" | Derived | Page title. Replaces "Your place at Aster", which Laura named. |
-| "Read it, then accept or decline. You can answer once — changing it afterwards goes through Admissions." | **Sheet** (rule) | From the Acceptance field's restriction: "One response only. Changing it requires Admissions." |
-| "The degree awarded." / "When you would begin." / "Where you would study." | **Sheet** | Field helper text for Degree, Starting term, Campus. |
-| "The date by which you must respond." → "After this the offer closes and only Admissions can reopen it." | **Sheet** (adapted) | Response deadline helper, merged with the expiry rule so the consequence is stated before it happens rather than after. |
-| "Accepting does not commit you to payment yet." | **Sheet** | SC-001 tooltip, verbatim. This is the line that gives the deposit block its weight. |
-| "Yes, I'm joining" / "No, I won't be joining" | **Sheet** (Acceptance: Accept / Decline) | Wording carried from round 1 and approved on the call. |
-| "Your place is reserved and the rest of enrollment opens. Nothing is charged." | Derived | Under the accept control: states the consequence before the confirm, per Confirmation dialogue. |
-| "Your record closes. Telling us why is optional and helps us improve." | **Sheet** | SC-002 tooltip. |
-| "Welcome to Aster. Your place in Computer Science for Fall 2027 is reserved. Accepting does not commit you to payment yet." | **Sheet** | The acceptance dialog. The sheet's approved string; its third sentence ("Next, create your account") is dropped because the account already exists by this point in the prototype. |
-| "Decline my offer" (confirm control) | Derived | Confirmation dialogue: labelled with the action, not with "Yes". |
-| "Thank you for letting us know. Your response is recorded." | **Sheet** | SC-002/SC-003. |
-| "You accepted this offer on {date}. To change your response, contact Admissions." | **Sheet** | SC-005. |
-| "What happens when you accept" — three numbered consequences | Derived | Voice. Moved into the celebration in ticket 02: it answers a question the student asks *after* saying yes. Content is drawn from SC-001 and the offer restrictions. |
-| "Nothing is charged today. Accepting reserves your place and opens the rest of enrollment." | Derived | The reassurance above the fixed bar (Upwork). Two sentences, not one joined by a dash — ticket 06. |
-| "Go public with it. You're joining Aster." → "Post it to Facebook or LinkedIn and let people hear it from you. Worth 20 points toward your bookstore credit." | Derived | The celebration's share prompt. **Replaces "Entirely optional, and worth N points if you do."** That was verbatim the register the client rejected ("não apenas se você quiser") in the one moment he wanted to feel like going public with a relationship. It remains optional in fact; it no longer apologises for being asked. |
+## The entrance line
 
-## About you
+Announced **once**, before the first field, and never repeated as a running
+remainder. Melio's "Takes 4-5 minutes · Each step is saved as you progress" and
+Langdock's "0 / 595" crowning a checklist.
 
-| String | Origin | Note |
-| --- | --- | --- |
-| "About you" | Derived | Page title. |
-| "Upload an ID and we will fill in what we can." | **Sheet** | Identity document upload helper. |
-| "PDF, JPEG or PNG, up to 8 files, 30 MB in total." | **Sheet** | The field's restrictions, stated to the student. |
-| "We read your document and filled in the fields below. Check them before continuing." | **Sheet** | Upload success. |
-| "We keep your original file, and nothing we read counts until a person checks it." | **Sheet** | SC-011 tooltip. |
-| "We could not read this document. Fill the fields in yourself, or try another file." | **Sheet** | Upload error 1 of 3. |
-| "This file type is not accepted. Use PDF, JPEG or PNG." | **Sheet** | Upload error 2 of 3. |
-| "This file is larger than 30 MB." | **Sheet** | Upload error 3 of 3. |
-| "You can attach up to 8 files." | **Sheet** | From the Requirement/Upload row, same restriction. |
-| "As it appears on your official documents." → "From your application. The Registrar changes this, not you." | **Sheet** (adapted) | Read-only fields. The sheet's helper plus the RN-PR-02 route to correction, because the field is not editable here. |
-| "What you would like us to call you. Defaults to Alex." | **Sheet** | Preferred name helper plus its empty state. |
-| "This decides which financial aid and visa steps open later." | Derived | Field helper text. Says why the field is being asked, which the sheet's own version ("Do you need a student visa to study here?") does not. |
-| "Your permanent address decides your residency classification, which affects your tuition, and it is where official post goes." | Derived | Field helper text. **Required field** — the errata. The reason survived the rewrite; the "all optional" claim did not. |
-| "Enter your street address." / "Enter your city or town." / "Enter your state or province." / "Enter your ZIP or postal code." / "Choose the country you live in." | Derived | Inline validation, one per address field. |
-| "How Enrollment Services should review your residency classification" | **Sheet** | Residency review helper, verbatim as the legend. |
-| "Review path not selected. Choose one, or leave it and Enrollment Services will pick a path and tell you." | **Sheet** | Empty state, from the field's own Empty column. |
-| "One person is enough. They get no access to your record — that is the next section." | Derived | Voice. Pre-empts the question the next section answers. |
-| "Enter their full name." / "Choose how you know them." | Derived | Inline validation. |
-| "Choose who can see your record and what they can see. You can change or remove this at any time." | **Sheet** | Grant family access helper plus SC-082 tooltip. |
-| "No one else has access to your record. You can grant access any time from your profile." | **Sheet** | SC-021 / the field's empty state. |
-| "Choose at least one item, or cancel." → "Pick at least one thing they can see, or turn access back off." | **Sheet** (adapted) | Disclosure scope error. Adapted because this screen has a toggle, not a cancel. |
-| The six scopes, each with its line: "Enrollment status" / "Grades and academic record" / "Billing and financial aid" / "Housing" / "Health and disability services" / "Disciplinary record" | Derived | Ticket 07. Named as the thing rather than as the office that owns it — a student ticking "Student Financial Services" has not been told what they are giving away. The sentence under each is what makes the tick informed. |
-| "These two stay off unless you turn them on." | Derived | Above the health and conduct scopes. States the default rather than relying on the student noticing it. |
-| "{name} · N of 6 areas" | Derived | The collapsed section summary. Was "N area(s)". |
-| "{n} of 4 sections still need you." | Derived | The fixed column. Voice. |
-
-## Housing
-
-Rebuilt in ticket 04. The three-way intent question and everything hanging off
-it are gone: the residences are the step now, and the strings below replace the
-whole of the previous section.
-
-| String | Origin | Note |
-| --- | --- | --- |
-| "Where you'll live" | Derived | Page title. Unchanged, and the subtitle Laura said added nothing is still gone. |
-| "Rank 3 of the 8. Housing Services assigns rooms after the response deadline. A shortlist is considered, never guaranteed." | **Sheet** (adapted) | The Housing tooltip, split into two sentences. The qualifier the sheet carries ("Housing considers this, it does not guarantee it") is now the lead of the screen rather than a line inside a panel, because the ranking is the screen. |
-| "Your shortlist" | Derived | Panel title. **Shortlist** per `CONTEXT.md` — the previous "Your ranking" named the gesture rather than the thing produced. |
-| "First choice at the top. Reorder with the arrows, or drag the number." | Derived | Says how to operate a control whose affordance is not obvious, per Voice. |
-| "Nothing shortlisted yet. Choose Add to shortlist on a residence and it takes the first slot." | Derived | Empty state: why it is empty, and what fills it. |
-| "1st choice / 2nd choice / 3rd choice — empty" | Derived | Empty slot label. Shown only once at least one slot is filled; see ticket 04. |
-| "Add to shortlist" / "Shortlisted #N — remove" | Derived | Replaces "Rank it" and "Nth choice — remove". Names the Shortlist, which is the thing being built. |
-| "All 3 slots are full. Remove one to shortlist a different residence." | Derived | Blocked state: what unlocks the control. |
-| "Room type" / "Bathroom" | Derived | Filter pill labels. The two facts a student narrows on first. |
-| "Nothing matches both filters. No residence offers that room type with that bathroom. Widening either one brings residences back." | Derived | Empty state: why it is empty, and what fills it. |
-| Amenity chips: "Single room or Shared room", "Bathroom per floor", "Meal plan included", "N min walk", "Laundry in the building", "First years only" | Derived | Label maps in `fixtures.ts`. The API returns codes; these are the words. No cost — ADR-0003. |
-| "Already have a place in the city? I'll arrange my own housing" | Derived | The off-campus exit. Off campus is no longer half the step; this is the discreet path that remains, per ADR-0003. |
-| "Noted — you're housing yourself. Housing Services won't assign you a room, and there's no shortlist to build. Nothing else in enrollment depends on this." | Derived | Result statement for the exit: what it means and what it does not affect. |
-| "Want to look at tuition or housing protection?" | **Sheet** | Unchanged wording, moved behind the exit — the student arranging their own place is who the field is for. |
-
-## Campus life
-
-| String | Origin | Note |
-| --- | --- | --- |
-| "Campus life" | Derived | Page title. Replaces "What you'd show up for", which Laura named. |
-| "None of this blocks your enrollment and you can change it later. Skip the whole step if you would rather." | **Sheet** (rule) | From the roommate-matching restriction: "Never blocks enrollment. Can be exited at any point." |
-| "Ask Disability Services to contact you. Do not upload medical records here." | **Sheet** | Accommodations follow-up helper, verbatim. |
-| "Yes, contact me" / "No, not right now" | **Sheet** | The field's values. |
-| "Disability Services will contact you by email within 3 working days" | **Sheet** | The field's success message, with the placeholders filled. |
-| "Nothing is recorded. Ask Housing Services or Disability Services whenever you need to." | Derived | Confirmation, negative case. |
-| "Nothing picked yet. Choose a club on the left and it appears here. Picking none is a fine answer — nothing on this step blocks your enrollment." | Derived | **Empty state.** The old string ("Nothing picked yet.") said the first half only, which is the exact failure the rule names. |
-
-## Review & sign
-
-| String | Origin | Note |
-| --- | --- | --- |
-| "Read it, then sign it" | Derived | Page title. |
-| "Your answers are written into the agreement below. Read to the end — signing unlocks when you have." | **Sheet** (rule) | From the Document to sign helper: "Read this before signing." |
-| The Enrollment Agreement, clauses 1–8 | Derived | **The largest block of derived copy in the flow.** Plain English, not the real legal instrument — the ticket scopes this to the reading and signing interaction, not the wording. Every bold span is a value the student entered, which makes the bold its own audit trail. |
-| "Type your full name to sign: Alex Rivera." | **Sheet** | Typed signature helper, verbatim. |
-| "The name you typed does not match your name on record. Type it exactly as {name}." | **Sheet** | SC-020 / the field's error, verbatim. |
-| "Scroll to the end of the agreement. Signing unlocks when you have." | Derived | **Blocked state**: what unlocks the control. |
-| "I have read the agreement and I agree to it." | Derived | The consent statement. Shortened — the old version explained the FERPA release, which the agreement itself now does. |
-| "Signed on {date}. Reference {ref}." | **Sheet** | **Result statement**: persistent, carries the date and the reference, per the rule. |
-| "Reference. Quote it if you contact anyone about this agreement." | Derived | Result statement, explaining what the reference is for. |
-| "Your signature goes here" | Derived | Empty state on the signature cell, before signing. |
-
-## Deposit
-
-| String | Origin | Note |
-| --- | --- | --- |
-| "Your enrollment deposit" | Derived | Page title. |
-| "This secures your place and is credited against your balance." | **Sheet** | SC-053 tooltip, verbatim. |
-| "Pay $500 now" / "Accept now, pay by the deadline" / "Ask for a waiver or a later date" | Derived | The three options, carried from round 2 and unchanged in scope. |
-| "Payment is not connected in this prototype. Nothing is charged and no card details are asked for." | Derived | **System message.** Replaces the simulated card form, removed at Laura's request in Jam 3. |
-| "Your place is held. The $500 is due by {date}, and Student Accounts will email you before then." | Derived | Confirmation for the defer option. |
-| "Asking costs you nothing. Student Accounts reviews these individually and it has no bearing on your offer." | Derived | Voice. Removes the implied penalty from asking. |
-| "A sentence is plenty. You do not need to prove anything here." | Derived | Field helper text. |
-
-## Completion
-
-The concept of this screen is protected — Laura approved it twice and assertively
-— so only the copy changed.
-
-| String | Origin | Note |
-| --- | --- | --- |
-| "YOU'RE ENROLLED" | Derived | Unchanged. Approved. |
-| "Your record is live. Nothing needs you right now. We will tell you when something does." | **Sheet** | SC-023 / the Home "items needing attention" zero state, verbatim. |
-| "Your record is live. One thing is still open: your deposit, in the first card below." | Derived | The branch where the deposit was skipped. Colon, not a dash — ticket 06. |
-| "You earned $30 bookstore credit on the way here. That's 170 points, waiting on your Aster account." | Derived | The closing Balance, ticket 05. Credit first, points second: the number was only ever a way of counting the credit (ADR-0002). Absent entirely at zero points. |
-| "Still outstanding. Your place is held until the deadline and not after it. Pay it, or ask for a waiver, from the Deposit step." | Derived | Returned/outstanding state: says what it is and what to do. |
-| The four "what happens next" cards | Derived | Voice. Each states when, then what. |
-| "Enrollment Agreement · signed" + date + reference | **Sheet** (rule) | Result statement, repeated here so the signature is a record rather than a control. |
+> **About {minutes} minutes, saved as you go.** {count} quests, worth
+> {points} points toward credit at the campus bookstore.
 
 ---
 
-## What is deliberately still open
+## 1 · Your offer
 
-- The agreement's clause wording (8 clauses) is the largest derived block and the
-  one furthest from anything the sheet covers. It is plain English standing in
-  for a legal instrument, and the ticket puts the instrument itself out of scope.
-- Three questions go back to Laura before this round closes, per the round-3
-  precedence rule — they are listed in `spec.md` under Further Notes and none of
-  them is a copy decision this pass can make.
+**Register:** warm. **Archetype:** decision.
+
+| Slot | String |
+|---|---|
+| Title | Your place at Aster |
+| Lead | Everything below is the offer as it stands. Read it, then tell us. |
+| Art eyebrow | Aster University |
+| Art footer | {programme}, starting {term} |
+| Facts label | The offer |
+| Fact rows | Programme · Degree · Starts · Campus · Respond by |
+| Deposit tile label | Enrollment deposit |
+| Deposit tile note | Credited against your first term's tuition, not charged on top of it. |
+| Respond-by label | Respond by |
+| Reassurance | Accepting does not lock you in for good. You can withdraw in writing any time before term starts. |
+| Consequence block heading | What accepting does |
+| Consequence 1 | Holds your place in {programme} for {term}. |
+| Consequence 2 | Opens housing, so you can rank where you want to live. |
+| Consequence 3 | Starts the deposit clock. You have until {deadline} to pay it. |
+| Accept | Accept my place |
+| Decline | I am not taking this place |
+| Decline confirm heading | Turning down your place |
+| Decline confirm body | We will let Admissions know. Nothing else happens, and you can write to them if you change your mind. |
+| Decline reason label | Anything you want to tell us? (optional) |
+| Decline submit | Send my answer |
+
+### The acceptance
+
+| Slot | String |
+|---|---|
+| Eyebrow | YOU ARE IN |
+| Headline | You are an Aster student. |
+| Sub | {term} starts in {n} months. Let's get you ready for it. |
+| Share prompt | Faça parte desse time. Tell people. |
+| Share prompt (EN) | Go on, tell people. It is worth {SHARE_POINTS} points. |
+| Share button | Share the news |
+| Share earned | Shared. Nice one. |
+| Continue | Keep going |
+
+The celebration carries emotion, Points and sharing. It carries **no
+information**: "what accepting does" was migrated to the offer screen, where
+stating a consequence before the decision is the honest place for it.
+
+The string "Entirely optional" is **deleted**. It is the exact register the
+client rejected.
+
+---
+
+## 2 · Who you are
+
+**Register:** flat. **Archetype:** form.
+
+| Slot | String |
+|---|---|
+| Title | Who you are |
+| Lead | Your name as you want it used, a number we can reach you on, and one document. |
+| On record label | Already on your record |
+| On record note | Admissions holds these. Write to them if any of it is wrong. |
+| Preferred name label | Preferred name |
+| Preferred name placeholder | What people call you |
+| Pronouns label | Pronouns |
+| Mobile label | Mobile number |
+| Mobile help | We use this for enrolment messages and nothing else. |
+| Status legend | Your student status |
+| Status why | This decides which document we ask you for, and whether we need a U.S. address. |
+| Status option 1 | U.S. citizen |
+| Status consequence 1 | We will ask for your U.S. passport. |
+| Status option 2 | U.S. permanent resident |
+| Status consequence 2 | We will ask for your state-issued driver's licence. |
+| Status option 3 | International student |
+| Status consequence 3 | We will ask for your home country passport. No U.S. address needed. |
+| Upload label (citizen) | Your U.S. passport |
+| Upload label (resident) | Your driver's licence |
+| Upload label (international) | Your home country passport |
+| Dropzone | Drop a photo or PDF here, or choose a file |
+| Dropzone limit | Up to 10 MB. JPG, PNG or PDF. |
+| File remove | Remove |
+| Continue | Save and continue |
+
+Helper text that survives, with its reason:
+
+- **Status why** — the question branches the rest of the flow, and Remote's
+  pattern is to say so once rather than to explain each option.
+- **Mobile help** — the one field where students reasonably fear a marketing
+  list.
+
+Everything else the previous screen explained is deleted.
+
+---
+
+## 3 · Health information
+
+**Register:** flat. Optional Step. **Archetype:** form.
+
+| Slot | String |
+|---|---|
+| Title | Health information |
+| Lead | Optional here. The student portal will ask for it later either way. |
+| Accommodation legend | Do you need an accommodation for a disability or health condition? |
+| Accommodation why | Accessibility Services uses this to reach you before term starts. Nobody teaching you sees it. |
+| Accommodation yes | Yes, I would like to talk to Accessibility Services |
+| Accommodation no | No, not right now |
+| Note label | What would help? (optional) |
+| Note placeholder | Anything you want them to know before they call |
+| Medical upload label | Medical documentation |
+| Medical upload note | A letter or report from a clinician. |
+| Immunization label | Immunization record |
+| Immunization note | Aster holds this on file for every student, whatever you answered above. |
+| Uploads group label | Documents |
+| Skip | Skip for now |
+| Skip note | Skipping is fine here. The portal will require your immunization record before you register for classes. |
+| Continue | Save and continue |
+
+---
+
+## 4 · Where you live now
+
+**Register:** flat. **Absent entirely for an international student.**
+**Archetype:** form.
+
+| Slot | String |
+|---|---|
+| Title | Where you live now |
+| Lead | Your permanent address, which decides your residency classification and where official post goes. |
+| Street label | Street address |
+| Unit label | Apartment or unit (optional) |
+| City label | City |
+| State label | State |
+| State placeholder | Choose your state |
+| City placeholder | Choose your city |
+| City empty | Choose a state first |
+| Postal label | ZIP code |
+| Country label | Country |
+| Residency legend | How should we check your residency? |
+| Residency option 1 | Use the address above |
+| Residency consequence 1 | Fastest, if that is genuinely where you live. |
+| Residency option 2 | I will send supporting documents |
+| Residency consequence 2 | Enrollment Services will write to you with the list. |
+| Residency option 3 | I need an advisor to look at this |
+| Residency consequence 3 | Pick this if your situation does not fit the other two. |
+| Continue | Save and continue |
+
+---
+
+## 5 · Who we call, who can see
+
+**Register:** flat. **Archetype:** form.
+
+| Slot | String |
+|---|---|
+| Title | Who we call, who can see |
+| Lead | One person we can reach in an emergency, and anyone you want us to be able to talk to. |
+| Emergency legend | Emergency contact |
+| Emergency name | Full name |
+| Emergency relationship | How you know them |
+| Emergency phone | Their mobile number |
+| Add contact | Add another contact |
+| Remove contact | Remove |
+| FERPA heading | Why this is yours to decide |
+| FERPA body (always visible) | The Family Educational Rights and Privacy Act gives parents the right to see their children's education records. **When you turn 18, or enter a postsecondary institution at any age, that right transfers from your parents to you.** So this is your decision, not theirs. |
+| FERPA disclosure | What this means in practice |
+| FERPA disclosure body | Without your permission, Aster staff will decline to discuss your grades, your bill or your housing with anyone who asks, including a parent who is paying your fees. Naming someone here is how you change that. You can widen, narrow or withdraw it at any time in writing. |
+| Family legend | Family access |
+| Family empty | Nobody has access to your record. |
+| Add person | Give someone access |
+| Person name | Full name |
+| Person email | Email address |
+| Person email help | This is where their access confirmation goes. |
+| Person relationship | How you know them |
+| Scope legend | What they can see |
+| Scope 1 | Enrollment status |
+| Scope 1 detail | Whether you are registered, full-time or part-time, and which programme. Not your grades. |
+| Scope 2 | Grades and academic record |
+| Scope 2 detail | Your grades each term, your transcript and your academic standing. |
+| Scope 3 | Billing and financial aid |
+| Scope 3 detail | What you owe, what you have paid, and any aid you hold. Not your grades. |
+| Scope 4 | Housing |
+| Scope 4 detail | Which residence you are assigned and your move-in window. |
+| Scope 5 | Health and disability services |
+| Scope 5 detail | Accommodations, and anything you have told Accessibility Services. |
+| Scope 6 | Disciplinary record |
+| Scope 6 detail | Conduct cases involving you, and how they were resolved. |
+| Remove person | Remove access |
+| Continue | Save and continue |
+
+The sentence in bold is the one that has to survive every edit. It answers the
+question the screen provokes in a seventeen-year-old and in the parent standing
+behind them, and without it the screen reads as the university arbitrarily
+cutting parents out. It is **always visible**, never behind the disclosure.
+
+---
+
+## 6 · Housing
+
+**Register:** flat, with a warm lead. **Archetype:** catalogue.
+
+| Slot | String |
+|---|---|
+| Title | Housing |
+| Lead | Eight residences. Rank your three favourites and Housing Services will work from that. |
+| Preference notice | A preference is a request, not an assignment. Housing Services assigns rooms after the response deadline. |
+| Meal plan convention | Room rates are per person, per academic year. Meal plans are priced separately and are not in these figures. |
+| Shortlist label | Your shortlist |
+| Shortlist empty | Pick three residences and rank them. |
+| Shortlist count | {n} of 3 ranked |
+| Add to shortlist | Add to shortlist |
+| In shortlist | Ranked {n} |
+| Remove | Remove from shortlist |
+| Move up | Move up |
+| Move down | Move down |
+| See all photos | See all {n} photos |
+| Gallery title | {residence} photos |
+| Compare | Compare your three |
+| Detail: rooms | Room types |
+| Detail: bathroom | Bathroom |
+| Detail: laundry | Laundry |
+| Detail: air | Air conditioning |
+| Detail: walk | Walk to the middle of campus |
+| Detail: dining | Dining |
+| Detail: capacity | Beds |
+| Detail: built | Built |
+| Detail: renovated | Renovated |
+| Detail: communities | Learning communities |
+| Detail: eligibility | Who can live here |
+| Detail: gender | Gender configuration |
+| Continue | Save my shortlist |
+| Continue (empty) | Continue without a preference |
+
+---
+
+## 7 · Campus life
+
+**Register:** warm. Optional Step. **Archetype:** catalogue.
+
+| Slot | String |
+|---|---|
+| Title | Campus life |
+| Lead | Aster has around 420 student organizations. Mark the ones you want to look at, and we will turn it into a route through the Involvement Fair. |
+| Interest note | Marking interest does not sign you up. Joining happens in person, at the fair, after classes begin. |
+| Search placeholder | Search organizations |
+| Filter: category | Category |
+| Filter: cost | Cost |
+| Filter: time | Weekly time |
+| Filter: joining | Getting in |
+| Result count | {n} organizations |
+| Result count (zero) | No organizations match |
+| Clear all | Clear all |
+| Filters (mobile) | Filters |
+| Sheet footer | Show {n} organizations |
+| Interest control | Interested |
+| Interest control (marked) | Interested |
+| Card meta | {cost} · {time} · {joining} |
+| Detail: cost | Cost per semester |
+| Detail: time | Weekly time |
+| Detail: joining | Getting in |
+| Detail: meets | Meets |
+| Detail: where | Where |
+| Detail: size | Members |
+| Route pill | Interested · {n} |
+| Skip | Skip for now |
+| Continue | Save and continue |
+
+**"Join", "Sign up", "Apply" and "Enroll" appear nowhere as a control.** Where
+an organization requires an application, that is information in Getting in.
+
+### Your fair route
+
+| Slot | String |
+|---|---|
+| Title | Your fair route |
+| Fair line | The Involvement Fair is on {date}, on {place}. |
+| Summary | {n} organizations · {z} fair zones · about {m} minutes |
+| Zone heading | {zone} |
+| Stop meta | Table {n} · {joining} |
+| Remove stop | Remove |
+| Export | Save this route |
+| Print | Print |
+| Empty | Nothing marked yet. Go back to the catalogue and mark whatever looks interesting. |
+| Empty action | Back to the catalogue |
+| Note | Nothing here is a commitment. Turn up, or do not. |
+
+---
+
+## 8 · Review & sign
+
+**Register:** flat. **Archetype:** review.
+
+| Slot | String |
+|---|---|
+| Title | Review & sign |
+| Purpose | Check what you told us, then sign the enrollment agreement built from it. |
+| Position | Last quest before the deposit |
+| Completeness | {answers} answers across {sections} sections · {attention} needs attention |
+| Completeness (clean) | {answers} answers across {sections} sections · nothing outstanding |
+| Section status: complete | Complete |
+| Section status: attention | Needs attention |
+| Section status: skipped | Skipped |
+| Edit | Edit |
+| Expand | Show answers |
+| Collapse | Hide answers |
+| Agreement heading | Your enrollment agreement |
+| Agreement note | Two documents, written out in full. Scroll to the end of both before you sign. |
+| Read gate | Keep reading to the end to sign |
+| Read gate (done) | Read in full |
+| Electronic records | By signing electronically you agree that your electronic signature is the legal equivalent of your handwritten one, and that Aster may keep and send these records electronically. |
+| Signature mode: type | Type it |
+| Signature mode: draw | Draw it |
+| Typed label | Type your full legal name |
+| Drawn label | Sign with your mouse or finger |
+| Clear | Clear |
+| Attestation | I have read both documents and I agree to be legally bound by them. |
+| Sign | Sign and continue |
+| Signed notice | Signed on {date}. Reference {ref}. |
+| Re-open notice | You changed an answer, so the agreement was rewritten. Read it again and sign. |
+
+---
+
+## 9 · Deposit
+
+**Register:** flat. Three screens, one rail entry. **Archetype:** form.
+
+### 9a · Secure your place
+
+| Slot | String |
+|---|---|
+| Title | Secure your place |
+| Lead | One payment of {amount}, credited against your first term's tuition. |
+| Card 1 | How you want to pay |
+| Option: now | Pay {amount} now |
+| Option: now detail | Card or bank transfer. Refundable until {deadline}. |
+| Option: deadline | Pay by {deadline} |
+| Option: deadline detail | Student Accounts will invoice you. Your place is held either way. |
+| Option: waiver | Request a waiver |
+| Option: waiver detail | For students for whom the deposit is a barrier. Reviewed within five working days. |
+| Card 2 | Payment method |
+| Method: card | Card |
+| Method: bank | Bank transfer |
+| Method: bank detail | Takes two to three working days to clear. |
+| Card name | Name on card |
+| Card number | Card number |
+| Card expiry | Expiry |
+| Card cvc | Security code |
+| Waiver reason label | Why are you requesting a waiver? |
+| Waiver reason help | A sentence is enough. Student Accounts reads these. |
+| Card 3 | Review |
+| Summary title | Deposit |
+| Summary line 1 | Enrollment deposit |
+| Summary credit | Credited against your first term's tuition |
+| Summary due | Due today |
+| Summary due (waiver) | $0, pending review |
+| Summary refundable | Refundable until {deadline} |
+| Continue | Review before paying |
+
+### 9b · Double check
+
+| Slot | String |
+|---|---|
+| Title | Double check |
+| Lead | Nothing has been charged yet. |
+| Change | Change |
+| Policy heading | The deposit policy, in short |
+| Policy 1 | The deposit is {amount} and it is credited against your first term's bill. |
+| Policy 2 | It is refundable in full until {deadline}, and not after it. |
+| Policy 3 | If you withdraw after that date you forfeit the deposit and nothing else. |
+| Pay | Pay {amount} |
+| Pay (deadline) | Confirm and invoice me |
+| Pay (waiver) | Send my waiver request |
+
+### 9c · Receipt
+
+| Slot | String |
+|---|---|
+| Title (paid) | Paid |
+| Sentence (paid) | We charged {amount} to your card. Your place is confirmed. |
+| Title (processing) | Processing |
+| Sentence (processing) | Your bank transfer of {amount} is on its way. It usually clears in two to three working days. |
+| Title (deadline) | Scheduled |
+| Sentence (deadline) | Nothing has been charged. Student Accounts will invoice you {amount}, due {deadline}. |
+| Title (waiver) | Waiver requested |
+| Sentence (waiver) | Your request is with Student Accounts. They reply within five working days, and your place is held while they do. |
+| Receipt: reference | Reference |
+| Receipt: date | Date |
+| Receipt: method | Method |
+| Receipt: amount | Amount |
+| Next heading | What happens next |
+| Next 1 | Deposit received |
+| Next 2 | Credited to your first term's bill |
+| Next 3 | Balance due {date} |
+| Continue | Finish |
+
+**Absent by decision:** any countdown or urgency, cart vocabulary, upsells,
+promo fields, BNPL branding, marketing opt-ins, and confetti on the receipt.
+Applying purchase pressure to a financial obligation, from an institution that
+has already admitted the student, is coercive and reads as a scam.
+
+---
+
+## 10 · Enrolled
+
+**Register:** warm. **Archetype:** celebration.
+
+| Slot | String |
+|---|---|
+| Eyebrow | ENROLLED |
+| Headline | That is it. You are an Aster student. |
+| Sub | We will write to you in July with your room and your move-in window. |
+| Card: name | {legal name} |
+| Card: id | {enrolment id} |
+| Card: residence | {residence} |
+| Card: year | Class of {year} |
+| Journey heading | What you did |
+| Journey total | {points} points |
+| Journey conversion | = {credit} in bookstore credit |
+| Receipt disclosure | Your deposit receipt |
+| Primary | Spend {credit} at the bookstore |
+| Secondary | Done for now |
+| Share | Share this |
+| Share card metrics | Quests · Points · Residence · Enrolled |
+| Share earned | Shared. That is another {SHARE_POINTS} points. |
+
+---
+
+## Errors
+
+**Register:** flat, everywhere. Name the field, say what is wrong, say what is
+acceptable.
+
+| Field | Message |
+|---|---|
+| Email empty | Enter your email address. |
+| Email invalid | Enter a valid email address. |
+| Password short | Your password needs at least 12 characters. |
+| Password letter | Add at least one letter. |
+| Password number | Add at least one number. |
+| Password mismatch | These do not match. Type the same password in both fields. |
+| Phone empty | Enter your mobile number, including the country code. |
+| Phone charset | Enter a valid phone number, including the country code. |
+| Phone short | That number is too short. It should be 7 to 14 digits after the country code. |
+| Phone long | That number is too long. It should be 7 to 14 digits after the country code. |
+| Status empty | Choose the one that applies to you. |
+| Document missing | Attach your {document} before you continue. |
+| Street empty | Enter your street address. |
+| City empty | Choose your city. |
+| State empty | Choose your state. |
+| Postal empty | Enter your ZIP code. |
+| Contact name empty | Enter their full name. |
+| Contact relationship empty | Choose how you know them. |
+| Family email invalid | Enter a valid email address. This is where their access goes. |
+| Family scope empty | Pick at least one thing they can see, or remove them. |
+| Signature empty | Sign your name before you continue. |
+| Consent unchecked | Tick the box to confirm you agree. |
+| Waiver reason empty | Tell Student Accounts why, in a sentence. |

@@ -70,351 +70,6 @@ export type Photo = {
 };
 
 /**
- * Housing, in the shape the university returns it.
- *
- * Availability comes from an institutional API — the client said so on the
- * 2026-08-10 call, and said this round would mock it. So this fixture is
- * modelled on the response, not on what is convenient to render: codes rather
- * than sentences, a flat `photos` array with a `kind` on each frame rather than
- * an object keyed by view, and the shortlist size supplied by the institution
- * rather than hardcoded in a component. Everything a student reads is derived
- * from these codes in this file's label maps, which is the seam that has to
- * survive integration. A fixture shaped like the screen would have to be
- * rewritten the day the endpoint is real, and a mock you rewrite is a mock that
- * proved nothing.
- *
- * What is deliberately absent: **cost**. See ADR-0003 — with a price on every
- * card the student compares spreadsheets, and the deposit has a step of its own.
- */
-export type RoomTypeCode = "single" | "double" | "suite" | "apartment";
-export type BathroomCode = "private" | "semi-private" | "communal";
-export type MealPlanCode = "included" | "optional" | "none";
-export type LaundryCode = "in-unit" | "in-building" | "nearby";
-export type FirstYearPolicyCode = "first-year-only" | "first-year-priority" | "all-years";
-export type ResidencePhotoKind = "room" | "exterior" | "common";
-
-export type ResidencePhoto = Photo & { kind: ResidencePhotoKind };
-
-export type Residence = {
-  id: string;
-  name: string;
-  /** One line, the thing that is true about this place and no other. */
-  summary: string;
-  roomTypes: RoomTypeCode[];
-  bathroom: BathroomCode;
-  mealPlan: MealPlanCode;
-  /** Minutes on foot to the middle of campus, as Housing Services publishes it. */
-  walkMinutes: number;
-  laundry: LaundryCode;
-  firstYearPolicy: FirstYearPolicyCode;
-  /**
-   * Ordered as the carousel shows them, room first. "What would my room
-   * actually be like" is the question being asked, and no photograph of a
-   * facade answers it.
-   */
-  photos: ResidencePhoto[];
-};
-
-export type HousingAvailability = {
-  academicYear: string;
-  /** How many ranked preferences this institution accepts. Three, here. */
-  shortlistSize: number;
-  residences: Residence[];
-};
-
-export const housingAvailability: HousingAvailability = {
-  academicYear: "2027-28",
-  shortlistSize: 3,
-  residences: [
-    {
-      id: "aster-residence-hall",
-      name: "Aster Residence Hall",
-      summary: "The traditional halls on the quad, with the dining hall attached.",
-      roomTypes: ["single", "double"],
-      bathroom: "communal",
-      mealPlan: "included",
-      walkMinutes: 4,
-      laundry: "in-building",
-      firstYearPolicy: "first-year-only",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/aster-residence-hall-room.webp",
-          alt: "A single dorm room with a bed against the wall, a white desk and chair, and a tall window overlooking trees",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/aster-residence-hall-exterior.webp",
-          alt: "A four-storey brick residence hall with a covered porch and an external staircase, on a lawn in full sun",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/aster-residence-hall-common.webp",
-          alt: "A double-height common room with sofas, low stools and a glass wall looking onto the grounds",
-        },
-      ],
-    },
-    {
-      id: "linden-house",
-      name: "Linden House",
-      summary: "The smallest house in the catalogue, and the closest to everything.",
-      roomTypes: ["double"],
-      bathroom: "communal",
-      mealPlan: "included",
-      walkMinutes: 3,
-      laundry: "in-building",
-      firstYearPolicy: "first-year-only",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/linden-house-room.webp",
-          alt: "A shared room with two wooden beds under white covers, a chest of drawers and a curtained window between them",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/linden-house-exterior.webp",
-          alt: "A low red-brick building with wide windows and a young tree on the grass in front of it",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/linden-house-common.webp",
-          alt: "A plain dining corner with a wooden table, four chairs, a bowl of fruit and a potted plant by the window",
-        },
-      ],
-    },
-    {
-      id: "kestrel-hall",
-      name: "Kestrel Hall",
-      summary: "Halls again, but quieter — and the study lounge is the good one.",
-      roomTypes: ["single", "double"],
-      bathroom: "communal",
-      mealPlan: "included",
-      walkMinutes: 6,
-      laundry: "in-building",
-      firstYearPolicy: "first-year-only",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/kestrel-hall-room.webp",
-          alt: "A dorm room with a green-covered bed, a slim white desk and chair, and a wide blinded window above the desk",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/kestrel-hall-exterior.webp",
-          alt: "A long red-brick hall with a white colonnaded entrance, seen across a lawn split by a brick path",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/kestrel-hall-common.webp",
-          alt: "Two armchairs and a small round table in front of a wall of open timber bookshelves",
-        },
-      ],
-    },
-    {
-      id: "maple-court",
-      name: "Maple Court",
-      summary: "Suites of four or five, sharing a bathroom and a kitchen table.",
-      roomTypes: ["single", "suite"],
-      bathroom: "semi-private",
-      mealPlan: "optional",
-      walkMinutes: 9,
-      laundry: "in-building",
-      firstYearPolicy: "first-year-priority",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/maple-court-room.webp",
-          alt: "A bedroom with a black metal bed frame on a wooden floor, a wardrobe alongside and daylight from two windows",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/maple-court-exterior.webp",
-          alt: "Students walking a path across a lawn towards a brick and glass building with a projecting upper floor",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/maple-court-common.webp",
-          alt: "A laid dining table with four chairs against an exposed brick wall, beside a tall fridge and a bright window",
-        },
-      ],
-    },
-    {
-      id: "student-village",
-      name: "Student Village",
-      summary: "Newest buildings, quietest end of campus, study rooms on every floor.",
-      roomTypes: ["single"],
-      bathroom: "semi-private",
-      mealPlan: "optional",
-      walkMinutes: 15,
-      laundry: "in-building",
-      firstYearPolicy: "all-years",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/student-village-room.webp",
-          alt: "A white single room with a made bed, a pale wood desk under the window and a mirror on the wall",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/student-village-exterior.webp",
-          alt: "A long, low modern building in brick and glass behind a wide clipped lawn under a blue sky",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/student-village-common.webp",
-          alt: "Students working on laptops on beanbags and low sofas in a plywood-lined study room with a picture window",
-        },
-      ],
-    },
-    {
-      id: "harborview-commons",
-      name: "Harborview Commons",
-      summary: "Your own bathroom, and the longest walk of anywhere on campus.",
-      roomTypes: ["single", "suite"],
-      bathroom: "private",
-      mealPlan: "optional",
-      walkMinutes: 18,
-      laundry: "in-building",
-      firstYearPolicy: "all-years",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/harborview-commons-room.webp",
-          alt: "A white room with a low bed, framed prints above it and a desk and wooden chair beside a floor-to-ceiling window",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/harborview-commons-exterior.webp",
-          alt: "A modern timber-and-glass building at the edge of a sunlit lawn, with mature trees along the path to it",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/harborview-commons-common.webp",
-          alt: "Three dark sofas around a low table on a concrete floor, seen from above, one student sitting with a phone",
-        },
-      ],
-    },
-    {
-      id: "aster-apartments",
-      name: "Aster Apartments",
-      summary: "Four-person flats with a full kitchen and nobody's meal plan to work around.",
-      roomTypes: ["apartment"],
-      bathroom: "semi-private",
-      mealPlan: "none",
-      walkMinutes: 12,
-      laundry: "in-unit",
-      firstYearPolicy: "all-years",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/aster-apartments-room.webp",
-          alt: "A bedroom with a metal-framed bed, a long desk with a task chair, and a bright window above the desk",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/aster-apartments-exterior.webp",
-          alt: "Two brick apartment blocks facing each other across a paved courtyard with clipped hedges and trees",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/aster-apartments-common.webp",
-          alt: "A shared flat kitchen with white units, an oven, a coffee machine and a round dining table by a glazed door",
-        },
-      ],
-    },
-    {
-      id: "quarry-ridge",
-      name: "Quarry Ridge",
-      summary: "Studios at the far edge of campus, on the shuttle line rather than the path.",
-      roomTypes: ["apartment"],
-      bathroom: "private",
-      mealPlan: "none",
-      walkMinutes: 20,
-      laundry: "in-unit",
-      firstYearPolicy: "all-years",
-      photos: [
-        {
-          kind: "room",
-          src: "/images/residences/quarry-ridge-room.webp",
-          alt: "A studio with a long desk and wooden chair in the foreground and a made bed by a floor-to-ceiling window",
-        },
-        {
-          kind: "exterior",
-          src: "/images/residences/quarry-ridge-exterior.webp",
-          alt: "Pale apartment towers behind a wide lawn with benches and clipped planting along a paved walk",
-        },
-        {
-          kind: "common",
-          src: "/images/residences/quarry-ridge-common.webp",
-          alt: "An open-plan flat with a kitchen counter, a dining table by tall windows and a red armchair in the corner",
-        },
-      ],
-    },
-  ],
-};
-
-export const residences = housingAvailability.residences;
-
-/**
- * What the codes are called on screen.
- *
- * Separate from the fixture on purpose: the code is the institution's, the
- * wording is ours, and a rename of the second must not look like a change to
- * the first.
- */
-export const roomTypeLabels: Record<RoomTypeCode, string> = {
-  single: "Single room",
-  double: "Shared room",
-  suite: "Suite",
-  apartment: "Apartment",
-};
-
-export const bathroomLabels: Record<BathroomCode, string> = {
-  private: "Own bathroom",
-  "semi-private": "Bathroom per suite",
-  communal: "Bathroom per floor",
-};
-
-export const mealPlanLabels: Record<MealPlanCode, string> = {
-  included: "Meal plan included",
-  optional: "Meal plan optional",
-  none: "No meal plan",
-};
-
-export const laundryLabels: Record<LaundryCode, string> = {
-  "in-unit": "Laundry in your flat",
-  "in-building": "Laundry in the building",
-  nearby: "Laundry a block away",
-};
-
-export const firstYearPolicyLabels: Record<FirstYearPolicyCode, string> = {
-  "first-year-only": "First years only",
-  "first-year-priority": "First years first",
-  "all-years": "Open to all years",
-};
-
-export const residencePhotoLabels: Record<ResidencePhotoKind, string> = {
-  room: "Your room",
-  exterior: "The building",
-  common: "Shared space",
-};
-
-/**
- * The two filters, as pills across the top rather than a column down the side.
- * Right at eight residences and wrong at five hundred (Zillow, Care.com) — and
- * a filter column would have cost this step the width it needs for the card.
- */
-export const roomTypeFilters = (Object.keys(roomTypeLabels) as RoomTypeCode[]).map((value) => ({
-  value,
-  label: roomTypeLabels[value],
-}));
-
-export const bathroomFilters = (Object.keys(bathroomLabels) as BathroomCode[]).map((value) => ({
-  value,
-  label: bathroomLabels[value],
-}));
-
-/**
  * The Offer keeps its photograph. The completion screen does not: every
  * candidate put mid-tones behind the largest type on the screen, so it runs on
  * a dark field with `LightRays` over it instead.
@@ -427,193 +82,58 @@ export const campusPhotos = {
 } as const satisfies Record<string, Photo>;
 
 /**
- * Broad enough to sort nine clubs into more than one useful pile, not a
- * taxonomy of student life. "Making" earns its own bucket because robotics and
- * tabletop are both hands-on-a-table activities that neither "arts" nor
- * "social" describes honestly.
+ * Every branching radio in the flow carries its consequence in its own label
+ * rather than in a footnote below the group — Fiverr's "U.S. tax authorities
+ * might request Form W-9" is the pattern, and a footnote under a group of three
+ * is read by nobody choosing between them.
  */
-export const clubCategories = [
-  { value: "sport", label: "Sport" },
-  { value: "arts", label: "Arts" },
-  { value: "outdoors", label: "Outdoors" },
-  { value: "social", label: "Social" },
-  { value: "service", label: "Service" },
-  { value: "making", label: "Making" },
-] as const;
-
-export type ClubCategory = (typeof clubCategories)[number]["value"];
-
-export type Club = {
-  id: string;
-  name: string;
-  blurb: string;
-  category: ClubCategory;
-  /** The longer read, once a student opens the detail view rather than just glancing at the grid. */
-  detail: string;
-  cadence: string;
-  image: Photo;
-};
-
-export const clubs: Club[] = [
-  {
-    id: "robotics",
-    name: "Robotics & making",
-    blurb: "Build something that moves. Nobody starts knowing how.",
-    category: "making",
-    detail:
-      "A shared workshop with soldering stations, a laser cutter and a parts wall anyone can raid. Most terms run one long build — last year's was a line-following rover — alongside whatever smaller thing you show up wanting to make. No electronics background assumed; half the club started here.",
-    cadence: "Open workshop Tuesday and Thursday evenings, plus a Saturday build day once a month.",
-    image: {
-      src: "/images/clubs/robotics.webp",
-      alt: "Three students wiring a small robot together at a workbench",
-    },
-  },
-  {
-    id: "music",
-    name: "Live music",
-    blurb: "Bands, open mics, rehearsal rooms you can book by the hour.",
-    category: "arts",
-    detail:
-      "Four soundproofed rehearsal rooms you can book online, a backline of amps and a kit so you don't have to haul your own gear across campus. The open mic is unauditioned — sign-up sheet goes up an hour before. A handful of bands form out of it most years; nobody's required to join one.",
-    cadence: "Open mic every other Friday night; rehearsal rooms bookable any day.",
-    image: {
-      src: "/images/clubs/music.webp",
-      alt: "Four people with guitars and a microphone stand mid-rehearsal in a bright room",
-    },
-  },
-  {
-    id: "football",
-    name: "Football",
-    blurb: "Kickabouts on Wednesdays, a league if you want one.",
-    category: "sport",
-    detail:
-      "The Wednesday kickabout is genuinely casual — turn up, get put on a side, no boots required for the first few weeks. A more competitive five-a-side league runs each term for anyone who wants to keep score, with sign-up separate from the open sessions.",
-    cadence: "Casual kickabout every Wednesday evening; league matches on weekends in-term.",
-    image: {
-      src: "/images/clubs/football.webp",
-      alt: "Two players challenging for the ball in front of the goal on a green pitch",
-    },
-  },
-  {
-    id: "outdoors",
-    name: "Outdoors",
-    blurb: "Weekend hikes and two camping trips a term. Kit is lent, not bought.",
-    category: "outdoors",
-    detail:
-      "Day hikes leave from the quad most weekends, graded easy to hard so nobody's stuck choosing between staying home and being in over their head. The two termly camping trips cover transport and shared kit — tents, stoves, the works — so the only thing you need to bring is yourself.",
-    cadence: "Day hikes most Saturdays; overnight camping trips twice a term.",
-    image: {
-      src: "/images/clubs/outdoors.webp",
-      alt: "A line of students in walking gear coming down a hillside track",
-    },
-  },
-  {
-    id: "art",
-    name: "Studio art",
-    blurb: "Open studio hours. Materials are on the department.",
-    category: "arts",
-    detail:
-      "A shared studio with easels, a print press and a materials cupboard the department restocks — paint, paper and clay are covered, so showing up empty-handed is the normal way to start. No critique sessions unless you ask for one; most people are just there to work.",
-    cadence: "Open studio hours every weekday afternoon; no sign-up needed.",
-    image: {
-      src: "/images/clubs/art.webp",
-      alt: "Two students working at easels in a studio hung with paintings",
-    },
-  },
-  {
-    id: "photography",
-    name: "Photography",
-    blurb: "Photo walks, darkroom nights, one print show each term.",
-    category: "arts",
-    detail:
-      "Photo walks are themed and casual — golden hour on the quad, the town market, whatever someone proposes. The darkroom is open to anyone who's had the one, ten-minute safety briefing, film and paper included. The end-of-term print show hangs a handful of pieces from anyone who wants to submit.",
-    cadence: "Photo walks every other weekend; darkroom nights weekly.",
-    image: {
-      src: "/images/clubs/photography.webp",
-      alt: "A student in a red hoodie raising a camera to their eye on a campus lawn",
-    },
-  },
-  {
-    id: "tabletop",
-    name: "Tabletop & games",
-    blurb: "Board games on Thursdays and campaigns that run all year.",
-    category: "making",
-    detail:
-      "Thursday nights are drop-in board games from the club's own shelf — nothing to bring, nothing to learn in advance. A handful of longer campaigns (tabletop RPGs, mostly) run alongside it for anyone who wants a standing weekly seat instead of a one-off game.",
-    cadence: "Drop-in games every Thursday night; campaign groups meet weekly by arrangement.",
-    image: {
-      src: "/images/clubs/tabletop.webp",
-      alt: "A long table of students leaning over a board game covered in tiles and pieces",
-    },
-  },
-  {
-    id: "debate",
-    name: "Debate & speaking",
-    blurb: "Argue for the practice. Compete only if you feel like it.",
-    category: "social",
-    detail:
-      "Weekly sessions are a mix of short-notice topics and practice for anyone building up to competing. Competing is genuinely optional — plenty of members come purely for the practice of thinking on their feet in front of a room. Intervarsity tournaments run a few times a year for the ones who want them.",
-    cadence: "Weekly practice sessions; intervarsity tournaments a few times a year.",
-    image: {
-      src: "/images/clubs/debate.webp",
-      alt: "Two students sharing a handheld microphone outdoors, one of them mid-sentence",
-    },
-  },
-  {
-    id: "volunteering",
-    name: "Volunteering",
-    blurb: "Local projects, a few hours whenever you actually have them.",
-    category: "service",
-    detail:
-      "A rotating list of local projects — food bank shifts, park clean-ups, a reading programme at a nearby school — posted a few weeks out so you can pick what fits your week. Nothing is a standing commitment; showing up once counts as much as showing up every time.",
-    cadence: "New project postings every few weeks; individual shifts are a few hours each.",
-    image: {
-      src: "/images/clubs/volunteering.webp",
-      alt: "Volunteers in matching blue shirts collecting litter into bags among trees",
-    },
-  },
-];
-
-/**
- * Asked of the student who takes the off-campus exit, and of nobody else.
- *
- * This used to hang off the "off campus" arm of a three-way question at the top
- * of Housing. That question is gone — the client asked for Housing to be the
- * residences, not a fork with the residences down one branch — but the field
- * itself is in the institution's inventory and the person it is for is exactly
- * the person arranging their own place. So it moved rather than went.
- */
-export const protectionOptions = [
-  { value: "not-now", label: "Not now" },
-  { value: "compare", label: "Help me compare" },
-  { value: "tuition", label: "Tuition protection" },
-  { value: "housing", label: "Housing protection" },
-  { value: "both", label: "Both" },
-] as const;
-
 export const residencyVerificationOptions = [
   {
     value: "permanent-address",
-    label: "Review my permanent address",
-    hint: "Fastest, if the address above is where you actually live",
+    label: "Use the address above",
+    consequence: "Fastest, if that is genuinely where you live.",
   },
   {
     value: "documents",
-    label: "I'll provide supporting documents",
-    hint: "Enrollment Services will tell you which ones",
+    label: "I will send supporting documents",
+    consequence: "Enrollment Services will write to you with the list.",
   },
   {
     value: "advisor",
     label: "I need an advisor to look at this",
-    hint: "Pick this if your situation doesn't fit the other two",
+    consequence: "Pick this if your situation does not fit the other two.",
   },
 ] as const;
 
-export const citizenshipOptions = [
-  { value: "us-citizen", label: "U.S. citizen" },
-  { value: "permanent-resident", label: "U.S. permanent resident" },
-  { value: "eligible-noncitizen", label: "Eligible noncitizen" },
-  { value: "international", label: "International student" },
+/**
+ * Student status: the answer that decides which Identity document is requested
+ * and whether `Where you live now` exists at all. Three values, matching
+ * `StudentStatus` in `steps.ts` — the fourth ("eligible noncitizen") went with
+ * the rebuild, because the flow had no branch for it and offering an answer
+ * nothing acts on is worse than not asking.
+ */
+export const studentStatusOptions = [
+  {
+    value: "us-citizen",
+    label: "U.S. citizen",
+    consequence: "We will ask for your U.S. passport.",
+    document: "U.S. passport",
+    documentLabel: "Your U.S. passport",
+  },
+  {
+    value: "permanent-resident",
+    label: "U.S. permanent resident",
+    consequence: "We will ask for your state-issued driver's licence.",
+    document: "driver's licence",
+    documentLabel: "Your driver's licence",
+  },
+  {
+    value: "international",
+    label: "International student",
+    consequence: "We will ask for your home country passport. No U.S. address needed.",
+    document: "home country passport",
+    documentLabel: "Your home country passport",
+  },
 ] as const;
 
 export const relationshipOptions = [
@@ -646,37 +166,37 @@ export const disclosureScopeOptions = [
   {
     value: "enrollment",
     label: "Enrollment status",
-    hint: "Whether you're registered, full-time or part-time, and which programme",
+    hint: "Whether you are registered, full-time or part-time, and which programme. Not your grades.",
     sensitive: false,
   },
   {
     value: "academic",
     label: "Grades and academic record",
-    hint: "Your grades each term, your transcript and your academic standing",
+    hint: "Your grades each term, your transcript and your academic standing.",
     sensitive: false,
   },
   {
     value: "financials",
     label: "Billing and financial aid",
-    hint: "What you owe, what you've paid, and any aid or scholarship you hold",
+    hint: "What you owe, what you have paid, and any aid you hold. Not your grades.",
     sensitive: false,
   },
   {
     value: "housing",
     label: "Housing",
-    hint: "Which residence you're assigned and your move-in window",
+    hint: "Which residence you are assigned and your move-in window.",
     sensitive: false,
   },
   {
     value: "health",
     label: "Health and disability services",
-    hint: "Accommodations, and anything you've told Accessibility Services",
+    hint: "Accommodations, and anything you have told Accessibility Services.",
     sensitive: true,
   },
   {
     value: "conduct",
     label: "Disciplinary record",
-    hint: "Conduct cases involving you, and how they were resolved",
+    hint: "Conduct cases involving you, and how they were resolved.",
     sensitive: true,
   },
 ] as const;
@@ -1052,7 +572,7 @@ export const enrollmentDocuments: EnrollmentDocument[] = [
       {
         heading: "What you're agreeing to",
         paragraphs: [
-          "If you named someone in the family access section of Identity & contact, this release lets Aster staff discuss the categories you ticked with that person. It does not give them an account, a login, or the ability to act for you.",
+          "If you named someone in the family access section of Who we call, who can see, this release lets Aster staff discuss the categories you ticked with that person. It does not give them an account, a login, or the ability to act for you.",
           "If you named nobody, nothing is released. Staff will decline to discuss your record with anyone who calls, including a parent who is paying your fees.",
         ],
       },
@@ -1123,3 +643,29 @@ export function formatMoney(amount: number, currency: string) {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+/**
+ * What the student walks away with: the enrolment record the final screen hands
+ * over as an object rather than as a message. CRED, Qonto, Zing and Qantas all
+ * end their flow by delivering a thing, and none of them delivers a sentence.
+ */
+export const enrollment = {
+  id: "AST-2027-014882",
+  entryYear: 2027,
+  /** Four years on, which is what a student card actually prints. */
+  classOf: 2031,
+} as const;
+
+/**
+ * The deposit's terms, in one place, because three screens and a document all
+ * quote them and three copies would drift.
+ */
+export const depositTerms = {
+  amount: offer.depositAmount,
+  currency: offer.depositCurrency,
+  refundableUntil: offer.responseDeadline,
+  /** Working days Student Accounts takes over a waiver request. */
+  waiverReviewDays: 5,
+  /** When the rest of the first term's bill falls due. */
+  balanceDue: "2027-08-15",
+} as const;

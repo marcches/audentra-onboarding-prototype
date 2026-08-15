@@ -37,9 +37,27 @@
   --color-ink-100: #e3e8f1;
   --color-ink-50: #f1f4fa;
 
-  /* Ground */
-  --color-canvas: #f4f6fb;
-  --color-surface: #ffffff;
+  /* The four surface levels.
+
+     One step of luminance apart, and at most one border between any two of
+     them. Shadow is not a level: it is reserved for what genuinely floats — a
+     modal, a popover, the fixed bar — so a Panel resting on the Ground is told
+     apart from it by tone, not by a drop shadow.
+
+     Ground is the recessed page and holds no content. Panel is the elevated
+     frame around one subject. Well is inset *within* a Panel: darker than the
+     Panel, never darker than the Ground, which is what keeps an inset from
+     reading as a hole punched through to the page. A flat card exists only on
+     a Well, where the Well is the local ground for a collection. */
+  --color-ground: #f4f6fb;
+  --color-panel: #ffffff;
+  --color-well: #f6f8fc;
+  --color-well-strong: #eef2f9;
+
+  /* The names the app was built on, kept pointing at the same values so the
+     rename is not a repaint. `canvas` is the Ground, `surface` is the Panel. */
+  --color-canvas: var(--color-ground);
+  --color-surface: var(--color-panel);
   --color-sunken: #eaeef7;
 
   /* Violet — the primary signal. Used sparingly: progress, primary action. */
@@ -52,19 +70,43 @@
   --color-violet-600: #5726e0;
   --color-violet-700: #441cb3;
 
-  /* Azure — the second half of the brand gradient. */
+  /* Azure — the second half of the brand gradient.
+
+     Filled out to a full ramp, absorbed from the marketing site. Violet was
+     the only hue with one, which meant azure and mint could be a fill and
+     never a legible label: there was no dark enough step to set type in. */
   --color-azure-50: #eaf1ff;
   --color-azure-100: #d3e0ff;
+  --color-azure-200: #b3caff;
+  --color-azure-300: #85a9ff;
   --color-azure-400: #4d80ff;
   --color-azure-500: #1e5bff;
   --color-azure-600: #0f45d6;
+  --color-azure-700: #0b34a3;
 
   /* Mint — "done", "verified", "already on record". */
   --color-mint-50: #e2fbf4;
   --color-mint-100: #b9f4e5;
+  --color-mint-200: #8aead1;
+  --color-mint-300: #4bd9b6;
+  --color-mint-400: #16cda6;
   --color-mint-500: #00c49a;
   --color-mint-600: #009e7d;
   --color-mint-700: #04735d;
+  --color-mint-800: #05553f;
+
+  /* The three named steps each brand hue answers to, so a component asks for
+     the *role* rather than for a number it has to guess the contrast of.
+     `pale` is a wash, `soft` is a fill, `deep` is the one you may set type in. */
+  --color-violet-pale: var(--color-violet-50);
+  --color-violet-soft: var(--color-violet-200);
+  --color-violet-deep: var(--color-violet-700);
+  --color-azure-pale: var(--color-azure-50);
+  --color-azure-soft: var(--color-azure-200);
+  --color-azure-deep: var(--color-azure-700);
+  --color-mint-pale: var(--color-mint-50);
+  --color-mint-soft: var(--color-mint-200);
+  --color-mint-deep: var(--color-mint-800);
 
   /* Danger — validation and refusal. Warm rose, not fire-engine red. */
   --color-danger-50: #ffeef2;
@@ -124,12 +166,46 @@
      read. Prose inside a panel still sets its own narrower measure. */
   --step-measure: 56rem;
 
+  /* The other two archetype measures. A `catalogue` and a `review` are made of
+     grids and cards, which get denser with width; a `decision` is a two-column
+     composition that has to fill the usable viewport, because the alternative
+     is the 452px of dead white the client measured on Your offer. Each is
+     declared once, here, for the same reason the step measure is. */
+  --catalogue-measure: 72rem;
+  --decision-measure: 82rem;
+
   /* The fixed action bar's height. The bar reads it, and so does the bottom
      padding of the column that must not end underneath it — two numbers that
      have to agree, so there is only one of them. */
   --action-bar-height: 4.5rem;
 
+  /* The weight between body and bold, absorbed from the marketing site.
+
+     700 beside 400 is a two-step jump, so anything that wanted emphasis short
+     of a heading — a value in a fact row, a total, a selected label — had to
+     pick one and be wrong. 650 is that missing step. */
+  --font-weight-strong: 650;
+
+  /* ---------------------------------------------------------------------
+     The motion scale.
+
+     Named, so choreography is composed from a shared vocabulary rather than
+     typed per component — which is how a flow ends up with 180ms, 200ms and
+     0.22s all meaning "quick". Four durations and four curves is the whole of
+     it; anything needing more than these is a timeline, and a timeline belongs
+     in `gsap` rather than in a class name.
+     ------------------------------------------------------------------ */
+  --duration-quick: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --duration-stage: 560ms;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The default for anything entering or leaving. */
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Reserved for an award landing. Overshoot on a form control reads as a bug. */
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 
   --animate-accordion-down: accordion-down 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-accordion-up: accordion-up 0.18s ease-in;
@@ -363,23 +439,130 @@
     );
   }
 
+  /* The end stop is the darker teal, not mint-500: at 500 the tail of a
+     gradient headline drops below 3:1 on white and the last word of the line
+     is the one nobody can read. */
   .brand-gradient-text {
     background-image: linear-gradient(
       100deg,
       var(--color-violet-500) 0%,
       var(--color-azure-500) 60%,
-      var(--color-mint-500) 130%
+      var(--color-mint-700) 130%
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
+  /* ---------------------------------------------------------------------
+     Three uses of the brand that are not signals.
+
+     The two-stop gradient stays a signal — progress, the primary action, the
+     live marker. These three are admitted because each is a *container* or a
+     *ground*, never a mark competing with one.
+     ------------------------------------------------------------------ */
+
+  /* A very low gradient ground, under `decision` screens only. It is what
+     stops the space around a single decision from reading as unfinished
+     white: the piece rests on something instead of floating. */
+  .decision-ground {
+    background-image:
+      radial-gradient(
+        60% 50% at 12% 0%,
+        color-mix(in oklab, var(--color-violet-500) 9%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        55% 45% at 100% 30%,
+        color-mix(in oklab, var(--color-azure-500) 8%, transparent),
+        transparent 72%
+      );
+  }
+
+  /* The icon tile: a brand-tinted container at ~12% alpha. It holds an icon
+     and never touches text — brand ink under a word is the thing this exists
+     to stop people reaching for. */
+  .icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-field);
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-violet-500) 14%, transparent) 0%,
+      color-mix(in oklab, var(--color-azure-500) 12%, transparent) 100%
+    );
+    color: var(--color-violet-deep);
+  }
+
+  /* The progress fill — the one place the third hue earns itself, because it
+     ends in the colour of "done" rather than merely being a third colour. */
+  .progress-fill {
+    background-image: linear-gradient(
+      90deg,
+      var(--color-violet-500) 0%,
+      var(--color-azure-500) 55%,
+      var(--color-mint-500) 100%
+    );
+  }
+
+  /* ---------------------------------------------------------------------
+     Emphasis without geometry.
+
+     Every state change that wants weight uses light: a ring glow around the
+     thing, at its own size. Nothing scales, grows, thickens a border or lifts
+     on hover — those are the four ways an emphasised element shoves its
+     neighbours, and the neighbours are the layout.
+     ------------------------------------------------------------------ */
+  .ring-glow {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-violet-500) 45%, transparent),
+      0 0 0 5px color-mix(in oklab, var(--color-violet-500) 14%, transparent);
+  }
+
+  .ring-glow-mint {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-mint-600) 50%, transparent),
+      0 0 0 5px color-mix(in oklab, var(--color-mint-500) 16%, transparent);
+  }
+
+  /* The row hover that nudges its own content rather than lifting the row.
+     A card that rises on hover moves the cards under it; a row whose text
+     slides 2px says the same thing and costs the layout nothing. */
+  .row-nudge > * {
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+
+  .row-nudge:hover > * {
+    transform: translateX(2px);
+  }
+
+  /* A row that scrolls sideways on purpose — the filter pill bar — and should
+     not draw a scrollbar under itself for the two pills that overflow. The bar
+     is the control; a track under it reads as a second one. */
+  .rail-scroll {
+    scrollbar-width: none;
+  }
+
+  .rail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Every number that can change on screen. Without it a rolling total
+     reflows its own width digit by digit, which is the layout shifting for
+     the most trivial reason available. */
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
   /* The entry screen's brand panel — and the floor under `Grainient`.
      It is what the panel is on the first frame, before the canvas boots; what
      it stays as under `prefers-reduced-motion`; and what it falls back to on a
      machine with no WebGL2 context. Violet → azure only: the mint moved to the
-     form's accents when the gradient became two-stop (ADR-0006). */
+     form's accents when the gradient became two-stop. The two-stop rule is
+     recorded in `docs/design-research.md`, not in an ADR: it was decided in a
+     review round and never written up, and inventing the reasoning after the
+     fact would be worse than saying so. */
   .brand-panel {
     position: relative;
     overflow: hidden;
@@ -419,27 +602,6 @@
     to {
       transform: translate3d(3%, 2%, 0) scale(1.08);
     }
-  }
-
-  /* The completion headline. Solid white with a cool halo behind it, rather
-     than gradient text: the letters are split into one span each by GSAP, and
-     `background-clip: text` on the wrapper clips to the wrapper's own text
-     nodes — of which there are none once it has been split. The glow survives
-     the split because it is a text-shadow, which inherits. */
-  .arrival-headline {
-    color: #ffffff;
-    text-shadow:
-      0 0 28px color-mix(in oklab, var(--color-azure-400) 55%, transparent),
-      0 0 70px color-mix(in oklab, var(--color-violet-500) 45%, transparent);
-  }
-
-  /* SplitText's wrapper ships with `overflow-hidden`, which is right for a
-     reveal that slides letters up from below — and wrong here, because it
-     crops the halo into a visible rectangle around the line. The letters fade
-     in as well as rise, so nothing needs masking. */
-  .arrival-headline .split-parent,
-  .arrival-headline .split-parent * {
-    overflow: visible !important;
   }
 
   /* Field label. Small, uppercase, tracked — reads as a form system rather

@@ -1,14 +1,14 @@
 import {
-  citizenshipOptions,
   disclosureScopeOptions,
   formatDeadline,
   formatMoney,
   institution,
   offer,
-  protectionOptions,
-  residences,
+  relationshipOptions,
   studentRecord,
+  studentStatusOptions,
 } from "@/lib/fixtures";
+import { residenceById } from "@/lib/housing";
 import type { OnboardingState } from "@/lib/store";
 import { formatAddress } from "@/lib/summary";
 
@@ -57,10 +57,15 @@ const t = (text: string): Run => ({ text });
 const v = (text: string): Run => ({ text, emphasis: true });
 
 export function buildAgreement(state: OnboardingState): Clause[] {
-  const about = state.identityContact;
+  const who = state.whoYouAre;
   const housing = state.housing;
 
-  const address = formatAddress(about) || NOT_GIVEN;
+  /* An international student has no `Where you live now` Step, so the clause
+     says that rather than printing an empty address it never asked for. */
+  const address =
+    who.studentStatus === "international"
+      ? "the address Admissions holds"
+      : formatAddress(state.whereYouLive) || NOT_GIVEN;
 
   const deposit = formatMoney(offer.depositAmount, offer.depositCurrency);
   const deadline = formatDeadline(offer.responseDeadline);
@@ -107,7 +112,7 @@ export function buildAgreement(state: OnboardingState): Clause[] {
       heading: "Your status",
       runs: [
         t("You have told us your status is "),
-        v(label(citizenshipOptions, about.citizenship) ?? NOT_GIVEN),
+        v(label(studentStatusOptions, who.studentStatus) ?? NOT_GIVEN),
         t(
           ". This decides which financial aid and visa requirements appear on your checklist. Your residency classification is reviewed by Enrollment Services against the address above, and it affects what you are charged.",
         ),
@@ -132,38 +137,7 @@ export function buildAgreement(state: OnboardingState): Clause[] {
 
   clauses.push(housingClause(housing));
 
-  clauses.push({
-    number: "6",
-    heading: "Who else may see your record",
-    runs: about.grantsFamilyAccess
-      ? [
-          t("You have granted "),
-          v(about.familyMemberName || "one person"),
-          t(" ("),
-          v(about.familyMemberEmail || NOT_GIVEN),
-          t(") access to "),
-          /* The scopes themselves, in the words the student ticked them by.
-             "3 areas of your record" is a count, and a clause a student
-             cannot check against their own answer is a clause they cannot
-             audit — which is the whole reason the emphasised runs exist. */
-          v(
-            about.disclosureScope
-              .map((value) => label(disclosureScopeOptions, value))
-              .filter((name): name is string => Boolean(name))
-              .join(", ") || NOT_GIVEN,
-          ),
-          t(
-            ". They receive no account of their own and cannot act for you. You may widen, narrow or withdraw this at any time; withdrawing it does not undo disclosures already made.",
-          ),
-        ]
-      : [
-          t("You have granted access to "),
-          v("nobody"),
-          t(
-            ". Staff will decline to discuss your record with anyone who asks, including a parent who is paying your fees. You may grant access at any time from your profile.",
-          ),
-        ],
-  });
+  clauses.push(familyAccessClause(state.whoWeCall));
 
   clauses.push({
     number: "7",
@@ -193,31 +167,13 @@ export function buildAgreement(state: OnboardingState): Clause[] {
 }
 
 function housingClause(housing: OnboardingState["housing"]): Clause {
-  const heading = "Housing";
-
-  if (housing.arrangingOwn) {
-    return {
-      number: "5",
-      heading,
-      runs: [
-        t("You have told us you are "),
-        v("arranging your own housing"),
-        t(", and on tuition or housing protection you answered "),
-        v(label(protectionOptions, housing.protectionInterest) ?? NOT_GIVEN),
-        t(
-          `. ${institution.housingOffice} will not assign you a room. Protection is optional cover arranged separately and is not part of this agreement.`,
-        ),
-      ],
-    };
-  }
-
   const ranked = housing.residenceRanking
-    .map((id) => residences.find((residence) => residence.id === id)?.name)
+    .map((id) => residenceById(id)?.name)
     .filter((name): name is string => Boolean(name));
 
   return {
     number: "5",
-    heading,
+    heading: "Housing",
     runs: [
       t("Your shortlist is "),
       v(ranked.length ? ranked.map((name, index) => `${index + 1}. ${name}`).join("; ") : "empty"),
@@ -226,6 +182,59 @@ function housingClause(housing: OnboardingState["housing"]): Clause {
       ),
     ],
   };
+}
+
+/**
+ * Who else may see the record, one run per person granted access.
+ *
+ * Family access is a list now, because more than one person can be granted it
+ * and each is an independent record with its own scope. A clause that collapsed
+ * three grants into "three people" would be a clause the student cannot audit
+ * against what they actually entered, which is the whole reason the emphasised
+ * runs exist.
+ */
+function familyAccessClause(call: OnboardingState["whoWeCall"]): Clause {
+  if (call.familyAccess.length === 0) {
+    return {
+      number: "6",
+      heading: "Who else may see your record",
+      runs: [
+        t("You have granted access to "),
+        v("nobody"),
+        t(
+          ". Staff will decline to discuss your record with anyone who asks, including a parent who is paying your fees. You may grant access at any time from your profile.",
+        ),
+      ],
+    };
+  }
+
+  const runs: Run[] = [t("You have granted access to the following people. ")];
+
+  for (const grant of call.familyAccess) {
+    const relationship = label(relationshipOptions, grant.relationship);
+    runs.push(v(grant.fullName || "One person"));
+    runs.push(t(" ("));
+    runs.push(v(grant.email || NOT_GIVEN));
+    runs.push(t(relationship ? `, ${relationship.toLowerCase()}` : ""));
+    runs.push(t("), for "));
+    runs.push(
+      v(
+        grant.scope
+          .map((value) => label(disclosureScopeOptions, value))
+          .filter((name): name is string => Boolean(name))
+          .join(", ") || NOT_GIVEN,
+      ),
+    );
+    runs.push(t(". "));
+  }
+
+  runs.push(
+    t(
+      "They receive no account of their own and cannot act for you. You may widen, narrow or withdraw this at any time; withdrawing it does not undo disclosures already made.",
+    ),
+  );
+
+  return { number: "6", heading: "Who else may see your record", runs };
 }
 
 /**
