@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Balance } from "@/components/balance";
 import { InstitutionCrest } from "@/components/institution-badge";
 import { studentRecord } from "@/lib/fixtures";
-import { aboveCompact, inCompactFlex, RAIL_WIDTH } from "@/lib/layout";
+import { aboveCompact, inCompactFlex, RAIL_CONNECTOR_OFFSET, RAIL_WIDTH } from "@/lib/layout";
 import {
   type Group,
   groupOf,
@@ -53,6 +53,40 @@ function groupDone(group: Group, done: Set<StepId>) {
   return group.steps.every((step) => done.has(step.id));
 }
 
+/** Where the connector and every mark on it sit, derived rather than guessed. */
+const CONNECTOR = { left: `${RAIL_CONNECTOR_OFFSET}px` } as const;
+/** The Quest row's text, clearing the mark by the same gap the group row uses. */
+const QUEST_INDENT = { paddingLeft: `${RAIL_CONNECTOR_OFFSET + 10}px` } as const;
+
+/**
+ * One Quest's mark, sitting **on** the line rather than beside it.
+ *
+ * The rail had no marks: every Quest row was bare and the check sat out at the
+ * right, which left the line reading as a leftover border with names next to
+ * it. Three states in one shape, which is the same grammar as the group marker
+ * and as the Section marker one level further in — hollow for unstarted, filled
+ * for where you are, a check for done.
+ *
+ * Nothing new was added to the screen: the check changed sides.
+ */
+function QuestMark({ done, current }: { done: boolean; current: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={CONNECTOR}
+      className={cn(
+        "absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full",
+        "transition-colors duration-[var(--duration-base)]",
+        done && "size-3.5 bg-mint-500 text-white",
+        !done && current && "size-2 bg-violet-600",
+        !done && !current && "size-2 border border-ink-300 bg-surface",
+      )}
+    >
+      {done ? <CheckIcon weight="bold" aria-hidden className="size-2.5" /> : null}
+    </span>
+  );
+}
+
 function GroupRow({ group, current, done }: { group: Group; current: StepId; done: Set<StepId> }) {
   const number = phaseNumber(group.id);
   const complete = groupDone(group, done);
@@ -92,18 +126,45 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
         </span>
       </div>
 
-      <ol className="ml-[0.5625rem] flex flex-col border-l border-ink-100 pl-2.5">
-        {group.steps.map((step) => {
+      {/* A segment per group, drawn per row rather than as one run down the
+          rail. One continuous line would pull the Closing and After into the
+          same spine as the three Phases, which is exactly what ADR 0001 and
+          `CONTEXT.md` keep apart — and drawing it per row is also what lets the
+          segment start under this group's own marker and stop at its last
+          Quest without anybody measuring a row's height. */}
+      <ol className="flex flex-col">
+        {group.steps.map((step, index) => {
           const isDone = done.has(step.id);
           const isCurrent = step.id === current;
+          const isLast = index === group.steps.length - 1;
 
           return (
-            <li key={step.id}>
+            <li key={step.id} className="relative">
+              <span
+                aria-hidden
+                style={CONNECTOR}
+                className={cn(
+                  "absolute bottom-1/2 w-px -translate-x-1/2 bg-ink-100",
+                  /* `-top-1.5` on the first row closes the group row's own
+                     `pb-1.5`, so the segment meets the marker above it. */
+                  index === 0 ? "-top-1.5" : "top-0",
+                )}
+              />
+              {isLast ? null : (
+                <span
+                  aria-hidden
+                  style={CONNECTOR}
+                  className="absolute top-1/2 bottom-0 w-px -translate-x-1/2 bg-ink-100"
+                />
+              )}
+              <QuestMark done={isDone} current={isCurrent} />
+
               <Link
                 to={step.path}
                 aria-current={isCurrent ? "step" : undefined}
+                style={QUEST_INDENT}
                 className={cn(
-                  "row-nudge flex items-center gap-1.5 rounded-[var(--radius-field)] px-2 py-1.5 transition-colors",
+                  "row-nudge flex items-center rounded-[var(--radius-field)] py-1.5 pr-2 transition-colors",
                   isCurrent ? "bg-violet-50" : "hover:bg-ink-50",
                 )}
               >
@@ -123,13 +184,6 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
                 >
                   {step.label}
                 </span>
-                {isDone ? (
-                  <CheckIcon
-                    weight="bold"
-                    aria-hidden
-                    className="size-3.5 shrink-0 text-mint-600"
-                  />
-                ) : null}
               </Link>
             </li>
           );

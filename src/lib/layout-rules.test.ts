@@ -2,7 +2,13 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { presence, widthClasses } from "@/lib/layout";
+import {
+  presence,
+  RAIL_CONNECTOR_OFFSET,
+  RAIL_MARKER,
+  RAIL_ROW_PAD,
+  widthClasses,
+} from "@/lib/layout";
 
 /**
  * The layout ruler, enforced.
@@ -95,6 +101,7 @@ const shell = files.find((file) => file.name === "components/step-shell.tsx");
 const celebration = files.find((file) => file.name === "components/celebration.tsx");
 const surfaces = files.find((file) => file.name === "components/surfaces.tsx");
 const css = readFileSync(join(SRC, "styles/app.css"), "utf8");
+const rail = files.find((file) => file.name === "components/step-rail.tsx");
 const routes = files.filter((file) => file.name.startsWith("routes/"));
 
 /* ---------------------------------------------------------------------------
@@ -471,5 +478,40 @@ describe("Aster's arms", () => {
     // A year and a motto the rest of the product also knows.
     expect(crest?.text).toMatch(/institution\.founded/);
     expect(crest?.text).toMatch(/institution\.motto/);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   13 · The rail's connector runs through its markers
+   ------------------------------------------------------------------------ */
+
+describe("the rail is a spine", () => {
+  it("puts the connector at the marker's centre, computed rather than compared", () => {
+    // Not `toBe(14)`. A literal here would pass while the rail drew something
+    // else, which is precisely the failure being fixed — the offset was an
+    // eyeballed `ml-[0.5625rem]` and it missed the marker by 4.5px on all five
+    // groups.
+    expect(RAIL_CONNECTOR_OFFSET).toBe(RAIL_ROW_PAD + RAIL_MARKER / 2);
+  });
+
+  it("ties the constants to what the rail actually draws", () => {
+    // Tailwind's spacing scale is 4px a step, so the marker's `size-5` and the
+    // row's `px-1` are the two numbers above expressed as classes. If either
+    // class changes without the constant, the connector drifts again and this
+    // is the line that says so.
+    expect(rail?.text).toMatch(new RegExp(String.raw`\bsize-${RAIL_MARKER / 4}\b`));
+    expect(rail?.text).toMatch(new RegExp(String.raw`\bpx-${RAIL_ROW_PAD / 4}\b`));
+  });
+
+  it("lets the rail write no offset of its own", () => {
+    expect(rail?.text).toMatch(/RAIL_CONNECTOR_OFFSET/);
+    expect(rail?.text).not.toMatch(/ml-\[|left-\[|pl-\[/);
+  });
+
+  it("gives every Quest a mark on the line, and takes the check off the right", () => {
+    expect(rail?.text).toMatch(/function QuestMark/);
+    // The check moved sides rather than a mark being added: the rail draws
+    // exactly two checks, the group marker's and the Quest mark's.
+    expect(rail?.text.match(/<CheckIcon/g)).toHaveLength(2);
   });
 });

@@ -196,3 +196,24 @@ export const aboveCompact = "compact:hidden";
  */
 export const RAIL_WIDTH = "w-64";
 export const RAIL_OFFSET = "left-64";
+
+/**
+ * The rail's own geometry, so the connector cannot drift from the markers it is
+ * supposed to run through.
+ *
+ * Measured at 1366×768 before this existed: the group marker's centre sat at
+ * `x=28` and the connector line at `x=23.5`. Off by 4.5px, on all five groups,
+ * for the ordinary reason — the line's offset was a Tailwind margin somebody
+ * eyeballed (`ml-[0.5625rem]`) rather than a number derived from the marker.
+ *
+ * Deriving it is the fix, not correcting it. A corrected literal is off by a
+ * different 4.5px the next time the marker changes size, and the marker has
+ * changed size twice already. The same shape `presence` and `RAIL_WIDTH`
+ * use: named exports the ruler can do arithmetic against.
+ */
+/** The group marker's size, in px. Drawn as `size-5`. */
+export const RAIL_MARKER = 20;
+/** The group row's horizontal padding, in px. Drawn as `px-1`. */
+export const RAIL_ROW_PAD = 4;
+/** Where the connector's centre line has to fall, in px from the row's edge. */
+export const RAIL_CONNECTOR_OFFSET = RAIL_ROW_PAD + RAIL_MARKER / 2;
