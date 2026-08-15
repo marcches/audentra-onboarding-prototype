@@ -1,0 +1,8 @@
+# LF in the repository and LF in the working tree, on every machine.
+#
+# Without this, a Windows checkout with `core.autocrlf=true` writes CRLF into
+# the working tree while the blobs stay LF, and `pnpm lint` fails on all 73
+# files with a formatting error nobody introduced — Biome formats to LF. The
+# committed content is unchanged either way; this only stops the checkout from
+# rewriting it on the way out.
+* text=auto eol=lf
