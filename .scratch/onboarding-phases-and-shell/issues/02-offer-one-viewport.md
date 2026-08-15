@@ -42,6 +42,9 @@ this fit.
   read by that dialog. No storage bump — a v3 blob carrying the two dead keys
   merges harmlessly, since nothing changed meaning.
 
+Verified by typecheck, the 19 tests, biome, and measurement in the browser at
+1440×900 and 390×844.
+
 Not done here, and not this ticket's: the celebration still says "Entirely
 optional" (ticket 06 owns that line by name), and its X share button renders the
 logo beside the letter "X", which reads as a duplicate.

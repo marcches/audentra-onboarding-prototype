@@ -178,7 +178,9 @@ named out loud on the next call rather than discovered.
 
 ### Known gaps, deliberate
 
-- **`/code-review` never ran on 01.** Treat the shell as unreviewed.
+- **No `/code-review` on any ticket in this effort, by choice.** This is a
+  prototype whose correctness is judged on screen, not in the diff. Verification
+  is typecheck, tests, biome, and looking at it at both sizes.
 - **Review & sign barely moved on density** (−1%). Its height is the agreement
   itself, which is deliberately full-length so the page is the only scroll
   container — the read-to-the-end gate depends on it. Ticket 05 should decide
