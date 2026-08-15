@@ -161,12 +161,17 @@ export type StepTask = { label: string; done: boolean; optional?: boolean };
  * *what comes next*.
  *
  * The second is composition. A short Step — Health asks two questions — left a
- * white card ending halfway down a 768px screen with a slab of grey under it,
- * and then, when the card was stretched to fit, a slab of white *inside* it.
- * Both read as a page that had not finished. The honest fix is not to stretch
- * an empty box: it is to put something worth reading in the space. Two columns
- * of real content is a composition; one column and a void is a card floating on
- * a background.
+ * white card ending halfway down a 768px screen with a slab of grey under it.
+ * Two columns of real content is a composition; one column beside nothing is a
+ * card adrift on a background.
+ *
+ * What this is **not** is an answer to the void. The comment that used to stand
+ * here claimed the white space had been solved by "putting something worth
+ * reading in the space", and it had not: stretching the sheet to reach the fold
+ * moved the white *inside* the sheet, which is the version of it the client
+ * photographed. A sheet is now the height of its content and the Ground shows
+ * under a short one. The guide earns its column by being worth reading, not by
+ * being the thing that fills the row.
  */
 export function StepGuide({
   current,
@@ -415,12 +420,12 @@ export function StepShell({
               {...beat.enter(0.06)}
               ref={workRef}
               className={cn(
-                "flex flex-1 flex-col gap-[var(--space-section)]",
-                /* Two panes: the work, and the guide beside it. The work
-                   stretches — a Step that asked one of its Sections to `grow`
-                   spends the slack on a dropzone rather than on a hole. The
-                   guide does not: a pane stretched past its own content is the
-                   same void, one column to the right. */
+                "flex flex-col gap-[var(--space-section)]",
+                /* Two panes: the work, and the guide beside it. Neither
+                   stretches — `items-start` is the whole rule, and it is why
+                   the two panes end at different heights and that is fine. A
+                   pane stretched past its own content is a void with a border
+                   around it, whichever column it is in. */
                 guide &&
                   "grid grid-cols-[minmax(0,1fr)_17rem] items-start gap-3 narrow:grid-cols-1",
               )}

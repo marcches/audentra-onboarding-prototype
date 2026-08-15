@@ -34,6 +34,9 @@ import { presence, widthClasses } from "@/lib/layout";
  * 6. **One z-index ladder.** Every overlapping thing reads a token and nothing
  *    writes a literal, so "the dialog went behind the bar" stops being a class
  *    of bug.
+ * 7. **No sheet can stretch.** `fill` and `grow` are gone from the prop surface
+ *    rather than from the call sites, and the dropzone that genuinely wanted the
+ *    room carries its own height instead of borrowing the column's.
  *
  * What it deliberately does **not** assert: content above the fold, and the
  * ceiling of three surfaces. The repo has no DOM environment, and measuring a
@@ -57,6 +60,20 @@ function code(text: string) {
   return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
+/**
+ * Strings blanked, so a rule about *props* is not tripped by a sentence.
+ *
+ * "Selection is fill and a check" is a caption in the style guide and `fill` is
+ * a prop that no longer exists; without this the two are the same eight
+ * characters. Applied only where the assertion is about JSX attributes.
+ */
+function attributes(text: string) {
+  return text
+    .replace(/"[^"]*"/g, '""')
+    .replace(/'[^']*'/g, "''")
+    .replace(/`[^`]*`/g, "``");
+}
+
 function sourceFiles() {
   return readdirSync(SRC, { recursive: true, encoding: "utf8" })
     .filter((name) => /\.tsx?$/.test(name) && !name.endsWith(".test.ts"))
@@ -70,6 +87,7 @@ const files = sourceFiles();
 const components = files.filter((file) => file.name.endsWith(".tsx"));
 const shell = files.find((file) => file.name === "components/step-shell.tsx");
 const celebration = files.find((file) => file.name === "components/celebration.tsx");
+const surfaces = files.find((file) => file.name === "components/surfaces.tsx");
 const css = readFileSync(join(SRC, "styles/app.css"), "utf8");
 const routes = files.filter((file) => file.name.startsWith("routes/"));
 
@@ -289,5 +307,39 @@ describe("the stacking order", () => {
       expect(file.text, file.name).not.toMatch(/\bz-\[?-?\d/);
       expect(file.text, file.name).not.toMatch(/zIndex:\s*-?\d/);
     }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   10 · No sheet can stretch
+   ------------------------------------------------------------------------ */
+
+describe("every sheet is the height of its content", () => {
+  it("has deleted `fill` and `grow` from the props, not only from the call sites", () => {
+    // A prop that does not exist cannot be passed, which is a stronger
+    // guarantee than a review note about not passing it. Both took the Step
+    // column's leftover height and spent it inside a border, which is the
+    // white space the client photographed on three sibling Steps.
+    expect(surfaces?.text).not.toMatch(/\bfill\?:/);
+    expect(surfaces?.text).not.toMatch(/\bgrow\?:/);
+    expect(surfaces?.text).not.toMatch(/\bfill\s*=\s*false/);
+    expect(surfaces?.text).not.toMatch(/\bgrow\s*=\s*false/);
+  });
+
+  it("lets no `.tsx` pass either of them", () => {
+    for (const file of components) {
+      expect(attributes(file.text), file.name).not.toMatch(/(?:^|\s)(fill|grow)(?=\s|>|$)/m);
+    }
+  });
+
+  it("gives the dropzone an intrinsic height rather than the column's slack", () => {
+    // The one part of a short Step that genuinely wanted to be large. It is
+    // large because a dropzone is large, not because Health had room to spare.
+    // `min-h-0` is the tell: it is what an element writes when it intends to be
+    // stretched by a flex parent. The remaining `flex-1` in the file is the
+    // horizontal one that lets the label take the row's width.
+    const upload = files.find((file) => file.name === "components/document-upload.tsx");
+    expect(upload?.text).toMatch(/h-\[9rem\]/);
+    expect(upload?.text).not.toMatch(/min-h-0|max-h-\[/);
   });
 });

@@ -122,7 +122,7 @@ export function WhoYouAreRoute() {
         </>
       }
     >
-      <Sections as="fieldset" fill>
+      <Sections as="fieldset">
         {/* Spans the sheet: a two-field strip beside a full-height section
             leaves a hole where the other half of the row would have been. */}
         <Section
@@ -218,7 +218,6 @@ export function WhoYouAreRoute() {
         </Section>
 
         <Section
-          grow
           step={3}
           done={documented}
           icon={<IdentificationBadgeIcon weight="duotone" aria-hidden className="size-4" />}

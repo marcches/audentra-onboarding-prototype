@@ -47,9 +47,16 @@ export function DocumentUpload({
    */
   hint?: string;
   /**
-   * Fill the room the Section gives it. A dropzone is the one control in the
-   * flow that is genuinely better large — the target you throw a file at should
-   * be the size of the space, not the size of its own label.
+   * The dropzone at its own full height, rather than at the height of its own
+   * label.
+   *
+   * A dropzone is the one control in the flow that is genuinely better large,
+   * and this used to say so by taking whatever the Section had left over. That
+   * made its size a fact about the *screen* — Health's zone was 140px taller
+   * than Who you are's for no reason a student could see, and when the screen
+   * had nothing to spare the slack turned into white inside the sheet. 9rem is
+   * the intrinsic height: enough to read as somewhere you can throw a file,
+   * borrowed from nothing.
    */
   tall?: boolean;
   files: UploadedFile[];
@@ -77,7 +84,7 @@ export function DocumentUpload({
   }
 
   return (
-    <div className={cn("flex flex-col gap-1.5", tall && "min-h-0 flex-1")}>
+    <div className="flex flex-col gap-1.5">
       {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop is an
           enhancement layered on top of the "Choose files" button inside this
           box, which is the keyboard and screen-reader path and is always
@@ -105,7 +112,7 @@ export function DocumentUpload({
              last field of three Steps below the fold. */
           "rounded-[var(--radius-field)] border border-dashed transition-colors",
           tall
-            ? "flex max-h-[16rem] min-h-[9rem] flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
+            ? "flex h-[9rem] flex-col items-center justify-center gap-2 p-4 text-center"
             : "flex items-center gap-2.5 px-2.5 py-2",
           dragging ? "border-violet-500 bg-violet-50/60" : "border-ink-200 bg-transparent",
         )}

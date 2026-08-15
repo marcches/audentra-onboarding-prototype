@@ -93,7 +93,7 @@ export function HealthRoute() {
         </>
       }
     >
-      <Sections as="fieldset" fill>
+      <Sections as="fieldset">
         {/* The sensitive question says why it is asked, once, before it asks
             (Remote). Flat register: this is the one screen in the flow where
             warmth would read as intrusive. */}
@@ -159,7 +159,6 @@ export function HealthRoute() {
         {/* Its own Section, never gated on the answer above (Lindy's two file
             Wells under one heading). */}
         <Section
-          grow
           step={2}
           done={health.immunizationDocuments.length > 0}
           icon={<SyringeIcon weight="duotone" aria-hidden className="size-4" />}

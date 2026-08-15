@@ -46,11 +46,22 @@ import { cn } from "@/lib/utils";
  * framed boxes in a column — which is the stacking the client has objected to
  * three times, and which ADR 0010 would otherwise have re-created one size
  * smaller.
+ *
+ * **A sheet is the height of its content and has no way not to be.** It used to
+ * take `fill`, which handed the Step column's leftover height to whichever
+ * Section asked to `grow` — and the reasoning ("stretch the part that is
+ * genuinely better large") was sound about the dropzone and wrong about
+ * everything else, because a sheet that can stretch stretches on the screens
+ * where nothing wanted the room. That is the white the client photographed:
+ * `who-you-are` §3 with 90px under one sentence, `health` §2 with 140px under a
+ * dropzone. Both props are gone from the prop surface rather than from the call
+ * sites, so a future Step cannot reintroduce the void by passing them again;
+ * the dropzone carries its own intrinsic height instead of borrowing the
+ * column's slack. Ground under a short sheet is the ordinary state of a page.
  */
 export function Sections({
   as: Tag = "div",
   columns = 1,
-  fill = false,
   footer,
   className,
   children,
@@ -64,17 +75,6 @@ export function Sections({
    * already inside a narrow half — Review's left-hand column asks for that.
    */
   columns?: 1 | 2;
-  /**
-   * Take the height left in the Step column, and hand it to whichever Section
-   * asked to `grow`.
-   *
-   * Not a filler: a Step short enough to leave a gap has one part that is
-   * genuinely better large — a dropzone you can throw a file anywhere into, a
-   * list that has room to grow. Stretching *that* is using the space. An empty
-   * div stretched to the same size is the void with a border around it, which
-   * is what the first attempt at this shipped and what the client saw.
-   */
-  fill?: boolean;
   /** The guidance strip at the foot of the sheet — what is left, and what is next. */
   footer?: React.ReactNode;
   className?: string;
@@ -84,7 +84,6 @@ export function Sections({
     <Tag
       className={cn(
         "flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-ink-100 bg-panel",
-        fill && "min-h-0 flex-1 self-stretch",
         className,
       )}
     >
@@ -96,17 +95,13 @@ export function Sections({
       <div
         className={cn(
           "-mt-px -ml-px",
-          /* Flex in one column so a Section can take the slack; grid in two,
-             where the rules have to line up across the pair. */
-          columns === 2 ? "grid grid-cols-2 narrow:grid-cols-1" : "flex min-h-0 flex-1 flex-col",
+          columns === 2 ? "grid grid-cols-2 narrow:grid-cols-1" : "flex flex-col",
         )}
       >
         {children}
       </div>
 
-      {footer ? (
-        <div className="mt-auto border-t border-ink-100 bg-well px-3 py-2">{footer}</div>
-      ) : null}
+      {footer ? <div className="border-t border-ink-100 bg-well px-3 py-2">{footer}</div> : null}
     </Tag>
   );
 }
@@ -133,7 +128,6 @@ export function Section({
   icon,
   step,
   done = false,
-  grow = false,
   defaultOpen = true,
   collapsible = false,
   span = false,
@@ -165,8 +159,6 @@ export function Section({
    */
   step?: number;
   done?: boolean;
-  /** Takes the slack in a `fill`ing sheet. At most one Section per sheet. */
-  grow?: boolean;
   defaultOpen?: boolean;
   /**
    * Off by default, and that is the correction.
@@ -239,7 +231,6 @@ export function Section({
       className={cn(
         "flex min-w-0 flex-col border-t border-l border-ink-100",
         span && "col-span-full",
-        grow && "min-h-0 flex-1",
         className,
       )}
     >
@@ -270,8 +261,8 @@ export function Section({
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
 
-      <Reveal open={shown} className="min-h-0 flex-1">
-        <div className={cn("flex h-full flex-col px-3 py-2.5", bodyClassName)}>{children}</div>
+      <Reveal open={shown}>
+        <div className={cn("flex flex-col px-3 py-2.5", bodyClassName)}>{children}</div>
       </Reveal>
     </section>
   );
