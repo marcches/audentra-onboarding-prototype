@@ -593,11 +593,11 @@ citadas nos tickets de `.scratch/onboarding-rebuild/`, conforme o portão de
 - [Walmart — Review Order](https://mobbin.com/screens/14cb5cd9-d4c4-4165-9479-099cb38edf05) — cabeçalho levemente tingido dá duas tonalidades sem borda.
 - [Docusign — Template](https://mobbin.com/screens/225c95a5-ae7c-4ddc-be26-45460c5eebd6) — um Well pode ser faixa de largura total.
 
-### 02 · A espinha: dez Steps
+### 02 · A espinha: nove Steps
 
 - [Remote — Add an employee](https://mobbin.com/screens/d6094185-b959-4f34-8022-248f0ea7ff52) — Personal profile · Address details · Emergency contact como três entradas de rail. A evidência literal da quebra em três.
 - [Deputy — Completing documents](https://mobbin.com/flows/77da76fb-cd1d-413a-925f-84e03419ac30) — documentos como entrada própria e contígua. É por isso que Health é um Step e fica onde fica.
-- [Airwallex — Verifying ID](https://mobbin.com/screens/e72dd825-7bcd-41e3-9a3f-f3ba8cab355b) — rail de dois níveis, só o grupo atual expandido. É como dez Steps não parecem dez.
+- [Airwallex — Verifying ID](https://mobbin.com/screens/e72dd825-7bcd-41e3-9a3f-f3ba8cab355b) — rail de dois níveis, só o grupo atual expandido. É como uma espinha longa não parece longa.
 - [OKX — identity verification](https://mobbin.com/flows/183e41d1-8744-48c6-b254-155794430af0) — separa endereço de verificação de endereço: o piso de granularidade é baixo.
 - [Mercury — onboarding](https://mobbin.com/screens/bdc369b8-aa88-4826-8c21-c52a19c5fa50) — Company info separado de Company address.
 - [Klaviyo — Set up your account](https://mobbin.com/screens/c116a0f9-8c5e-450d-b66d-d7a4f52a4b61) — "About 3 minutes" por sub-step. É a referência que **revoga** a regra de que tempo nunca aparece numa linha de Quest.
@@ -756,7 +756,7 @@ está aqui é o vocabulário e as réguas que sobram.
 ### Vocabulário novo
 
 **Presence** — atributo de *peça*, nunca de Step: `mobile`, `desktop` ou
-`both`. Todos os dez Steps existem nas duas larguras; o que varia é a peça
+`both`. Todos os nove Steps existem nas duas larguras; o que varia é a peça
 dentro deles. `both` é o padrão e não se escreve. As exceções são exatamente
 oito, e a tabela abaixo é fechada — uma nona linha exige justificativa escrita,
 senão Presence vira `hidden lg:block` com nome bonito.
@@ -788,7 +788,7 @@ _Aposentado_: `Panel`.
 **Referências:**
 - [Salesforce — Task record](https://mobbin.com/screens/95e5ac90-9df1-486f-8425-b130011eb761) e [Event record](https://mobbin.com/screens/ce85ea59-0b33-4c35-a4d4-f46da1a72cfb) — seção colapsável com cabeçalho, linhas label/valor em duas colunas, ~13px de corpo, zero ilustração. É a anatomia da `Section`.
 - [Salesforce — Advanced User Details](https://mobbin.com/screens/0365bde7-c320-46a0-b2e9-3ea0bb9f8451) — o extremo da densidade, e o limite: sem espaçamento vertical o mesmo padrão vira parede.
-- [Salesforce — Lead record](https://mobbin.com/screens/bfca53c8-202b-48aa-954d-cb58efa99231) — o Path em chevrons. **Rejeitado**: custa altura, que é o recurso escasso no HD, e só mostra três Phases quando o Rail mostra os dez Steps.
+- [Salesforce — Lead record](https://mobbin.com/screens/bfca53c8-202b-48aa-954d-cb58efa99231) — o Path em chevrons. **Rejeitado**: custa altura, que é o recurso escasso no HD, e só mostra três Phases quando o Rail mostra a espinha inteira.
 - [Mercury](https://mobbin.com/screens/8b12e7b5-4bd6-4eea-9a61-7ebbcfa4f855) e [Klook Merchant](https://mobbin.com/screens/11779a82-1f77-4177-a114-8b3f550f19fc) — trilha de passos fixa à esquerda com sub-passos e checks: a anatomia do Rail.
 - [Vanta](https://mobbin.com/screens/d6c8a960-3253-4ca4-b4aa-06e902fa0e4e) — progresso no topo da sidebar e contador "4 of 4 complete" no cabeçalho da seção. Pegamos o contador na seção; **rejeitamos** a barra de progresso, porque os checks já são o progresso e uma barra acima deles é a mesma informação duas vezes.
 - [Time2book](https://mobbin.com/screens/7c6850a5-6e83-4830-8b67-a30738cf46e1) — card fixado no pé da sidebar. É o slot do Balance.

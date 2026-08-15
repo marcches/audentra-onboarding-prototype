@@ -15,7 +15,7 @@ was submitted successfully!".
 | Register | Where | What it sounds like |
 |---|---|---|
 | **Warm** | Your offer, the acceptance, every Points award, Campus life, Enrolled | Direct, second person, short. The brief via Laura was *"faça parte desse time"*, not *"compartilhe se quiser"*. |
-| **Flat** | Who you are, Health information, Where you live now, Who we call, Review & sign, Deposit | Precise, unadorned. Money, FERPA, immigration status and signatures do not want personality. |
+| **Flat** | Who you are, Health information, Who we call, Review & sign, Deposit | Precise, unadorned. Money, FERPA, immigration status and signatures do not want personality. |
 
 The seam between them is a Step boundary, never a paragraph boundary.
 
@@ -148,7 +148,7 @@ client rejected.
 | Slot | String |
 |---|---|
 | Title | Who you are |
-| Lead | Your name as you want it used, a number we can reach you on, and one document. |
+| Lead | Your name as you want it used, a number we can reach you on, one document, and where you live. |
 | On record label | Already on your record |
 | On record note | Admissions holds these. Write to them if any of it is wrong. |
 | Preferred name label | Preferred name |
@@ -172,12 +172,42 @@ client rejected.
 | File remove | Remove |
 | Continue | Save and continue |
 
+### The permanent address, inside this Step
+
+**Absent entirely for an international student** (ADR 0011). It was a Step of
+its own for one round; the strings survive the merge unchanged apart from the
+"why we ask" block, which is one note under the Section heading now rather than
+a collapsed paragraph of its own.
+
+| Slot | String |
+|---|---|
+| Address legend | Your permanent address |
+| Address why | This decides your residency classification, and it is where anything official goes. It is not where you will be living during term. |
+| Street label | Street address |
+| Unit label | Apartment or unit (optional) |
+| City label | City |
+| State label | State |
+| State placeholder | Choose your state |
+| City placeholder | Choose your city |
+| City empty | Choose a state first |
+| Postal label | ZIP code |
+| Country label | Country |
+| Residency legend | How should we check your residency? |
+| Residency option 1 | Use the address above |
+| Residency consequence 1 | Fastest, if that is genuinely where you live. |
+| Residency option 2 | I will send supporting documents |
+| Residency consequence 2 | Enrollment Services will write to you with the list. |
+| Residency option 3 | I need an advisor to look at this |
+| Residency consequence 3 | Pick this if your situation does not fit the other two. |
+
 Helper text that survives, with its reason:
 
 - **Status why** — the question branches the rest of the flow, and Remote's
   pattern is to say so once rather than to explain each option.
 - **Mobile help** — the one field where students reasonably fear a marketing
   list.
+- **Address why** — the address is not the one a student expects to be asked
+  for, so the note says which address and which one it is not, once.
 
 Everything else the previous screen explained is deleted.
 
@@ -208,36 +238,7 @@ Everything else the previous screen explained is deleted.
 
 ---
 
-## 4 · Where you live now
-
-**Register:** flat. **Absent entirely for an international student.**
-**Archetype:** form.
-
-| Slot | String |
-|---|---|
-| Title | Where you live now |
-| Lead | Your permanent address, which decides your residency classification and where official post goes. |
-| Street label | Street address |
-| Unit label | Apartment or unit (optional) |
-| City label | City |
-| State label | State |
-| State placeholder | Choose your state |
-| City placeholder | Choose your city |
-| City empty | Choose a state first |
-| Postal label | ZIP code |
-| Country label | Country |
-| Residency legend | How should we check your residency? |
-| Residency option 1 | Use the address above |
-| Residency consequence 1 | Fastest, if that is genuinely where you live. |
-| Residency option 2 | I will send supporting documents |
-| Residency consequence 2 | Enrollment Services will write to you with the list. |
-| Residency option 3 | I need an advisor to look at this |
-| Residency consequence 3 | Pick this if your situation does not fit the other two. |
-| Continue | Save and continue |
-
----
-
-## 5 · Who we call, who can see
+## 4 · Who we call, who can see
 
 **Register:** flat. **Archetype:** form.
 
@@ -249,14 +250,17 @@ Everything else the previous screen explained is deleted.
 | Emergency name | Full name |
 | Emergency relationship | How you know them |
 | Emergency phone | Their mobile number |
-| Add contact | Add another contact |
+| Add contact | Add a second |
+| Second contact heading | Second contact (optional) |
 | Remove contact | Remove |
-| FERPA heading | Why this is yours to decide |
-| FERPA body (always visible) | The Family Educational Rights and Privacy Act gives parents the right to see their children's education records. **When you turn 18, or enter a postsecondary institution at any age, that right transfers from your parents to you.** So this is your decision, not theirs. |
+| FERPA body (always visible) | FERPA gives parents the right to see their children's education records. **When you turn 18, or enter a postsecondary institution at any age, that right transfers from your parents to you.** So this is your decision, not theirs. |
 | FERPA disclosure | What this means in practice |
-| FERPA disclosure body | Without your permission, Aster staff will decline to discuss your grades, your bill or your housing with anyone who asks, including a parent who is paying your fees. Naming someone here is how you change that. You can widen, narrow or withdraw it at any time in writing. |
-| Family legend | Family access |
+| FERPA disclosure label | Without your permission, Aster staff will not discuss |
+| FERPA disclosure list | Your grades · Your bill · Your housing |
+| FERPA disclosure note | Not with anyone who asks, including a parent who is paying your fees. Naming someone below is how you change that, and you can widen, narrow or withdraw it at any time in writing. |
+| Family legend | Who can see your record |
 | Family empty | Nobody has access to your record. |
+| Family empty note | That is the default, and it is fine to leave it that way. |
 | Add person | Give someone access |
 | Person name | Full name |
 | Person email | Email address |
@@ -281,11 +285,23 @@ Everything else the previous screen explained is deleted.
 The sentence in bold is the one that has to survive every edit. It answers the
 question the screen provokes in a seventeen-year-old and in the parent standing
 behind them, and without it the screen reads as the university arbitrarily
-cutting parents out. It is **always visible**, never behind the disclosure.
+cutting parents out. It is **always visible**, never behind the disclosure, and
+it is a whole sentence because rule 2 above is what stopped it being a bold
+clause the reader could not scope.
+
+Two shapes on this screen are not prose and are written that way deliberately.
+The **disclosure is a list**: its substance is three nouns, and three nouns in a
+sentence is a sentence you have to parse to find a list in. The **empty state is
+drawn** — a mark, the true sentence, and exactly one action — because "nobody has
+access" is the answer for most students rather than an aside about the answer.
+
+One emergency contact is required and a second is optional, **capped at two**.
+The invitation to add disappears at two, and the optionality is said in the
+heading rather than in a footnote (Oyster).
 
 ---
 
-## 6 · Housing
+## 5 · Housing
 
 **Register:** flat, with a warm lead. **Archetype:** catalogue.
 
@@ -323,7 +339,7 @@ cutting parents out. It is **always visible**, never behind the disclosure.
 
 ---
 
-## 7 · Campus life
+## 6 · Campus life
 
 **Register:** warm. Optional Step. **Archetype:** catalogue.
 
@@ -376,7 +392,7 @@ an organization requires an application, that is information in Getting in.
 
 ---
 
-## 8 · Review & sign
+## 7 · Review & sign
 
 **Register:** flat. **Archetype:** review.
 
@@ -410,11 +426,11 @@ an organization requires an application, that is information in Getting in.
 
 ---
 
-## 9 · Deposit
+## 8 · Deposit
 
 **Register:** flat. Three screens, one rail entry. **Archetype:** form.
 
-### 9a · Secure your place
+### 8a · Secure your place
 
 | Slot | String |
 |---|---|
@@ -446,7 +462,7 @@ an organization requires an application, that is information in Getting in.
 | Summary refundable | Refundable until {deadline} |
 | Continue | Review before paying |
 
-### 9b · Double check
+### 8b · Double check
 
 | Slot | String |
 |---|---|
@@ -461,7 +477,7 @@ an organization requires an application, that is information in Getting in.
 | Pay (deadline) | Confirm and invoice me |
 | Pay (waiver) | Send my waiver request |
 
-### 9c · Receipt
+### 8c · Receipt
 
 | Slot | String |
 |---|---|
@@ -490,7 +506,7 @@ has already admitted the student, is coercive and reads as a scam.
 
 ---
 
-## 10 · Enrolled
+## 9 · Enrolled
 
 **Register:** warm. **Archetype:** celebration.
 

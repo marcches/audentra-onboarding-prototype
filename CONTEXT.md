@@ -18,9 +18,19 @@ _Avoid_: stage, section, chapter
 
 > **About you** names the Phase, never a Step. It used to name a Step as well,
 > and then that Step became _Identity & contact_ carrying four subjects at
-> once. It is now four Steps — _Who you are_, _Health information_, _Where you
-> live now_, _Who we call, who can see_ — because a Phase can be described
-> loosely and a form cannot.
+> once. It is now three Steps — _Who you are_, _Health information_, _Who we
+> call, who can see_ — because a Phase can be described loosely and a form
+> cannot.
+>
+> It was briefly four. _Where you live now_ was one of them and is not any
+> more: the permanent address and the residency check are Sections inside _Who
+> you are_, present for a U.S. citizen or a permanent resident and absent for an
+> international student. The reasoning for splitting _Identity & contact_
+> survives that change and is what drove it — the split was right that a Step
+> carries **one subject**, and wrong about where the boundary falls, because it
+> drew it around fields. Name, number, Student status, Identity document and
+> permanent address are one subject; emergency contact and Family access are
+> another; health is a third. See ADR 0011.
 
 **Step**:
 One screen inside a Phase, completable on its own and saved on its own.
@@ -128,6 +138,18 @@ scattered.
 _Avoid_: vaccine card, shots
 
 ## Family and identity
+
+**Emergency contact**:
+Who Aster telephones if something happens to the student. Carries a name, a
+relationship and a number, and nothing else — it grants no sight of anything.
+One is required and a second is optional; there is no third.
+_Avoid_: next of kin, ICE contact, guardian
+
+> **Not the same thing as Family access**, which the copy has conflated more
+> than once. The emergency contact is who Aster *calls*; Family access is who
+> may *ask*. One is a phone number for a crisis, the other is a standing
+> permission under federal law, and a student may reasonably want one person for
+> the first and nobody at all for the second.
 
 **Family access**:
 A named person granted sight of specified parts of the student's record, under

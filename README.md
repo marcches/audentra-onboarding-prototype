@@ -69,12 +69,12 @@ estrutura de componente:
 
 | Arquivo | O que garante |
 |---|---|
-| `steps.test.ts` | A espinha: dez Steps, três Fases, ordem, navegação, metadados, e a ausência condicional de `Where you live now`. |
+| `steps.test.ts` | A espinha: nove Steps, três Fases, ordem, navegação, metadados, e o total de 215 Points intacto depois da fusão. |
 | `validation.test.ts` | Os ramos condicionais: qual documento cada Student status pede, e se o endereço participa do schema. |
 | `points.test.ts` | Preço, recibo, conversão em crédito, o prêmio de compartilhar e o total anunciado. |
 | `summary.test.ts` | O que Review & sign mostra: o resumo de uma linha por seção e as duas contagens. |
 | `catalogue.test.ts` | O filtro de Campus life nos quatro eixos, combinados, limpos e no caso zero. |
-| `layout-rules.test.ts` | As quatro invariantes de deriva, no nível do código-fonte. |
+| `layout-rules.test.ts` | As invariantes de deriva no nível do código-fonte, mais: nenhuma folha estica, a assinatura cai duas vezes e não mais, a medida de prosa é declarada uma vez, o dourado do brasão nunca chega ao tema, e o conector do rail é calculado a partir do marcador. |
 
 O que a suíte **não** julga é composição, tom e movimento. Isso continua sendo
 revisão visual, em desktop e em 390px, com o roteiro em

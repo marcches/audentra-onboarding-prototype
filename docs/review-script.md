@@ -33,8 +33,23 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 
 ## A casca, em qualquer passo
 
-- [ ] O rail mostra quatro linhas em repouso e só a Fase atual aberta. Dez Steps
-      não parecem dez.
+- [ ] O rail mostra **nove Quests**, para todo estudante — citizen, permanent
+      resident ou international. Não existe mais rail de nove contra dez.
+- [ ] A linha do rail passa pelo **centro** dos marcadores de grupo, nos cinco
+      grupos, e cada Quest carrega uma marca **sobre** a linha: ponto vazado
+      quando não começou, ponto cheio no atual, check quando pronto.
+- [ ] O check está na linha, não solto à direita. Nenhuma marca nova foi
+      acrescentada à tela.
+- [ ] A linha é um segmento por grupo. Closing e After continuam visivelmente
+      apartados das três Fases.
+- [ ] O brasão no topo do rail lê como **armas de universidade**, não como ícone
+      de app, e o dourado dele não aparece em nenhum outro lugar da tela.
+- [ ] Exatamente **uma** régua de gradiente por tela, no topo da folha de
+      trabalho, e nenhuma no guia. Housing e Campus life não têm folha e portanto
+      não têm régua.
+- [ ] Nenhum bloco guarda espaço em branco depois que o conteúdo acabou. Folha
+      curta mostra Ground embaixo, e isso é o estado normal de uma página.
+- [ ] Nenhum parágrafo dentro de uma Section passa de 75 caracteres por linha.
 - [ ] Minutos aparecem na linha do Quest e **somem** quando a linha fica pronta.
 - [ ] O preço em Points aparece em exatamente duas linhas: a atual e a próxima.
 - [ ] O Balance está no mesmo pixel em **todas** as telas do fluxo.
@@ -87,9 +102,17 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 - [ ] O upload nasce imediatamente abaixo do radio que o revelou.
 - [ ] O telefone é uma linha só, e nenhum campo pede `+`.
 - [ ] Cada radio carrega sua consequência na própria etiqueta.
-- [ ] Cabe numa viewport em 1440 sem rolagem de página; rola no máximo uma vez
-      em 390.
 - [ ] Um arquivo anexado **sai** da dropzone e vira linha na lista.
+- [ ] Respondendo "International student", as Sections **4 · Your permanent
+      address** e **5 · Residency check** somem. Não ficam cinzas, não ficam
+      desabilitadas: somem (ADR 0011).
+- [ ] Voltando para citizen, elas reaparecem com o que já tinha sido digitado.
+- [ ] Continue nunca é bloqueado por um campo que não está na tela.
+- [ ] State e city são selects em cascata, e a lista de cidades corresponde ao
+      estado. Trocar o estado limpa a cidade.
+- [ ] `/onboarding/where-you-live` redireciona para cá, não dá 404.
+- [ ] O marcador da primeira Section incompleta é o gradiente; as posteriores
+      são cinzas; as concluídas são mint com um check.
 
 ## 3 · Health information — `/onboarding/health`
 
@@ -103,32 +126,27 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 - [ ] Cabe numa viewport em 1440 nos dois estados. Este passo tinha 443px de
       chão morto.
 
-## 4 · Where you live now — `/onboarding/where-you-live`
-
-- [ ] Respondendo "International student" no passo anterior, esta entrada
-      **desaparece do rail**. Não fica cinza, não fica riscada: some.
-- [ ] Continue em Health leva direto a Who we call para esse estudante.
-- [ ] State e city são selects em cascata, e a lista de cidades corresponde ao
-      estado.
-- [ ] Trocar o estado limpa a cidade.
-- [ ] Voltar o status para citizen depois de ter apagado o endereço: o passo
-      reaparece e o formulário está como estava.
-- [ ] Continue nunca é bloqueado por um campo que não está na tela.
-- [ ] Cabe numa viewport em 1440.
-
-## 5 · Who we call, who can see — `/onboarding/who-we-call`
+## 4 · Who we call, who can see — `/onboarding/who-we-call`
 
 - [ ] A explicação de FERPA aparece **antes** dos campos.
 - [ ] A frase sobre a transferência do direito aos 18 anos está **sempre
       visível**, nunca atrás do disclosure.
-- [ ] A explicação está na Ground do Panel, nunca dentro de um Well.
+- [ ] A explicação está na Ground da Section, nunca dentro de um Well.
+- [ ] O parágrafo quebra em **até 68 caracteres por linha**, não em 89.
+- [ ] O link "What this means in practice" está **em linha própria**, nunca
+      colado no fim do parágrafo.
+- [ ] O disclosure abre como lista, não como um segundo parágrafo.
+- [ ] Sem ninguém com acesso: empty state **desenhado** dentro de um Well, com
+      uma frase verdadeira e exatamente uma ação. A ação não aparece duas vezes.
+- [ ] `Add a second` some quando já existem dois contatos de emergência.
+- [ ] O segundo contato diz "(optional)" no próprio cabeçalho.
 - [ ] Family access captura nome, e-mail, parentesco **e** escopo.
 - [ ] Cada opção de escopo diz o que a pessoa vai e não vai ver.
 - [ ] Dá pra adicionar mais de uma pessoa e remover cada uma.
 - [ ] Health e Disciplinary record nunca vêm pré-marcados.
-- [ ] Cabe numa viewport em 1440 com uma pessoa com acesso.
+- [ ] A folha termina onde o conteúdo termina, e o Ground abaixo dela é aceito.
 
-## 6 · Housing — `/onboarding/housing`
+## 5 · Housing — `/onboarding/housing`
 
 - [ ] Toda fotografia abre o visualizador com um clique.
 - [ ] A fila de atalhos por ambiente abre a galeria na seção certa.
@@ -142,7 +160,7 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 - [ ] A comparação tem a coluna de rótulos congelada e linhas agrupadas.
 - [ ] O catálogo senta na Ground, não dentro de um painel branco.
 
-## 7 · Campus life — `/onboarding/campus-life`
+## 6 · Campus life — `/onboarding/campus-life`
 
 - [ ] Nenhum controle diz Join, Sign up, Apply ou Enroll.
 - [ ] O toggle de interesse é neutro e tem a **mesma largura** nos dois estados;
@@ -169,7 +187,7 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 - [ ] Nada na tela envia, confirma ou inscreve.
 - [ ] Funciona em 390px sem rolagem horizontal.
 
-## 8 · Review & sign — `/onboarding/review`
+## 7 · Review & sign — `/onboarding/review`
 
 - [ ] A tela abre num cabeçalho de status, não num documento.
 - [ ] "Your answers" está **acima** do acordo.
@@ -186,7 +204,7 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
       o lugar do Back na barra.
 - [ ] Editar uma resposta depois de assinar reabre a assinatura.
 
-## 9 · Deposit — `/onboarding/deposit`
+## 8 · Deposit — `/onboarding/deposit`
 
 - [ ] Uma entrada de rail, três telas dentro dela.
 - [ ] O resumo fica fixo ao lado e nunca sai da tela, terminando numa linha
@@ -202,7 +220,7 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
       marketing, confete.
 - [ ] Em 390px empilha, com o valor junto do botão.
 
-## 10 · Enrolled — `/done`
+## 9 · Enrolled — `/done`
 
 - [ ] O recibo do depósito mora aqui; não existe tela de recibo separada.
 - [ ] O herói é um objeto que chega, não um título.
@@ -220,7 +238,7 @@ A ordem abaixo é a ordem da espinha, em `src/lib/steps.ts`.
 
 ## Passada final em 390px
 
-- [ ] Percorrer os dez Steps de ponta a ponta.
+- [ ] Percorrer os nove Steps de ponta a ponta.
 - [ ] Nenhuma rolagem horizontal em nenhuma tela.
 - [ ] Nenhum alvo de toque abaixo de 44px.
 - [ ] Nenhum passo com o `h1` num pixel diferente de quando se chega por outro
