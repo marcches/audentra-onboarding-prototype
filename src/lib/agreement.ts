@@ -1,5 +1,6 @@
 import {
   citizenshipOptions,
+  disclosureScopeOptions,
   formatDeadline,
   formatMoney,
   institution,
@@ -141,8 +142,15 @@ export function buildAgreement(state: OnboardingState): Clause[] {
           t(" ("),
           v(about.familyMemberEmail || NOT_GIVEN),
           t(") access to "),
+          /* The scopes themselves, in the words the student ticked them by.
+             "3 areas of your record" is a count, and a clause a student
+             cannot check against their own answer is a clause they cannot
+             audit — which is the whole reason the emphasised runs exist. */
           v(
-            `${about.disclosureScope.length} ${about.disclosureScope.length === 1 ? "area" : "areas"} of your record`,
+            about.disclosureScope
+              .map((value) => label(disclosureScopeOptions, value))
+              .filter((name): name is string => Boolean(name))
+              .join(", ") || NOT_GIVEN,
           ),
           t(
             ". They receive no account of their own and cannot act for you. You may widen, narrow or withdraw this at any time; withdrawing it does not undo disclosures already made.",

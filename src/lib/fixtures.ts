@@ -626,12 +626,62 @@ export const relationshipOptions = [
   { value: "other", label: "Other" },
 ] as const;
 
+/**
+ * What a FERPA release can actually be scoped to.
+ *
+ * Modelled on the categories U.S. universities put on their own release forms,
+ * worded as the thing rather than as the department that owns it — a student
+ * ticking a box called "Student Financial Services" has not been told what they
+ * are giving away. Each carries the line that says what it means, because
+ * "Academic record" and "your grades, every term" are the same box and only one
+ * of them is an informed decision (Square's scoped-permission panels).
+ *
+ * `sensitive` is not styling. Health and conduct are the two a student is most
+ * likely to hand a parent by reflex and regret specifically, so they are drawn
+ * apart, they are never pre-ticked, and nothing in the UI may ever tick them in
+ * a batch with the others. The flag is what makes that a property of the
+ * fixture rather than a habit of whoever writes the next control.
+ */
 export const disclosureScopeOptions = [
-  { value: "enrollment", label: "Enrollment status" },
-  { value: "financials", label: "Financial account and payments" },
-  { value: "academic", label: "Academic record" },
-  { value: "housing", label: "Housing" },
+  {
+    value: "enrollment",
+    label: "Enrollment status",
+    hint: "Whether you're registered, full-time or part-time, and which programme",
+    sensitive: false,
+  },
+  {
+    value: "academic",
+    label: "Grades and academic record",
+    hint: "Your grades each term, your transcript and your academic standing",
+    sensitive: false,
+  },
+  {
+    value: "financials",
+    label: "Billing and financial aid",
+    hint: "What you owe, what you've paid, and any aid or scholarship you hold",
+    sensitive: false,
+  },
+  {
+    value: "housing",
+    label: "Housing",
+    hint: "Which residence you're assigned and your move-in window",
+    sensitive: false,
+  },
+  {
+    value: "health",
+    label: "Health and disability services",
+    hint: "Accommodations, and anything you've told Accessibility Services",
+    sensitive: true,
+  },
+  {
+    value: "conduct",
+    label: "Disciplinary record",
+    hint: "Conduct cases involving you, and how they were resolved",
+    sensitive: true,
+  },
 ] as const;
+
+export type DisclosureScope = (typeof disclosureScopeOptions)[number]["value"];
 
 export const countries = [
   { value: "US", label: "United States" },

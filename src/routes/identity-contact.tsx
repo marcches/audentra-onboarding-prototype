@@ -5,6 +5,7 @@ import {
   HouseLineIcon,
   IdentificationCardIcon,
   LifebuoyIcon,
+  LockSimpleIcon,
   PlusIcon,
   ShieldCheckIcon,
   SparkleIcon,
@@ -51,6 +52,16 @@ import {
 import { emptyEmergencyContact, newContactId, patch, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { type IdentityContactValues, identityContactSchema } from "@/lib/validation";
+
+/**
+ * The scope list, split by the fixture's own `sensitive` flag rather than by a
+ * second list here that could disagree with it. Adding a sensitive scope to
+ * `fixtures.ts` puts it below the line with no change to this file, which is
+ * the whole point of the flag.
+ */
+type ScopeOptionShape = (typeof disclosureScopeOptions)[number];
+const ORDINARY_SCOPES = disclosureScopeOptions.filter((option) => !option.sensitive);
+const SENSITIVE_SCOPES = disclosureScopeOptions.filter((option) => option.sensitive);
 
 type SectionId = "identity" | "residence" | "emergency" | "family";
 
@@ -150,7 +161,20 @@ export function IdentityContactRoute() {
 
   const values = form.watch();
   const contacts = useFieldArray({ control: form.control, name: "emergencyContacts" });
+
   const [sectionsNeedingAttention, setSectionsNeedingAttention] = React.useState<SectionId[]>([]);
+
+  /* One scope at a time, always — there is deliberately no "select everything"
+     control on this fieldset. A batch tick is exactly how the health and
+     conduct scopes would get granted without anyone deciding to grant them. */
+  function toggleScope(value: string, granted: boolean) {
+    const current = values.disclosureScope ?? [];
+    form.setValue(
+      "disclosureScope",
+      granted ? [...current, value] : current.filter((item) => item !== value),
+      { shouldValidate: true },
+    );
+  }
 
   /* International students have no U.S. permanent address to give — the whole
      block hides for that branch (below), and any address already typed before
@@ -723,9 +747,13 @@ export function IdentityContactRoute() {
               <SectionHeader
                 icon={<ShieldCheckIcon weight="duotone" />}
                 title="Who else can see your record"
+                /* Collapsed, the row summarises the grant rather than listing
+                   six scopes — `n of m`, which is how a scope list stays one
+                   line at 390px (Deel). Open, every one of them is spelled
+                   out. */
                 summary={
                   values.grantsFamilyAccess
-                    ? `${values.familyMemberName || "One person"} · ${values.disclosureScope?.length ?? 0} area(s)`
+                    ? `${values.familyMemberName || "One person"} · ${values.disclosureScope?.length ?? 0} of ${disclosureScopeOptions.length} areas`
                     : "Nobody, unless you say so"
                 }
                 status={sectionStatus.family}
@@ -825,36 +853,47 @@ export function IdentityContactRoute() {
                     </Field>
                   </div>
 
+                  {/* Each scope carries the line that says what it means.
+                      "Academic record" and "your grades, every term" are the
+                      same box, and only one of them is an informed decision
+                      (Square's scoped permissions). */}
                   <fieldset>
                     <legend className="field-label mb-3">Exactly what they can see</legend>
-                    <div className="grid gap-2.5 sm:grid-cols-2">
-                      {disclosureScopeOptions.map((option) => {
-                        const checked = values.disclosureScope?.includes(option.value) ?? false;
-                        return (
-                          <label
-                            key={option.value}
-                            htmlFor={`scope-${option.value}`}
-                            className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-field)] border border-ink-200 bg-surface px-3.5 py-3 transition-colors hover:border-ink-300"
-                          >
-                            <Checkbox
-                              id={`scope-${option.value}`}
-                              checked={checked}
-                              onCheckedChange={(next) => {
-                                const current = values.disclosureScope ?? [];
-                                form.setValue(
-                                  "disclosureScope",
-                                  next === true
-                                    ? [...current, option.value]
-                                    : current.filter((item) => item !== option.value),
-                                  { shouldValidate: true },
-                                );
-                              }}
-                            />
-                            <span className="text-body text-ink-800">{option.label}</span>
-                          </label>
-                        );
-                      })}
+                    <div className="space-y-2.5">
+                      {ORDINARY_SCOPES.map((option) => (
+                        <ScopeOption
+                          key={option.value}
+                          option={option}
+                          checked={values.disclosureScope?.includes(option.value) ?? false}
+                          onChange={(next) => toggleScope(option.value, next)}
+                        />
+                      ))}
                     </div>
+
+                    {/* Drawn apart, and off unless the student says otherwise.
+                        These are the two a parent is most often handed by
+                        reflex and the two a student most specifically regrets;
+                        putting them in the same grid as "Housing" is what makes
+                        that reflex easy. */}
+                    <p className="mt-4 mb-2.5 flex items-center gap-2 text-small text-ink-600">
+                      <LockSimpleIcon
+                        weight="duotone"
+                        aria-hidden
+                        className="size-4 text-amber-500"
+                      />
+                      These two stay off unless you turn them on.
+                    </p>
+                    <div className="space-y-2.5">
+                      {SENSITIVE_SCOPES.map((option) => (
+                        <ScopeOption
+                          key={option.value}
+                          option={option}
+                          checked={values.disclosureScope?.includes(option.value) ?? false}
+                          onChange={(next) => toggleScope(option.value, next)}
+                        />
+                      ))}
+                    </div>
+
                     {errors.disclosureScope?.message ? (
                       <p className="mt-2 text-small font-medium text-danger-600">
                         {errors.disclosureScope.message}
@@ -985,5 +1024,45 @@ function StatusPill({ status }: { status: "done" | "needed" }) {
       <SparkleIcon weight="fill" aria-hidden className="size-3" />
       Needs you
     </span>
+  );
+}
+
+/**
+ * One scope, as a checkable panel with the sentence that says what it means.
+ *
+ * The sentence is the point. A student ticking "Academic record" has not been
+ * told that it means their grades every term, and a release granted without
+ * that sentence is a release they did not knowingly give.
+ */
+function ScopeOption({
+  option,
+  checked,
+  onChange,
+}: {
+  option: ScopeOptionShape;
+  checked: boolean;
+  onChange: (granted: boolean) => void;
+}) {
+  return (
+    <label
+      htmlFor={`scope-${option.value}`}
+      className={cn(
+        "flex cursor-pointer items-start gap-3 rounded-[var(--radius-field)] border px-3.5 py-3 transition-colors",
+        checked
+          ? "border-violet-500 bg-violet-50/60"
+          : "border-ink-200 bg-surface hover:border-ink-300",
+      )}
+    >
+      <Checkbox
+        id={`scope-${option.value}`}
+        className="mt-0.5"
+        checked={checked}
+        onCheckedChange={(next) => onChange(next === true)}
+      />
+      <span className="flex flex-col gap-0.5">
+        <span className="text-body font-bold text-ink-900">{option.label}</span>
+        <span className="text-small text-ink-500">{option.hint}</span>
+      </span>
+    </label>
   );
 }

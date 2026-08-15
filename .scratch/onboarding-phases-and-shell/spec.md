@@ -1,4 +1,4 @@
-Status: in-progress — 01–05 done, 06 and 07 open
+Status: in-progress — 01–05 and 07 done, 06 open
 
 # Onboarding: Phases, shell, and the parts the last round missed
 
@@ -137,7 +137,7 @@ named out loud on the next call rather than discovered.
 | 04 — Housing: eight Residences, a Shortlist of three | **done** |
 | 05 — The Closing: Review & sign, and Deposit | **done** |
 | 06 — Copy sweep | ready-for-human |
-| 07 — Family access: what they can actually see | ready-for-human |
+| 07 — Family access: what they can actually see | **done** |
 
 04–07 are all unblocked: 01 was the only thing any of them were waiting on, and
 05's second dependency (how a completed flow reports its Points) is now answered
