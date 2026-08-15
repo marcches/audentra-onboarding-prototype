@@ -1,6 +1,6 @@
 # 05 — Your offer, and the moment of accepting
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 01, 03, 04
 
@@ -87,3 +87,24 @@ and the signing bar is fixed outside it.
 - [ ] Sharing awards Points via ticket 04's mechanism.
 - [ ] Nothing on this screen lifts, scales or reflows on hover.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/offer.tsx`, `src/components/acceptance.tsx`,
+`src/components/share-card.tsx`.
+
+Medido no browser a 1440×900: o conteúdo preenche a viewport, sem rolagem de
+página. As duas colunas esticam juntas porque o grid é `min-h-0 flex-1` e o
+arquétipo `decision` põe `h-dvh overflow-hidden` no `main`. Os 452px de chão
+morto acabaram.
+
+Os fatos são linhas `rótulo → valor`. "What accepting does" migrou para cá, e a
+celebração ficou feita de emoção, Points e compartilhamento — sem informação.
+
+**Parcial:** botões por rede (Facebook, LinkedIn) **não** foram construídos. Não
+há integração de share neste protótipo, e um botão com logo de rede que não abre
+nada é pior que um botão genérico que abre a mesma coisa. O apelo está escrito
+na voz pedida e o cartão 4:5 existe. Registrado em `source-requests.md`, linha
+L28.

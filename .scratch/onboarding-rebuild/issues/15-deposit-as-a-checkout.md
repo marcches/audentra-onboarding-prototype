@@ -1,6 +1,6 @@
-# 11 — The Deposit, as a checkout someone has already used
+# 15 — The Deposit, as a checkout someone has already used
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 14
 
@@ -91,3 +91,29 @@ The sequence survives unchanged when a gateway lands.
 - [ ] The layout is form-left / summary-right at desktop and stacks with the
       amount next to the button at 390px.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/deposit.tsx`, `depositTerms` em `src/lib/fixtures.ts`.
+
+Três telas atrás de uma entrada de rail, com o estado da tela em
+`deposit.screen`. O resumo fica fixo ao lado e termina numa linha **Due today**
+em negrito, separada do subtotal.
+
+Todos os três caminhos chegam a um recibo, cada um com sua própria cópia e
+status — `receiptCopy()` é a função que garante que nenhum ramo fica sem
+confirmação, e ela é reusada pelo Enrolled. Transferência bancária aparece como
+*processing*.
+
+Nada de contagem regressiva, vocabulário de carrinho, upsell, campo de cupom,
+logo de BNPL, opt-in de marketing ou confete. O primeiro item dessa lista é
+ética, não gosto: pressão de compra sobre uma obrigação financeira, vinda de uma
+instituição que já admitiu o estudante, é coercivo.
+
+**Ajustado depois da conferência no browser:** o cartão 2 agora existe abatido
+antes de poder ser respondido. Sem ele a numeração pulava de 1 para 3 assim que
+a tela carregava, o que lia como um passo tendo sumido.
+
+**Nota:** o `#` do título deste arquivo dizia `11`. Corrigido para `15`.

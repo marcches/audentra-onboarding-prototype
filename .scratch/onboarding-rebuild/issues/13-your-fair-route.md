@@ -1,6 +1,6 @@
 # 13 — Your fair route: what the interest list is for
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 12
 
@@ -53,3 +53,24 @@ an event that happens after classes begin.
 - [ ] Works at 390px without horizontal scroll.
 - [ ] Every string comes from `copy-inventory.md`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/components/fair-route.tsx`, `buildFairRoute()` e
+`fairRouteSummary()` em `src/lib/catalogue.ts`.
+
+O reagrupamento por zona é a diferença inteira entre uma lista de salvos e um
+roteiro, e é a parte testada: o teste afirma que cada perna contém uma zona só,
+que duas organizações de artes caem numa perna e não em duas, e que a numeração
+das paradas é contínua entre zonas.
+
+Cada parada carrega o número da mesa e a linha de "Getting in" — na feira, essa
+última é a única coisa que o estudante vai realmente usar.
+
+Nada na tela envia, confirma ou inscreve. O rodapé tem uma ação: salvar o
+roteiro.
+
+Um id que não resolve mais contra o catálogo é ignorado em vez de ocupar uma
+parada e imprimir nada.

@@ -1,6 +1,6 @@
 # 08 — Where you live now, for the students it applies to
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02, 03, 06
 
@@ -53,3 +53,26 @@ second column takes what is not a field.
 - [ ] `steps.test.ts` asserts the conditional absence from the spine.
 - [ ] Every string comes from `copy-inventory.md`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/where-you-live.tsx`, `addressSchemaFor()` em
+`src/lib/validation.ts`.
+
+`addressSchemaFor("international")` devolve **`null`**, não um schema de campos
+opcionais, e o teste afirma exatamente isso. Um campo obrigatório escondido que
+trava o Continue com um erro que ninguém consegue ver é a pior versão disso, e
+era o que o fluxo fazia.
+
+State e city são selects em cascata; trocar o estado limpa a cidade, porque uma
+cidade que não pertence mais ao estado escolhido é justamente o tipo de absurdo
+bem-formado que um select existe para impedir.
+
+Chegar nesta rota depois de virar internacional — por bookmark, ou por um link
+de edição do Review escrito antes da troca — redireciona para Who we call em vez
+de renderizar um Step que a espinha diz não existir.
+
+Verificado no browser: marcar "International student" tira a entrada do rail e
+"About you" passa a dizer 3 quests.

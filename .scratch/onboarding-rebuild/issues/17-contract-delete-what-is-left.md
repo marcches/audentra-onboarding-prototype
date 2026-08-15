@@ -1,6 +1,6 @@
 # 17 — Contract: delete what nothing calls any more
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16
 
@@ -70,3 +70,40 @@ Four decisions from the grilling session earn one, numbered from **0004**:
 - [ ] Typecheck, `pnpm test`, biome and `pnpm build` all clean.
 - [ ] `source-requests.md` walked end to end, every row either delivered or
       explicitly recorded as not delivered with a reason.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**O que saiu:** `identity-contact.tsx`, `celebration-dialog.tsx`,
+`club-detail.tsx`, `club-grid.tsx`, `residence-card.tsx`, `id-upload.tsx`,
+`filter-pill.tsx`, `reactbits/SplitText.tsx`, `reactbits/CountUp.tsx`,
+`reactbits/LightRays.tsx`. Verificado por ausência de chamador, com `grep` de
+import, não de memória.
+
+**Dependências:** `gsap` e `@gsap/react` saíram do `package.json` — só
+`SplitText` os importava. `ogl` fica, com um chamador (`Grainient`, no painel de
+entrada). `canvas-confetti` fica, com um chamador (Enrolled). Registrado no
+README e em `docs/design-research.md`.
+
+**Citações fantasma:** as seis referências a ADR-0005/0006/0007 que não existiam
+foram repontadas ou reescritas na autoridade do próprio comentário. Nenhuma foi
+escrita retroativamente. Os números 0004 a 0007 agora pertencem às decisões
+desta rodada.
+
+**ADRs novos:** 0004 (Campus life é descoberta), 0005 (Aster tem ~7.000
+graduandos), 0006 (quais linhas da régua foram revogadas), 0007 (Points são
+preço e recibo num objeto só).
+
+**Correções de doc:** `docs/review-script.md` reordenado para a espinha de dez
+Steps. A afirmação de que este repositório não tem suíte automatizada foi
+corrigida nele **e** no README — era falsa e um spec inteiro foi escrito em cima
+dela.
+
+`source-requests.md` foi percorrido linha a linha, com uma tabela de entrega e
+uma seção do que ficou de fora e por quê.
+
+**Verde:** `pnpm typecheck`, `pnpm test` (78 testes, 6 arquivos), `pnpm build`.
+`pnpm lint` reporta **um** erro, em `public/brand/logo.svg` — arquivo não
+rastreado que já estava na árvore de trabalho e que nenhum código referencia.
+Deixado onde estava em vez de apagar algo do usuário. `src/` e `docs/` limpos.

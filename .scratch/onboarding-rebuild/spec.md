@@ -1,4 +1,5 @@
-Status: ready-for-agent
+Status: delivered 2026-08-15 (`b241431`) — os dezessete tickets estão fechados;
+a passada de entrega linha a linha está em `source-requests.md`
 
 # Onboarding, rebuilt from the spine out
 

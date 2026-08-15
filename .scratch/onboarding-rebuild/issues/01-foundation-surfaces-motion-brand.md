@@ -1,6 +1,6 @@
 # 01 — The foundation: surfaces, motion, brand
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** None. Everything else is blocked by this.
 
@@ -115,3 +115,32 @@ focus ring, second type family.
 - [ ] `style-guide.tsx` shows every surface, every archetype skeleton, the ring
       glow and the motion scale — it is the proof this ticket shipped.
 - [ ] References above appended to `docs/design-research.md` with one line each.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/components/surfaces.tsx`, `src/styles/app.css`,
+`src/lib/layout-rules.test.ts`, `src/routes/style-guide.tsx`.
+
+As quatro superfícies são componentes, não um parágrafo: `Well` não tem como
+receber a ação primária, `FlatCard` existe para ser item de coleção, e conteúdo
+na Ground precisa declarar qual das três exceções é, via `OnGround reason=`.
+Uma quarta exceção não pode ser adicionada sem editar a união `GroundException`,
+que é onde o argumento por ela deve aparecer.
+
+Os cinco arquétipos vêm de `steps.ts`, não de uma prop — uma rota não pode
+escolher ser mais larga que o tipo de tela que ela é. O teste afirma isso
+diretamente: nenhum arquivo em `routes/` pode conter `archetype=`.
+
+`layout-rules.test.ts` foi reescrito e afirma exatamente as quatro invariantes
+de deriva. As linhas revogadas saíram de `docs/design-research.md` na mesma
+mudança, com o motivo registrado em vez de apagado, e ADR-0006 guarda o
+raciocínio.
+
+**Desvio a registrar:** `--catalogue-measure` e `--decision-measure` se juntaram
+a `--step-measure`. São três medidas em vez de uma, e o teste agora afirma que
+cada uma é declarada exatamente uma vez e que nenhum componente reatribui
+nenhuma delas. A régua diz que *o mesmo passo* cai no mesmo pixel de onde quer
+que se chegue nele; dois arquétipos diferentes comporem diferente é o arquétipo
+fazendo o trabalho dele.

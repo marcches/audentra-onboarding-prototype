@@ -1,6 +1,6 @@
 # 09 — Who we call, who can see
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02, 03
 
@@ -88,3 +88,22 @@ Family access, defined once.
 - [ ] Fits one viewport at 1440 with one person granted access.
 - [ ] Every string comes from `copy-inventory.md`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/who-we-call.tsx`, `FamilyAccessGrant` em
+`src/lib/store.ts`, `whoWeCallSchema` em `src/lib/validation.ts`.
+
+A frase sobre a transferência do direito aos 18 anos está em negrito, no corpo,
+**sempre visível** — nunca atrás do disclosure. O disclosure carrega só o
+detalhe prático. A explicação está na Ground do Panel, nunca num Well: um Well é
+para dado, e explicação não é dado.
+
+Family access é uma lista, com os quatro campos. O quarto é o que nunca tinha
+sido construído, e o schema recusa uma concessão sem escopo — nome e e-mail sem
+significado atrelado não é um registro FERPA.
+
+Health e Disciplinary record continuam marcados como `sensitive` no fixture,
+desenhados à parte e nunca pré-marcados.

@@ -1,6 +1,6 @@
-# 12 — Enrolled: hand over an object, not a message
+# 16 — Enrolled: hand over an object, not a message
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 04, 15
 
@@ -73,3 +73,29 @@ the references. Redraw it.
 - [ ] Fits without the receipt forcing a long scroll — the receipt Well is
       collapsed by default.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/completion.tsx`, `src/components/share-card.tsx`,
+`enrollment` em `src/lib/fixtures.ts`.
+
+O recibo do depósito mora aqui, num Well colapsável, e não existe mais tela de
+recibo separada — o fluxo tem um final em vez de dois com registros opostos.
+
+O herói é um objeto que chega com flip-in. O confete dura ~900ms, sai em
+`zIndex: 0` e fica atrás do cartão.
+
+**`gsap` não se justificou.** O ticket permitia que ele se pagasse na chegada do
+cartão, e um `rotateY` com overshoot é uma transição, não uma timeline. Saiu do
+`package.json` junto com `SplitText`, `CountUp` e `LightRays`, que ficaram sem
+chamador quando esta tela foi redesenhada. Registrado no ticket 17.
+
+**Ajustado depois da conferência no browser:** as três colunas do cartão de
+estudante viraram `1.5fr 1fr 0.6fr` porque o enrolment ID quebrava em duas
+linhas — num cartão feito para ser fotografado, é a única coisa que não pode
+acontecer. E a ação primária diz "Open the bookstore" quando o crédito é zero,
+em vez de oferecer gastar $0.
+
+**Nota:** o `#` do título deste arquivo dizia `12`. Corrigido para `16`.

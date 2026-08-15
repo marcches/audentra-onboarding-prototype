@@ -1,6 +1,6 @@
 # 06 — Who you are, and the answer that shapes the rest
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02, 03
 
@@ -59,3 +59,24 @@ is itself part of the bulk being scrolled past.
 - [ ] `validation.test.ts` asserts the required document per status.
 - [ ] Every string comes from `copy-inventory.md`; none is invented here.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/who-you-are.tsx`, `src/lib/validation.ts`,
+`src/lib/validation.test.ts`.
+
+Um Panel com divisores internos, não três painéis: os três grupos são partes
+sequenciais do mesmo formulário sem ações independentes.
+
+Student status é respondido antes de qualquer documento ser pedido, e o upload
+nasce imediatamente abaixo do radio que o revelou, com transição autoral em
+`height`/`opacity`. Verificado no browser: trocar entre os três status não move
+o título.
+
+A mensagem de erro **nomeia o documento**: "Attach your U.S. passport" e "Attach
+your home country passport" são a mesma regra e frases diferentes, e o teste
+afirma que a frase certa volta para cada status.
+
+Telefone é uma linha só, e nenhum campo pede `+`.

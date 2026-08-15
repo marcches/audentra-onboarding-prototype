@@ -1,6 +1,6 @@
 # 07 — Health information, beside the other documents
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 01, 02, 03, 06
 
@@ -64,3 +64,19 @@ would read as intrusive.
 - [ ] Fits one viewport at 1440 in both its answered and unanswered states — this
       Step had 443px of dead canvas.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/health.tsx`, posição na espinha em `src/lib/steps.ts`.
+
+Fica imediatamente depois de Who you are, e `steps.test.ts` afirma essa
+adjacência por índice — é o que mantém os três uploads do fluxo contíguos se
+alguém reordenar a espinha depois.
+
+O Immunization record **não** é condicionado à resposta sobre acomodação. Ele
+tem rótulo próprio abaixo de um divisor, e os dois uploads são Wells irmãos.
+
+A pergunta diz por que é feita, uma vez. Skip está na barra e a linha sobre o
+que pular significa depois está na tela, não implícita.

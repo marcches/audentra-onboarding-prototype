@@ -1,6 +1,6 @@
 # 04 — Points: the price, the receipt, and the flight between them
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 01, 02
 
@@ -81,3 +81,30 @@ enough to read in motion. Whatever exists today is a `text-sm`.
 - [ ] `prefers-reduced-motion`: the award resolves without the flight, and the
       Balance still ends on the right number.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/lib/points.ts`, `src/components/points-award.tsx`,
+`src/components/balance.tsx`, `src/lib/points.test.ts`.
+
+O mecanismo, que importa mais que a duração: `PricePill` é um componente só
+fazendo os dois trabalhos, e ele **registra o próprio elemento DOM** com o
+provider. O voo parte de onde a pílula realmente está. Uma versão disso que
+voasse do ponteiro seria a decoração que este ticket substituiu, por melhor que
+animasse.
+
+Os sete beats estão implementados como uma cadeia de timers em `celebrate()`,
+com o beat 4 sendo 300ms em que nada acontece de propósito. Continue fica vivo
+no beat 3. O token de voo tem 56px (`size="flight"`), arco com apex derivado da
+distância, encolhe ~40% e perde o rótulo no último terço.
+
+O Balance tem os dois números, superfície própria que parece pressionável, o
+verbo ("points to spend") e o que falta nomeado como objeto, via `nextTarget()`
+e a escada `BOOKSTORE_LADDER`. Preço aparece em exatamente duas linhas do rail.
+
+`prefers-reduced-motion` resolve sem voo e o Balance ainda termina no número
+certo. A camada de voo é `fixed` + `pointer-events-none`, e o teste de layout
+afirma isso — é assim que uma animação de 2,6s convive com as quatro
+invariantes.

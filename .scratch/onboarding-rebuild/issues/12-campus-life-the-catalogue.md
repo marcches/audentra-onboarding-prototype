@@ -1,6 +1,6 @@
 # 12 — Campus life: the catalogue, and interest that is not enrolment
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02, 03
 
@@ -119,3 +119,29 @@ The Step is optional and skippable from the action bar, as Laura specified.
       the zero-result case.
 - [ ] Every string comes from `copy-inventory.md`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/lib/catalogue.ts` (novo), `src/routes/campus-life.tsx`,
+`src/lib/catalogue.test.ts`.
+
+O verbo mudou e ADR-0004 registra por quê, para que uma rodada futura não
+"complete" a tela de volta para uma seleção. Nenhum controle diz Join, Sign up,
+Apply ou Enroll.
+
+**70 organizações no fixture**, não ~60 — o ticket dizia aproximadamente e a
+taxonomia de doze categorias puxou o número para cima. O total de ~420 está
+declarado na tela. O teste aceita a faixa em vez de um número exato, de propósito.
+
+O toggle de interesse é neutro e tem a mesma largura nos dois estados, então o
+card nunca muda de altura ao ser pressionado. A área de resultados reserva
+altura mínima, então a barra de filtro não sobe quando o estado vazio aparece.
+
+`catalogue.test.ts` cobre cada eixo sozinho, os eixos combinados (OR dentro,
+AND entre), limpar e o caso zero.
+
+**Ajustado depois da conferência no browser:** em 390px a contagem e o Clear
+foram para a própria linha, abaixo da barra de pílulas. Espremidos ao lado de
+uma barra que já rolava, os três competiam pela mesma faixa.

@@ -1,6 +1,6 @@
 # 11 — Housing: the record a university actually publishes
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02, 03, 10
 
@@ -78,3 +78,27 @@ Residence, rows grouped by subject.
       three documented exceptions, not an accident.
 - [ ] Every string comes from `copy-inventory.md`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/lib/housing.ts` (novo), `src/routes/housing.tsx`.
+
+A ficha carrega todos os campos listados, com o banheiro como enum de cinco. As
+tarifas são **derivadas por `roomRate()`**, não digitadas: as razões do setor
+viram aritmética em vez de dependerem de quem editar o fixture acertar de
+memória. Verificado no browser: de $5.920 a $12.330, spread de 2,08×.
+
+Meal plan é linha separada e a convenção está na tela, porque uma tarifa de
+quarto que exclui comida em silêncio é como um estudante orça $6.800 para um ano
+que custa $12.000.
+
+Off campus saiu do código inteiro, incluindo `protectionOptions` e a cláusula do
+contrato que dependia dela.
+
+**Registrado, não entregue:** três fotos por Residence, porque são as três que
+este repositório possui. A galeria, os atalhos por ambiente e o visualizador já
+funcionam sobre um número arbitrário de quadros — o que falta são imagens, e
+inventar nomes de arquivo quebraria a galeria em vez de enriquecê-la. Anotado no
+comentário do campo `photos`.

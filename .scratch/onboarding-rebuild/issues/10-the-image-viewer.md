@@ -1,6 +1,6 @@
 # 10 — A way to actually see the photograph
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 01
 
@@ -53,3 +53,26 @@ Housing exists.
 - [ ] Reduced motion is honoured.
 - [ ] Shown in the style guide with a sample set.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/components/image-viewer.tsx`, provider em `src/router.tsx`,
+demonstração em `/style-guide`.
+
+Construído antes de Housing, de propósito — dentro daquele ticket teria sido a
+última coisa feita e a primeira cortada.
+
+Verificado no browser: fundo preto, imagem inteira em letterbox, X no topo à
+esquerda, rótulo do ambiente à esquerda no rodapé, "1 / 3" textual à direita,
+setas laterais, tira de miniaturas com o quadro atual contornado. `Esc` e as
+setas do teclado funcionam. O foco entra no viewer e volta para a miniatura que
+o abriu.
+
+A página atrás não se mexe: `scrollbar-gutter: stable` já reserva a calha
+permanentemente, então `overflow: hidden` no body não leva o layout junto.
+
+Pinch zoom no telefone é nativo, via `touch-action: pinch-zoom` no quadro — o
+navegador faz isso melhor que qualquer transform à mão, e o rótulo e o contador
+ficam parados enquanto acontece.

@@ -1,6 +1,6 @@
 # 03 — Two voices, written before the screens
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 02
 
@@ -67,3 +67,21 @@ skipped this ticket.
 - [ ] The celebration no longer says "Entirely optional" about sharing; that is
       the exact register the client rejected.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `docs/copy-inventory.md`, substituído por inteiro.
+
+Escrito **antes** de qualquer tela, que era o ponto: a rodada anterior deixou a
+copy em nono de nove e a escreveu contra telas que já existiam. Cada Step está
+marcado com um registro só, os dois registros estão declarados no topo, e a
+costura entre eles é sempre fronteira de Step.
+
+Helper text: só dois sobrevivem em Who you are, e cada um tem o motivo escrito
+ao lado no inventário. O resto foi apagado.
+
+"Entirely optional" foi deletado do convite a compartilhar — era exatamente o
+registro que o cliente rejeitou. Não há em dash em nenhuma string voltada ao
+estudante.

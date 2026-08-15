@@ -1,6 +1,6 @@
 # 02 — The spine: ten Steps, levelled
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 01
 
@@ -76,3 +76,29 @@ Closing larger than a Phase — which is the distinction `CONTEXT.md` protects.
 - [ ] `steps.test.ts` covers the new counts, order, navigation, metadata, and the
       conditional absence of `Where you live now`.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/lib/steps.ts`, `src/lib/store.ts`,
+`src/components/step-rail.tsx`, `src/components/step-shell.tsx`,
+`src/router.tsx`, `src/lib/steps.test.ts`.
+
+Dez Steps derivados dos grupos; `steps` é `groups.flatMap(...)` e o teste afirma
+essa igualdade, então acrescentar um Step editando uma lista plana continua
+impossível. Cada Step carrega `minutes`, `required`, `points` e `archetype`.
+
+`Where you live now` não é pulado no rail: ele **não existe** para um estudante
+internacional. `stepApplies` / `groupsFor` / `stepsFor` filtram a espinha por
+Student status, e `nextStep` / `previousStep` recebem o status, então Continue
+nunca leva a uma tela que a espinha diz não existir. `stepCountFor` devolve 10 e
+9, e o total de minutos e de Points cai junto.
+
+Storage subiu para `v5`. `identityContact` virou três slices, `citizenship`
+virou `studentStatus` com três valores em vez de quatro, `campusLife.clubs`
+virou `interests` contra um catálogo completamente diferente.
+
+**Desvio a nomear na próxima call:** minutos aparecem na linha do Quest, não só
+em Review & sign. Isso é mais do que a call pediu. Klaviyo e HoneyBook são a
+evidência, e o número some quando a linha fica pronta.

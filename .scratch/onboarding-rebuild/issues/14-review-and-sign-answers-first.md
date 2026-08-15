@@ -1,6 +1,6 @@
-# 10 — Review & sign: the answers come first
+# 14 — Review & sign: the answers come first
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Blocked by:** 05, 07, 08, 09, 11, 13 — it summarises all of them, and building
 it against fixtures before those screens settle guarantees rework
@@ -87,3 +87,33 @@ ticket moves the scroll into the panel and the gate has to follow it.
 - [ ] `?from=review` returns to the right place from all ten Steps.
 - [ ] `summary.test.ts` covers the digest per section and the two counts.
 - [ ] References appended to `docs/design-research.md`.
+
+## Comments
+
+### Fechado em 2026-08-15 — `b241431`
+
+**Onde vive:** `src/routes/review.tsx`, `src/lib/summary.ts`,
+`src/lib/summary.test.ts`.
+
+A ordem inverteu: cabeçalho de status, depois as respostas, depois o acordo,
+depois a assinatura. Verificado no browser — a tela abre no cabeçalho, não num
+documento sem rótulo.
+
+Uma seção é um Step agora, não uma Fase, com pílula de status, chevron e **um**
+Edit. O resumo de uma linha por seção é testado, incluindo que o endereço sai
+nas palavras que uma pessoa lê ("San Francisco, California") e não nos códigos
+armazenados.
+
+As duas contagens saem das próprias seções. Um Step opcional pulado é `skipped`,
+não `attention` — dizer que pular um Quest opcional "precisa de atenção" seria o
+fluxo contradizendo a própria palavra, e o teste guarda isso.
+
+O documento rola dentro do próprio Panel e o gate de leitura foi junto, ligado
+ao `onScroll` daquele container em vez do da página.
+
+**Ajustado depois da conferência no browser:** `items-start` no grid das seções.
+Sem isso uma seção curta esticava até a altura da alta ao lado, deixando um
+bloco de branco dentro de um cartão.
+
+**Nota:** o `#` do título deste arquivo dizia `10`. Corrigido para `14`, que é o
+número do ticket.
