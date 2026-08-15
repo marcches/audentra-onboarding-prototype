@@ -10,8 +10,8 @@ import { Wordmark } from "@/components/wordmark";
 import { enrollment, institution, studentRecord } from "@/lib/fixtures";
 import { residenceById } from "@/lib/housing";
 import { creditReleased, formatCredit, SHARE_POINTS, totalPoints } from "@/lib/points";
-import { groupsFor } from "@/lib/steps";
-import { completedSteps, patch, studentStatus, useOnboarding } from "@/lib/store";
+import { groups as spine } from "@/lib/steps";
+import { completedSteps, patch, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
@@ -43,7 +43,7 @@ export function CompletionRoute() {
   const points = totalPoints(state);
   const credit = creditReleased(points);
   const done = new Set(completedSteps(state));
-  const groups = groupsFor(studentStatus(state)).filter((group) => group.kind !== "after");
+  const groups = spine.filter((group) => group.kind !== "after");
   const residence = residenceById(state.housing.residenceRanking[0] ?? "");
   const shared = state.offer.shared;
 

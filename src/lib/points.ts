@@ -1,5 +1,5 @@
 import { formatMoney } from "@/lib/fixtures";
-import { type StudentStatusAnswer, steps, totalPointsAvailableFor } from "@/lib/steps";
+import { steps, totalStepPoints } from "@/lib/steps";
 import { completedSteps, type OnboardingState } from "@/lib/store";
 
 /**
@@ -110,10 +110,13 @@ export function totalPoints(state: OnboardingState): number {
 }
 
 /**
- * Every Point on offer for this student, announced once at the entrance and
- * nowhere else. Langdock crowns its checklist with "0 / 595" and that is the
- * whole of the promise; repeating it per screen turns it into a debt.
+ * Every Point on offer, announced once at the entrance and nowhere else.
+ * Langdock crowns its checklist with "0 / 595" and that is the whole of the
+ * promise; repeating it per screen turns it into a debt.
+ *
+ * It took a Student status until this round, because the flow was nine Quests
+ * for an international student and ten for everyone else. It is nine for
+ * everybody now (ADR 0011), so the announcement at the entrance is the same
+ * number the student later earns.
  */
-export function totalPointsAvailable(status: StudentStatusAnswer): number {
-  return totalPointsAvailableFor(status) + SHARE_POINTS;
-}
+export const totalPointsAvailable = totalStepPoints + SHARE_POINTS;

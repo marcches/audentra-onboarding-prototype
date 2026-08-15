@@ -48,7 +48,6 @@ function state(overrides: Partial<OnboardingState> = {}): OnboardingState {
       postalCode: "94103",
       country: "US",
       residencyVerification: "permanent-address",
-      submitted: true,
     },
     whoWeCall: {
       emergencyContacts: [
@@ -93,16 +92,36 @@ function state(overrides: Partial<OnboardingState> = {}): OnboardingState {
 }
 
 describe("the sections", () => {
-  it("walks this student's spine, not the whole one", () => {
-    const international = state({
-      whoYouAre: { ...state().whoYouAre, studentStatus: "international" },
-    });
-    /* An international student's summary has no address section, rather than an
-       address section saying "not applicable". */
-    expect(buildSummary(international).map((section) => section.id)).not.toContain(
-      "where-you-live",
-    );
-    expect(buildSummary(state()).map((section) => section.id)).toContain("where-you-live");
+  it("emits no section for the Step that was retired", () => {
+    /* The address is two Sections inside `Who you are` now (ADR 0011), and the
+       summary reads it back under the screen the student answered it on. A
+       section for a Step that no longer exists would be a row linking to a
+       redirect. */
+    const ids = buildSummary(state()).map((section) => section.id);
+    expect(ids).not.toContain("where-you-live");
+    expect(ids).toHaveLength(6);
+  });
+
+  it("reads the address back under Who you are, for the students it applies to", () => {
+    const labels = (status: "us-citizen" | "permanent-resident" | "international") =>
+      buildSummary(state({ whoYouAre: { ...state().whoYouAre, studentStatus: status } }))
+        .find((section) => section.id === "who-you-are")
+        ?.rows.map((row) => row.label) ?? [];
+
+    for (const status of ["us-citizen", "permanent-resident"] as const) {
+      expect(labels(status), status).toContain("Permanent address");
+      expect(labels(status), status).toContain("Residency check");
+    }
+  });
+
+  it("leaves it out entirely for an international student", () => {
+    /* Absent, rather than present and marked "not applicable" — the same rule
+       `addressSchemaFor()` applies to validation, read back. */
+    const international = buildSummary(
+      state({ whoYouAre: { ...state().whoYouAre, studentStatus: "international" } }),
+    ).find((section) => section.id === "who-you-are");
+    expect(international?.rows.map((row) => row.label)).not.toContain("Permanent address");
+    expect(international?.rows.map((row) => row.label)).not.toContain("Residency check");
   });
 
   it("leaves the Closing out, because it is the screen doing the reading", () => {
@@ -142,10 +161,12 @@ describe("the one-line digest", () => {
   });
 
   it("prints the address in the words a person reads, not the stored codes", () => {
-    const live = buildSummary(state()).find((section) => section.id === "where-you-live");
-    expect(live?.digest).toContain("San Francisco");
-    expect(live?.digest).toContain("California");
-    expect(live?.digest).not.toContain("san-francisco");
+    /* State and city are cascading selects, so what is stored is a postal
+       abbreviation and a slug. Neither is what a summary should print. */
+    const who = buildSummary(state()).find((section) => section.id === "who-you-are");
+    expect(who?.digest).toContain("San Francisco");
+    expect(who?.digest).toContain("California");
+    expect(who?.digest).not.toContain("san-francisco");
   });
 });
 

@@ -17,7 +17,6 @@ import { HousingRoute } from "@/routes/housing";
 import { OfferRoute } from "@/routes/offer";
 import { ReviewRoute } from "@/routes/review";
 import { StyleGuideRoute } from "@/routes/style-guide";
-import { WhereYouLiveRoute } from "@/routes/where-you-live";
 import { WhoWeCallRoute } from "@/routes/who-we-call";
 import { WhoYouAreRoute } from "@/routes/who-you-are";
 
@@ -109,10 +108,19 @@ const whoYouAreRoute = createRoute({
   component: WhoYouAreRoute,
 });
 
+/**
+ * The address is a Section inside `Who you are` now (ADR 0011), so this path
+ * has no screen. It redirects rather than 404ing, using the same `beforeLoad`
+ * the index routes use: the Review summary's edit links were written against
+ * it, a student may have bookmarked it, and landing on a 404 in the middle of
+ * an enrolment flow is the worst possible answer to "where did my address go".
+ */
 const whereYouLiveRoute = createRoute({
   getParentRoute: () => onboardingRoute,
   path: "where-you-live",
-  component: WhereYouLiveRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/onboarding/who-you-are" });
+  },
 });
 
 const whoWeCallRoute = createRoute({

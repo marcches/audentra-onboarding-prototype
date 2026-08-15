@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsPanels, TabsTrigger } from "@/componen
 import { Wordmark } from "@/components/wordmark";
 import { platform } from "@/lib/fixtures";
 import { totalPointsAvailable } from "@/lib/points";
-import { stepCountFor, totalMinutesFor } from "@/lib/steps";
+import { stepCount, totalMinutes } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 import {
   type CreateAccountValues,
@@ -107,17 +107,17 @@ export function EntryRoute() {
               becomes a running remainder, which is a threat rather than an
               orientation, so this is the only place in the flow it appears.
 
-              Read for the full spine, because the entry screen has not asked
-              Student status yet and cannot know whether this student has nine
-              Steps or ten. */}
+              One number for everybody. It used to be read "for the full
+              spine" because the entrance has not asked Student status yet and
+              could not know whether this student had nine Quests or ten; every
+              student walks the same nine now (ADR 0011), so the figure the
+              entrance announces is the figure they go on to earn. */}
           <p className="flex flex-wrap items-baseline gap-x-1.5 text-small text-ink-500">
-            <span className="font-strong text-ink-700 numeric">
-              About {totalMinutesFor("")} minutes
-            </span>
+            <span className="font-strong text-ink-700 numeric">About {totalMinutes} minutes</span>
             <span>, saved as you go.</span>
             <span className="numeric">
-              {stepCountFor("")} quests, worth {totalPointsAvailable("")} points toward credit at
-              the campus bookstore.
+              {stepCount} quests, worth {totalPointsAvailable} points toward credit at the campus
+              bookstore.
             </span>
           </p>
 

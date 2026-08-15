@@ -10,8 +10,9 @@ import {
   usStates,
 } from "@/lib/fixtures";
 import { residenceById } from "@/lib/housing";
-import { type StepId, stepById, stepsFor } from "@/lib/steps";
+import { type StepId, stepById, steps } from "@/lib/steps";
 import type { OnboardingState } from "@/lib/store";
+import { addressSchemaFor } from "@/lib/validation";
 
 /**
  * The review summary, built from what the prototype actually stored.
@@ -100,11 +101,21 @@ function offerRows(state: OnboardingState): SummaryRow[] {
   ];
 }
 
+/**
+ * Who you are, including the address for the students it applies to.
+ *
+ * The address had its own section here while it had its own Step. It reads back
+ * under the Step the student answered it on, which is the whole point of a
+ * summary — and for an international student the two rows are absent rather
+ * than present and marked "not applicable", the same rule
+ * `addressSchemaFor()` applies to validation.
+ */
 function whoYouAreRows(state: OnboardingState): SummaryRow[] {
   const who = state.whoYouAre;
+  const live = state.whereYouLive;
   const status = labelFor(studentStatusOptions, who.studentStatus);
 
-  return [
+  const rows: SummaryRow[] = [
     {
       label: "Legal name",
       value: `${studentRecord.legalFirstName} ${studentRecord.legalLastName}`,
@@ -129,6 +140,20 @@ function whoYouAreRows(state: OnboardingState): SummaryRow[] {
       missing: who.idDocuments.length === 0,
     },
   ];
+
+  if (addressSchemaFor(who.studentStatus)) {
+    const address = formatAddress(live);
+    rows.push(
+      { label: "Permanent address", value: address || NOT_ANSWERED, missing: !address },
+      {
+        label: "Residency check",
+        value: labelFor(residencyVerificationOptions, live.residencyVerification) ?? NOT_ANSWERED,
+        missing: !live.residencyVerification,
+      },
+    );
+  }
+
+  return rows;
 }
 
 function healthRows(state: OnboardingState): SummaryRow[] {
@@ -167,24 +192,6 @@ function healthRows(state: OnboardingState): SummaryRow[] {
   });
 
   return rows;
-}
-
-function whereYouLiveRows(state: OnboardingState): SummaryRow[] {
-  const live = state.whereYouLive;
-  const address = formatAddress(live);
-
-  return [
-    {
-      label: "Permanent address",
-      value: address || NOT_ANSWERED,
-      missing: !address,
-    },
-    {
-      label: "Residency check",
-      value: labelFor(residencyVerificationOptions, live.residencyVerification) ?? NOT_ANSWERED,
-      missing: !live.residencyVerification,
-    },
-  ];
 }
 
 function whoWeCallRows(state: OnboardingState): SummaryRow[] {
@@ -277,7 +284,12 @@ const DIGEST: Partial<Record<StepId, (state: OnboardingState) => string>> = {
   "who-you-are": (state) => {
     const status = labelFor(studentStatusOptions, state.whoYouAre.studentStatus) ?? "No status";
     const name = state.whoYouAre.preferredName || studentRecord.legalFirstName;
-    return `${name} · ${status} · ${state.whoYouAre.idDocuments.length} document${state.whoYouAre.idDocuments.length === 1 ? "" : "s"}`;
+    const documents = state.whoYouAre.idDocuments.length;
+    const parts = [name, status, `${documents} document${documents === 1 ? "" : "s"}`];
+    if (addressSchemaFor(state.whoYouAre.studentStatus)) {
+      parts.push(formatAddress(state.whereYouLive) || "no address");
+    }
+    return parts.join(" · ");
   },
   health: (state) =>
     state.health.accommodations === "yes"
@@ -285,7 +297,6 @@ const DIGEST: Partial<Record<StepId, (state: OnboardingState) => string>> = {
       : state.health.accommodations === "no"
         ? "No accommodation needed"
         : "Skipped",
-  "where-you-live": (state) => formatAddress(state.whereYouLive) || "No address given",
   "who-we-call": (state) => {
     const contacts = state.whoWeCall.emergencyContacts.filter((c) => c.fullName.trim()).length;
     const grants = state.whoWeCall.familyAccess.length;
@@ -318,7 +329,6 @@ const ROWS: Partial<Record<StepId, (state: OnboardingState) => SummaryRow[]>> = 
   offer: offerRows,
   "who-you-are": whoYouAreRows,
   health: healthRows,
-  "where-you-live": whereYouLiveRows,
   "who-we-call": whoWeCallRows,
   housing: housingRows,
   "campus-life": campusLifeRows,
@@ -342,8 +352,6 @@ function submitted(id: StepId, state: OnboardingState): boolean {
       return state.whoYouAre.submitted;
     case "health":
       return state.health.submitted;
-    case "where-you-live":
-      return state.whereYouLive.submitted;
     case "who-we-call":
       return state.whoWeCall.submitted;
     case "housing":
@@ -356,13 +364,15 @@ function submitted(id: StepId, state: OnboardingState): boolean {
 }
 
 /**
- * Built by walking the spine, not by listing the Quests again here — and the
- * spine it walks is **this student's**, so an international student's summary
- * has no address section rather than an address section saying "not
- * applicable".
+ * Built by walking the spine, not by listing the Quests again here.
+ *
+ * The spine is one list for every student now. What varies is inside `Who you
+ * are`: for an international student the two address rows are absent rather
+ * than present and marked "not applicable" — the same rule, one level down from
+ * where it used to be.
  */
 export function buildSummary(state: OnboardingState): SummarySection[] {
-  return stepsFor(state.whoYouAre.studentStatus).flatMap((step) => {
+  return steps.flatMap((step) => {
     const rows = ROWS[step.id];
     if (!rows) return [];
     const built = rows(state);

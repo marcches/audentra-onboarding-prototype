@@ -11,7 +11,7 @@ import {
   SHARE_POINTS,
   totalPointsAvailable,
 } from "@/lib/points";
-import { steps, totalPointsAvailableFor } from "@/lib/steps";
+import { steps, totalStepPoints } from "@/lib/steps";
 
 /**
  * The conversion, tested because it is the whole of ADR-0002: a Point that does
@@ -74,13 +74,15 @@ describe("what the flow is worth", () => {
     /* Announced once, at the entrance. The share award is the one point-earning
        action that is not a Step submission, so it cannot come from `steps.ts`
        and would otherwise be missing from the promise. */
-    expect(totalPointsAvailable("us-citizen")).toBe(
-      totalPointsAvailableFor("us-citizen") + SHARE_POINTS,
-    );
+    expect(totalPointsAvailable).toBe(totalStepPoints + SHARE_POINTS);
   });
 
-  it("offers an international student less, because they have one Quest fewer", () => {
-    expect(totalPointsAvailable("international")).toBeLessThan(totalPointsAvailable("us-citizen"));
+  it("announces the same total to every student", () => {
+    /* It used to be a function of Student status, because an international
+       student had one Quest fewer. The address dropped a level and the flow is
+       nine Quests for everybody (ADR 0011), so the figure the entrance promises
+       is the figure any student can go on to earn. */
+    expect(totalPointsAvailable).toBe(215 + SHARE_POINTS);
   });
 
   /* A flow whose every Quest is finished and which still had not released a

@@ -5,16 +5,8 @@ import { Balance } from "@/components/balance";
 import { InstitutionCrest } from "@/components/institution-badge";
 import { studentRecord } from "@/lib/fixtures";
 import { aboveCompact, inCompactFlex, RAIL_CONNECTOR_OFFSET, RAIL_WIDTH } from "@/lib/layout";
-import {
-  type Group,
-  groupOf,
-  groupsFor,
-  phaseCount,
-  phaseNumber,
-  type StepId,
-  stepsFor,
-} from "@/lib/steps";
-import { completedSteps, studentStatus, useOnboarding } from "@/lib/store";
+import { type Group, groupOf, groups, phaseCount, phaseNumber, type StepId } from "@/lib/steps";
+import { completedSteps, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,8 +36,10 @@ function useProgress(current: StepId) {
   const state = useOnboarding();
   const done = new Set(completedSteps(state));
   const activeGroup = groupOf(current);
-  const status = studentStatus(state);
-  return { state, done, activeGroup, status, walk: groupsFor(status) };
+  /* One walk, for every student. The rail used to be filtered by Student
+     status, which meant it could be nine rows for one student and ten for
+     another — see ADR 0011 for why that stopped. */
+  return { state, done, activeGroup, walk: groups };
 }
 
 /** True when every Quest in the group is saved. */
@@ -318,15 +312,8 @@ export function PhaseBar({ current }: { current: StepId }) {
   );
 }
 
-/**
- * The total time and the total Points, announced once before the first field
- * (Melio, Langdock). Once, at the entrance: repeated per screen it becomes a
- * running remainder, which is a threat rather than an orientation.
- */
-export function useSpine() {
-  const state = useOnboarding();
-  const status = studentStatus(state);
-  return { status, walk: stepsFor(status), groups: groupsFor(status) };
-}
-
-export { totalMinutesFor, totalPointsAvailableFor } from "@/lib/steps";
+/* `useSpine` lived here and re-exported the two totals through this module,
+   because both had to be asked *per student*. With one spine for everybody the
+   totals are constants and the entrance reads them from `steps.ts` directly.
+   Nothing imported the hook; it goes with the status parameter that was its
+   only reason to exist. */

@@ -13,6 +13,14 @@ import type { StepId, StudentStatusAnswer } from "@/lib/steps";
 /**
  * Bumped whenever a stored value can no longer be interpreted by this build.
  *
+ * v6, for About you in three (ADR 0011): `Where you live now` is not a Step any
+ * more, so `whereYouLive.submitted` is gone and `whoYouAre.submitted` governs
+ * both halves of the screen that absorbed it. A v5 blob carries that flag and a
+ * spine with ten Steps in it — the shallow merge below would keep the flag,
+ * `completedSteps` would ignore it, and the student would land on a half-saved
+ * `Who you are` whose address they had already given. A clean slate is the
+ * honest version of that.
+ *
  * v5, for the rebuild: `identityContact` is gone, split into `whoYouAre`,
  * `whereYouLive` and `whoWeCall` following the three Steps that replaced it.
  * `citizenship` became `studentStatus` with a smaller set of values —
@@ -33,7 +41,7 @@ import type { StepId, StudentStatusAnswer } from "@/lib/steps";
  * v2, for round 3: two housing intents removed, the review slice replaced
  * `readDocuments` with `documentRead`, and the deposit lost its paid flags.
  */
-const STORAGE_KEY = "audentra.onboarding.v5";
+const STORAGE_KEY = "audentra.onboarding.v6";
 
 export type EntryState = {
   /** Live draft of the create-account email field — changes on every keystroke. */
@@ -74,8 +82,8 @@ export type UploadedFile = {
  * Who the student is, and the one answer that shapes the rest of the flow.
  *
  * Student status is answered *before* any document is requested, so the request
- * is never generic. It also decides whether `Where you live now` exists — see
- * `steps.ts`.
+ * is never generic. It also decides whether the permanent address is asked for
+ * — see `addressSchemaFor()`.
  */
 export type WhoYouAreState = {
   preferredName: string;
@@ -85,6 +93,7 @@ export type WhoYouAreState = {
   studentStatus: StudentStatusAnswer;
   /** The Identity document the answered status calls for. */
   idDocuments: UploadedFile[];
+  /** Governs the whole screen, address Sections included. */
   submitted: boolean;
 };
 
@@ -98,7 +107,17 @@ export type HealthState = {
   submitted: boolean;
 };
 
-/** Absent entirely for an international student — the Step does not exist. */
+/**
+ * The permanent address, which is two Sections inside `Who you are` rather than
+ * a Step of its own (ADR 0011). Absent entirely for an international student:
+ * the Sections are not rendered and `addressSchemaFor()` returns `null`.
+ *
+ * It keeps its own slice rather than being folded into `whoYouAre`, because the
+ * two are different shapes with different validation and merging them would
+ * make one schema out of two that branch differently. What it does **not** keep
+ * is a `submitted` flag — one screen has one saved state, and two flags for one
+ * Continue is how a screen comes to be half-saved.
+ */
 export type WhereYouLiveState = {
   street: string;
   unit: string;
@@ -109,7 +128,6 @@ export type WhereYouLiveState = {
   postalCode: string;
   country: string;
   residencyVerification: string;
-  submitted: boolean;
 };
 
 export type EmergencyContact = {
@@ -277,7 +295,6 @@ const initialState: OnboardingState = {
     postalCode: "",
     country: "US",
     residencyVerification: "",
-    submitted: false,
   },
   whoWeCall: {
     emergencyContacts: [emptyEmergencyContact("contact-1")],
@@ -438,8 +455,9 @@ export function useOnboarding(): OnboardingState {
 }
 
 /**
- * The Student status, which the spine reads to decide whether `Where you live
- * now` exists. One accessor, so no screen reaches into the slice for it.
+ * The Student status, which decides which Identity document is asked for and
+ * whether the permanent address is asked for at all. One accessor, so no screen
+ * reaches into the slice for it. The spine no longer reads it — see ADR 0011.
  */
 export function studentStatus(current: OnboardingState): StudentStatusAnswer {
   return current.whoYouAre.studentStatus;
@@ -451,7 +469,6 @@ export function completedSteps(current: OnboardingState): StepId[] {
   if (current.offer.response !== null) done.push("offer");
   if (current.whoYouAre.submitted) done.push("who-you-are");
   if (current.health.submitted) done.push("health");
-  if (current.whereYouLive.submitted) done.push("where-you-live");
   if (current.whoWeCall.submitted) done.push("who-we-call");
   if (current.housing.submitted) done.push("housing");
   if (current.campusLife.submitted) done.push("campus-life");

@@ -4,19 +4,16 @@ import {
   after,
   closing,
   groups,
-  groupsFor,
   nextStep,
   phaseCount,
   phases,
   previousStep,
   type StepId,
-  stepApplies,
   stepById,
-  stepCountFor,
+  stepCount,
   steps,
-  stepsFor,
-  totalMinutesFor,
-  totalPointsAvailableFor,
+  totalMinutes,
+  totalStepPoints,
 } from "@/lib/steps";
 
 /**
@@ -26,13 +23,20 @@ import {
  * navigation, the Points total and every "N of M" in the UI all derive from it,
  * so an assertion here covers a dozen screens at once. What it must never
  * become is a restatement of the file — the tests below are about the *shape*
- * (derivation, order, uniqueness, the conditional Step) rather than about
+ * (derivation, order, uniqueness, what the totals come to) rather than about
  * whether Housing is worth thirty points.
+ *
+ * It changed with the spine this round. There is no `status` branch left in it,
+ * because there is no status branch left in the spine: `Where you live now` is
+ * two Sections inside `Who you are` and every student walks the same nine
+ * Quests (ADR 0011). The assertions that counted nine against ten went with the
+ * subsystem that made the difference.
  */
 
 describe("the spine", () => {
-  it("has ten Steps", () => {
-    expect(steps).toHaveLength(10);
+  it("has nine Steps", () => {
+    expect(steps).toHaveLength(9);
+    expect(stepCount).toBe(9);
   });
 
   it("has exactly three Phases, with the Closing and After outside them", () => {
@@ -53,6 +57,25 @@ describe("the spine", () => {
     expect(new Set(steps.map((step) => step.path)).size).toBe(steps.length);
   });
 
+  it("holds About you in three: you, your health, and other people", () => {
+    /* Three Steps, three subjects. The previous round's four drew the boundary
+       around fields, which is how the permanent address came to be a Quest of
+       two fields; this draws it around subjects and the address drops a level
+       into `Who you are`. */
+    const aboutYou = phases.find((phase) => phase.id === "about-you");
+    expect(aboutYou?.steps.map((step) => step.id)).toEqual([
+      "who-you-are",
+      "health",
+      "who-we-call",
+    ]);
+  });
+
+  it("has retired the address Step without retiring the address", () => {
+    // The Step is gone from the spine. What it asked is asked inside `Who you
+    // are`, which is why the Step it merged into is the longer one below.
+    expect(steps.map((step) => step.id)).not.toContain("where-you-live");
+  });
+
   it("puts Health information immediately after Who you are", () => {
     /* The whole point of moving it: the flow's three uploads are adjacent. */
     const order = steps.map((step) => step.id);
@@ -65,12 +88,23 @@ describe("the spine", () => {
 });
 
 describe("the metadata every Quest carries", () => {
-  it("levels every worked Step at one to three minutes", () => {
-    /* The old problem was never the count. It was the distribution: one Step
-       of six minutes beside five of one. Enrolled is exempt — it is reached,
-       not worked through. */
+  it("levels every worked Step at one to three minutes, and says why one is five", () => {
+    /* The rule was written against a *distribution*, not against a length: one
+       Step of six minutes that walked the student back and forth through four
+       subjects, beside five Steps of one. `Who you are` is five minutes and its
+       parts are adjacent — name, number, status, document, address, all one
+       subject — so it is not what the rule was aimed at, and it is named here
+       rather than having its number fudged down to fit. Enrolled is exempt for
+       the older reason: it is reached, not worked through. */
+    const LONGER_BY_DESIGN: Partial<Record<StepId, number>> = { "who-you-are": 5 };
+
     for (const step of steps) {
       if (step.id === "enrolled") continue;
+      const allowed = LONGER_BY_DESIGN[step.id];
+      if (allowed !== undefined) {
+        expect(step.minutes, step.id).toBe(allowed);
+        continue;
+      }
       expect(step.minutes, step.id).toBeGreaterThanOrEqual(1);
       expect(step.minutes, step.id).toBeLessThanOrEqual(3);
     }
@@ -93,60 +127,35 @@ describe("the metadata every Quest carries", () => {
   });
 });
 
-describe("Where you live now exists only for the statuses it applies to", () => {
-  const addressStep = stepById("where-you-live");
-
-  it("is absent from the spine for an international student", () => {
-    expect(stepApplies(addressStep, "international")).toBe(false);
-    expect(stepsFor("international").map((step) => step.id)).not.toContain("where-you-live");
+describe("what the flow adds up to", () => {
+  it("keeps the total at 215 Points, unchanged by the merge", () => {
+    /* The merge moved 20 Points from a Step to a Section and 20 back into the
+       Step that absorbed it. A student's total must not move because of a
+       decision they did not make. */
+    expect(totalStepPoints).toBe(215);
+    expect(stepById("who-you-are").points).toBe(50);
   });
 
-  it("is present for a citizen and for a permanent resident", () => {
-    for (const status of ["us-citizen", "permanent-resident"] as const) {
-      expect(stepsFor(status).map((step) => step.id)).toContain("where-you-live");
-    }
-  });
-
-  it("is still present before the question has been answered", () => {
-    /* A rail that shortened itself at the start would be telling the student
-       their answer had already been assumed. */
-    expect(stepsFor("").map((step) => step.id)).toContain("where-you-live");
-  });
-
-  it("changes every count derived from the spine", () => {
-    expect(stepCountFor("us-citizen")).toBe(10);
-    expect(stepCountFor("international")).toBe(9);
-    expect(totalMinutesFor("international")).toBeLessThan(totalMinutesFor("us-citizen"));
-    expect(totalPointsAvailableFor("international")).toBeLessThan(
-      totalPointsAvailableFor("us-citizen"),
-    );
-  });
-
-  it("leaves no empty group behind", () => {
-    for (const group of groupsFor("international")) {
-      expect(group.steps.length, group.id).toBeGreaterThan(0);
-    }
+  it("counts one total for every student", () => {
+    // There is no status to ask. That is the point: an international student is
+    // never told there are nine when there are ten, or the other way round,
+    // because there is only one number.
+    expect(totalMinutes).toBe(steps.reduce((sum, step) => sum + step.minutes, 0));
+    expect(totalStepPoints).toBe(steps.reduce((sum, step) => sum + step.points, 0));
   });
 });
 
-describe("navigation follows the student's own spine", () => {
-  it("walks the full flow for a citizen", () => {
-    expect(nextStep("health", "us-citizen")?.id).toBe("where-you-live");
-    expect(previousStep("who-we-call", "us-citizen")?.id).toBe("where-you-live");
-  });
-
-  it("steps over the absent address Step for an international student", () => {
-    /* The failure this prevents: Continue walking a student into a screen the
-       spine says they do not have. */
-    expect(nextStep("health", "international")?.id).toBe("who-we-call");
-    expect(previousStep("who-we-call", "international")?.id).toBe("health");
+describe("navigation walks one flow", () => {
+  it("goes Who you are, Health information, Who we call", () => {
+    expect(nextStep("who-you-are")?.id).toBe("health");
+    expect(nextStep("health")?.id).toBe("who-we-call");
+    expect(previousStep("who-we-call")?.id).toBe("health");
   });
 
   it("has nothing before the first Step and nothing after the last", () => {
-    const walk = stepsFor("us-citizen");
-    const first = walk[0].id as StepId;
-    const last = walk[walk.length - 1].id as StepId;
-    expect(previousStep(first, "us-citizen")).toBeUndefined();
-    expect(nextStep(last, "us-citizen")).toBeUndefined();
+    const first = steps[0].id;
+    const last = steps[steps.length - 1].id;
+    expect(previousStep(first)).toBeUndefined();
+    expect(nextStep(last)).toBeUndefined();
   });
 });

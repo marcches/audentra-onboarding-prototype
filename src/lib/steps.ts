@@ -16,18 +16,30 @@
  * carrying four subjects and 1068 lines, and the client described the defect
  * exactly — "a gente começou falando de nome, falou de contato, aí voltou a
  * falar de nome, falou de contato de novo." Two rounds of accordion work hid it
- * rather than removed it. It is now three Steps, each one subject, and Health
- * information moved up beside them so the flow's three uploads are adjacent.
+ * rather than removed it. It became four Steps, each one subject.
  *
- * The old problem was never the count. It was the distribution: one Step of six
- * minutes beside five of one. Every Step here is levelled at one to three.
+ * **About you is now three** (ADR 0011). That reverses half of the previous
+ * round on purpose, and it does not undo its reasoning: the boundary was drawn
+ * around *fields* rather than around *subjects*, which is how the permanent
+ * address came to be a Quest of its own — two minutes of two fields, existing
+ * because an earlier round needed somewhere to put an address that varies by
+ * Student status. Name, number, status, document and address are one subject
+ * (*you*); emergency contact and family access are another (*other people*);
+ * health is a third. Three Steps, three subjects, and the address drops a level
+ * to a conditional Section inside `Who you are`.
+ *
+ * The old problem was never the count, and it was never the length of any one
+ * Step. It was the *distribution*: one Step of six minutes that walked the
+ * student back and forth through four subjects, beside five Steps of one. That
+ * is what the one-to-three-minute levelling was written against. `Who you are`
+ * is five minutes and its parts are adjacent, so it is not what that rule was
+ * aimed at — see the test, which allows it by name and says why.
  */
 
 export type StepId =
   | "offer"
   | "who-you-are"
   | "health"
-  | "where-you-live"
   | "who-we-call"
   | "housing"
   | "campus-life"
@@ -40,13 +52,18 @@ export type GroupId = PhaseId | "closing" | "after";
 
 /**
  * The Student status answer, which decides two things: which Identity document
- * is asked for, and whether `Where you live now` exists at all.
+ * is asked for, and whether the permanent address is asked for at all.
  *
- * It lives here rather than in the fixtures because the spine reads it. An
- * international student has no U.S. permanent address to give, so the Step is
- * *absent* from their flow — not shown and explained, not skipped in the rail.
- * Laura on the call: "se não é residente ou cidadão dos Estados Unidos, não
- * precisa de endereço, já arranca fora."
+ * It no longer decides anything about the *spine*. It used to: `Where you live
+ * now` was absent from an international student's flow, which meant every count
+ * in the UI had to be computed against a status and the rail could be nine rows
+ * for one student and ten for another. With the address a Section inside `Who
+ * you are`, the same rule applies one level down — present for a citizen and a
+ * permanent resident, absent for an international student — and every student
+ * walks the same nine Quests. Laura on the call: "se não é residente ou cidadão
+ * dos Estados Unidos, não precisa de endereço, já arranca fora." Still true;
+ * it is `addressSchemaFor()` that says so now, and `null` still means the
+ * fields do not participate in validation at all.
  */
 export type StudentStatus = "us-citizen" | "permanent-resident" | "international";
 
@@ -83,11 +100,17 @@ export type Step = {
   blurb: string;
   archetype: Archetype;
   /**
-   * Levelled at one to three. Rendered on the Quest row in the rail and on
-   * Review & sign, which revokes the previous round's rule that time never
-   * appears on a Quest line: Klaviyo puts "About 3 minutes" on a sub-step and
-   * HoneyBook puts minutes on every row of a checklist, and with Steps this
-   * short the figure reads as "this is quick" rather than as a threat.
+   * Rendered on the Quest row in the rail and on Review & sign, which revokes
+   * the previous round's rule that time never appears on a Quest line: Klaviyo
+   * puts "About 3 minutes" on a sub-step and HoneyBook puts minutes on every row
+   * of a checklist, and with Steps this short the figure reads as "this is
+   * quick" rather than as a threat.
+   *
+   * One to three, except `Who you are` at five. The levelling was written to
+   * kill a six-minute Step that made the student circle back through four
+   * subjects; it was never a cap on length as such, and pretending a
+   * five-minute Step is a three-minute one would be fudging the number to fit
+   * the rule rather than fixing either.
    *
    * It disappears from a row once that row is complete — a time estimate on
    * finished work is a fact nobody can act on.
@@ -104,12 +127,6 @@ export type Step = {
    * structurally correct so real values replace these without a shape change.
    */
   points: number;
-  /**
-   * Which Student statuses this Step applies to. Absent means all of them.
-   * An unanswered status keeps every Step in the spine: the rail must not
-   * shorten itself before the student has said anything.
-   */
-  appliesTo?: StudentStatus[];
 };
 
 export type Group = {
@@ -153,14 +170,19 @@ export const phases: Phase[] = [
     blurb: "Who you are, and who we call",
     steps: [
       {
+        /* One subject: you. Name, number, Student status, Identity document,
+           and — for a citizen or a permanent resident — the permanent address
+           and the residency check, which used to be a Quest of their own. Five
+           minutes and 50 Points, which is 30 + the 20 the address Step carried;
+           the total available is unchanged at 215. */
         id: "who-you-are",
         path: "/onboarding/who-you-are",
         label: "Who you are",
-        blurb: "Your name, your number, and one document",
+        blurb: "Your name, your number, one document, and where you live",
         archetype: "form",
-        minutes: 3,
+        minutes: 5,
         required: true,
-        points: 30,
+        points: 50,
       },
       {
         /* Immediately after Who you are, so the flow's three uploads — Identity
@@ -175,19 +197,6 @@ export const phases: Phase[] = [
         minutes: 2,
         required: false,
         points: 15,
-      },
-      {
-        id: "where-you-live",
-        path: "/onboarding/where-you-live",
-        label: "Where you live now",
-        blurb: "Your permanent address",
-        archetype: "form",
-        minutes: 2,
-        required: true,
-        points: 20,
-        /* Absent for an international student. Not shown with an explanation,
-           not skipped in the rail: absent. */
-        appliesTo: ["us-citizen", "permanent-resident"],
       },
       {
         id: "who-we-call",
@@ -303,52 +312,40 @@ export const steps: Step[] = groups.flatMap((group) => group.steps);
 export const phaseCount = phases.length;
 
 /* -------------------------------------------------------------------------
-   The spine as one student sees it
+   What the flow adds up to
    ---------------------------------------------------------------------- */
 
-/** Does this Step exist for a student who answered `status`? */
-export function stepApplies(step: Step, status: StudentStatusAnswer): boolean {
-  if (!step.appliesTo) return true;
-  /* Before the question is answered every Step is still on the table. A rail
-     that shortens itself the moment the flow starts would be telling the
-     student their answer had already been assumed. */
-  if (status === "") return true;
-  return step.appliesTo.includes(status);
-}
-
-/** The groups this student actually walks, with inapplicable Steps removed. */
-export function groupsFor(status: StudentStatusAnswer): Group[] {
-  return groups
-    .map((group) => ({ ...group, steps: group.steps.filter((step) => stepApplies(step, status)) }))
-    .filter((group) => group.steps.length > 0);
-}
-
-/** The flow this student actually walks, flattened. */
-export function stepsFor(status: StudentStatusAnswer): Step[] {
-  return groupsFor(status).flatMap((group) => group.steps);
-}
-
 /**
- * How many Quests this student has. Every "N of M" in the UI derives from here,
- * so an international student is never told there are ten when there are nine.
+ * **One spine, for every student.**
+ *
+ * There used to be a subsystem here: `Step.appliesTo`, a `stepApplies()`
+ * predicate, and a `status` parameter threaded through eight functions, so that
+ * `Where you live now` could be absent from an international student's flow. It
+ * existed for one row of one table. With the address a Section inside `Who you
+ * are` no Step varies by Student status, so none of it has a caller, and it
+ * goes rather than being kept for an imagined one — which is exactly how a
+ * two-column option came to sit in this codebase with no route using it.
+ *
+ * The behaviour it was protecting survives one level down, in
+ * `addressSchemaFor()`. What changes is that every student now counts the same
+ * nine Quests, which is what the entrance announced to all of them anyway.
  */
-export function stepCountFor(status: StudentStatusAnswer): number {
-  return stepsFor(status).length;
-}
+
+/** How many Quests there are. Every "N of M" in the UI derives from here. */
+export const stepCount = steps.length;
 
 /**
  * The total time announced once, before the first field — Melio's "Takes 4-5
  * minutes", Binance's "verify your account in 7 minutes". Once, at the
  * entrance, and never repeated as a running remainder.
  */
-export function totalMinutesFor(status: StudentStatusAnswer): number {
-  return stepsFor(status).reduce((total, step) => total + step.minutes, 0);
-}
+export const totalMinutes = steps.reduce((total, step) => total + step.minutes, 0);
 
-/** Every Point on offer, announced once at the entrance and nowhere else. */
-export function totalPointsAvailableFor(status: StudentStatusAnswer): number {
-  return stepsFor(status).reduce((total, step) => total + step.points, 0);
-}
+/**
+ * Every Point the Quests are worth. `points.ts` adds the one award that is not
+ * a Step submission and publishes the figure the entrance announces.
+ */
+export const totalStepPoints = steps.reduce((total, step) => total + step.points, 0);
 
 /* -------------------------------------------------------------------------
    Lookups and navigation
@@ -363,19 +360,18 @@ export function stepById(id: StepId): Step {
   return step;
 }
 
-export function stepIndexFor(id: StepId, status: StudentStatusAnswer) {
-  return stepsFor(status).findIndex((step) => step.id === id);
+/** Where a Quest sits in the walk. Private: `stepIndexFor` had no caller. */
+function stepIndex(id: StepId) {
+  return steps.findIndex((step) => step.id === id);
 }
 
-export function nextStep(id: StepId, status: StudentStatusAnswer): Step | undefined {
-  const walk = stepsFor(status);
-  return walk[walk.findIndex((step) => step.id === id) + 1];
+export function nextStep(id: StepId): Step | undefined {
+  return steps[stepIndex(id) + 1];
 }
 
-export function previousStep(id: StepId, status: StudentStatusAnswer): Step | undefined {
-  const walk = stepsFor(status);
-  const index = walk.findIndex((step) => step.id === id);
-  return index > 0 ? walk[index - 1] : undefined;
+export function previousStep(id: StepId): Step | undefined {
+  const index = stepIndex(id);
+  return index > 0 ? steps[index - 1] : undefined;
 }
 
 /** The group a Quest belongs to — a Phase, the Closing, or After. */

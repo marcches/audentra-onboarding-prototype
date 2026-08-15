@@ -16,25 +16,22 @@ import { Prose, Section, Sections } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { aboveCompact, inCompactFlex, RAIL_OFFSET } from "@/lib/layout";
 import { type Archetype, nextStep, previousStep, type StepId, stepById } from "@/lib/steps";
-import { studentStatus, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
- * Where Back and Continue actually go, derived from `steps.ts` *and* from the
- * student's own answer.
+ * Where Back and Continue actually go, derived from `steps.ts`.
  *
  * Every step used to name its neighbour as a literal path, which meant the flow
- * order lived in seven files as well as in `steps.ts`. It now also depends on
- * Student status: `Where you live now` does not exist for an international
- * student, so Continue from Health information lands on `Who we call` for them
- * and on the address Step for everyone else. A literal path would have walked
- * that student into a screen the spine says they do not have.
+ * order lived in seven files as well as in `steps.ts`. It then also depended on
+ * Student status, because `Where you live now` did not exist for an
+ * international student. It no longer does: the address is a Section inside
+ * `Who you are` and every student walks the same nine Quests, so navigation is
+ * a walk of one list again (ADR 0011).
  */
 export function useStepNav(current: StepId) {
   const navigate = useNavigate();
-  const status = studentStatus(useOnboarding());
-  const back = previousStep(current, status);
-  const next = nextStep(current, status);
+  const back = previousStep(current);
+  const next = nextStep(current);
 
   return {
     back,
