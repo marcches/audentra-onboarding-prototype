@@ -1,106 +1,110 @@
-import * as React from "react";
-
-import { institution, offer } from "@/lib/fixtures";
+import { institution } from "@/lib/fixtures";
 import { cn } from "@/lib/utils";
 
 /**
- * Aster University's crest.
+ * Aster University's arms.
  *
- * A stand-in for the logo a real tenant uploads — but a crest, not a monogram
- * tile: universities are represented by a mark, and initials in a rounded
- * square read as a user avatar, which is the one thing this must not look like.
+ * The client asked for *"o símbolo de uma faculdade de verdade, pra simular
+ * como se fosse real"*, and what made the previous mark fail that was never
+ * that Aster is invented. It was that the mark was a violet→azure gradient
+ * shield carrying a geometric eight-petal flower — the visual language of an
+ * app icon, drawn in the platform's own colours, on the one slot in the shell
+ * that is supposed to say whose portal the student is standing in.
  *
- * The device is the flower the institution is named after — *aster* is Greek
- * for star, which is why the eight petals double as one — over the chief band
- * every academic shield seems to carry.
+ * So this is heraldry rather than a logo, and it is built from the parts real
+ * U.S. collegiate arms are built from:
+ *
+ * - a **shield** with square shoulders drawn to a point, in flat fill;
+ * - a **chief** across the top carrying the founding year, which is where a
+ *   date goes on academic arms and nowhere else;
+ * - the **aster** as a charge rather than as a logo mark — drawn petals, not a
+ *   construction of eight identical ellipses;
+ * - an **open book** below it, the commonest charge on U.S. collegiate arms;
+ * - a **motto ribbon** under the point.
+ *
+ * The year and the motto are set at the size heraldry sets them at, which at
+ * 36px is a texture rather than a legible line. That is not a compromise — it
+ * is what an inscribed chief looks like on a crest in a sidebar, and drawing it
+ * larger to be readable is exactly the move that turns arms back into an icon.
+ *
+ * **Navy and gold, flat, and declared here rather than in the theme.** Audentra
+ * owns violet, azure and mint at the system layer, and two owners in the same
+ * colours is how the institution and the platform got confused with each other
+ * in the first place. The gold is not a token, does not enter `app.css`, and is
+ * deliberately unlike `amber-500` — which means a warning, and must go on
+ * meaning only that.
  */
-export function InstitutionCrest({ className }: { className?: string }) {
-  const gradientId = `institution-crest-${React.useId()}`;
+const NAVY = "#12244d";
+const GOLD = "#c9a227";
 
+/** Eight petals, drawn as leaves. A charge is drawn; a logo is constructed. */
+const PETALS = [0, 45, 90, 135, 180, 225, 270, 315];
+
+export function InstitutionCrest({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 40 46"
+      viewBox="0 0 44 52"
       role="img"
-      aria-label={`${institution.name} crest`}
+      aria-label={`${institution.name} arms, founded ${institution.founded}, ${institution.motto}`}
       className={cn("size-11", className)}
     >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--color-violet-500)" />
-          <stop offset="100%" stopColor="var(--color-azure-500)" />
-        </linearGradient>
-      </defs>
+      {/* The shield: square shoulders, straight flanks, drawn to a point. */}
+      <path d="M4 2h36v22.6c0 9.2-7.4 14.7-18 18.9C11.4 39.3 4 33.8 4 24.6V2Z" fill={NAVY} />
 
-      {/* The shield: square shoulders, drawn down to a point. */}
-      <path
-        d="M2 3.5h36v22.8c0 8.4-6.7 13.6-18 18.2C8.7 39.9 2 34.7 2 26.3V3.5Z"
-        fill={`url(#${gradientId})`}
-      />
-      <path
-        d="M2 3.5h36v22.8c0 8.4-6.7 13.6-18 18.2C8.7 39.9 2 34.7 2 26.3V3.5Z"
-        fill="none"
-        stroke="var(--color-ink-900)"
-        strokeOpacity="0.14"
-        strokeWidth="1.6"
-      />
+      {/* The chief, and the year inscribed on it. */}
+      <path d="M4 2h36v10.4H4V2Z" fill={GOLD} />
+      <text
+        x="22"
+        y="10"
+        textAnchor="middle"
+        fontFamily="var(--font-display)"
+        fontSize="7.4"
+        fontWeight="700"
+        letterSpacing="0.3"
+        fill={NAVY}
+      >
+        {institution.founded}
+      </text>
 
-      {/* The chief — the band across the top of an academic shield. */}
-      <path d="M2 11.6h36" stroke="var(--color-mint-500)" strokeWidth="2.4" />
-
-      {/* The aster: eight petals around an open centre. */}
-      <g transform="translate(20 26)" fill="#ffffff">
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-          <ellipse key={angle} rx="2.1" ry="6.4" cy="-4.2" transform={`rotate(${angle})`} />
+      {/* The aster, as a charge. */}
+      <g transform="translate(22 21.5)" fill={GOLD}>
+        {PETALS.map((angle) => (
+          <path
+            key={angle}
+            d="M0-7.4c1.7 2.2 1.7 4.4 0 6.1-1.7-1.7-1.7-3.9 0-6.1Z"
+            transform={`rotate(${angle})`}
+          />
         ))}
       </g>
-      <circle cx="20" cy="26" r="3" fill="var(--color-mint-500)" />
+      <circle cx="22" cy="21.5" r="1.9" fill={GOLD} />
+      <circle cx="22" cy="21.5" r="0.9" fill={NAVY} />
+
+      {/* The open book, below the charge. */}
+      <path d="M22 30.6c-2.5-1.6-5.4-2.1-8.7-1.7v5.6c3.3-.4 6.2.1 8.7 1.7Z" fill={GOLD} />
+      <path d="M22 30.6c2.5-1.6 5.4-2.1 8.7-1.7v5.6c-3.3-.4-6.2.1-8.7 1.7Z" fill={GOLD} />
+      <path d="M22 30.6v5.6" stroke={NAVY} strokeWidth="1" strokeLinecap="round" />
+
+      {/* The motto ribbon, under the point. `textLength` rather than a font
+          size chosen by eye: the motto is a fixture and a longer one must not
+          run off the end of its own ribbon. */}
+      <path
+        d="M2.6 43.6 6.6 46.4 2.6 49.2C9 51.4 35 51.4 41.4 49.2L37.4 46.4 41.4 43.6C35 45.8 9 45.8 2.6 43.6Z"
+        fill={GOLD}
+      />
+      <text
+        x="22"
+        y="49.3"
+        textAnchor="middle"
+        textLength="30"
+        lengthAdjust="spacingAndGlyphs"
+        fontFamily="var(--font-display)"
+        fontSize="3.4"
+        fontWeight="700"
+        fill={NAVY}
+        className="uppercase"
+      >
+        {institution.motto}
+      </text>
     </svg>
-  );
-}
-
-/**
- * The institution's identity in the onboarding shell.
- *
- * This slot is not decoration and it is not a caption: it is the one place that
- * tells the student whose portal they are standing in, and in the real product
- * it carries whichever institution sent them the offer. It used to be the
- * Audentra wordmark with the university's name set underneath it in small grey
- * text — which puts the vendor above the institution, and reads as a footnote
- * about the most important noun on the screen.
- *
- * So the institution leads, with a monogram standing in for the crest a real
- * tenant would supply. Audentra stays on the page, at the size a platform
- * belongs at.
- */
-export function InstitutionBadge({
-  className,
-  size = "default",
-}: {
-  className?: string;
-  /** `compact` is the phone header, where this shares a row with the counter. */
-  size?: "default" | "compact";
-}) {
-  const compact = size === "compact";
-
-  return (
-    <span className={cn("flex items-center gap-3", className)}>
-      <InstitutionCrest className={cn("shrink-0", compact ? "size-8" : "size-11")} />
-
-      <span className="flex min-w-0 flex-col">
-        <span
-          className={cn(
-            "truncate font-display font-black tracking-[-0.015em] text-ink-900",
-            compact ? "text-body" : "text-h3",
-          )}
-        >
-          {institution.name}
-        </span>
-        {compact ? null : (
-          <span className="text-small text-ink-500">
-            {offer.campus} · {offer.startingTerm} intake
-          </span>
-        )}
-      </span>
-    </span>
   );
 }

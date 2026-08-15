@@ -441,3 +441,35 @@ describe("the Audentra signature", () => {
     }
   });
 });
+
+/* ---------------------------------------------------------------------------
+   12 · The institution's colours are the institution's
+   ------------------------------------------------------------------------ */
+
+describe("Aster's arms", () => {
+  const crest = files.find((file) => file.name === "components/institution-badge.tsx");
+
+  it("keeps its navy and its gold inside one SVG and out of the theme", () => {
+    // Audentra owns violet, azure and mint at the system layer. Two owners in
+    // the same colours is how the platform and the institution got confused
+    // with each other, and a gold token would be one `amber-500` away from
+    // meaning "warning" somewhere nobody intended.
+    expect(crest?.text).toMatch(/#12244d/i);
+    expect(crest?.text).toMatch(/#c9a227/i);
+    expect(css).not.toMatch(/#12244d|#c9a227/i);
+    for (const file of components) {
+      if (file.name === "components/institution-badge.tsx") continue;
+      expect(file.text, file.name).not.toMatch(/#12244d|#c9a227/i);
+    }
+  });
+
+  it("is heraldry rather than an app icon", () => {
+    // Flat fill and no gradient: the gradient shield with a geometric flower is
+    // what read as an app icon, in the platform's own colours, in the one slot
+    // that says whose portal this is.
+    expect(crest?.text).not.toMatch(/linearGradient|brand-gradient/);
+    // A year and a motto the rest of the product also knows.
+    expect(crest?.text).toMatch(/institution\.founded/);
+    expect(crest?.text).toMatch(/institution\.motto/);
+  });
+});

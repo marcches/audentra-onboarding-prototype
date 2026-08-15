@@ -22,11 +22,27 @@ export const platform = {
   supportEmail: "support@audentra.com",
 } as const;
 
+/**
+ * Aster is invented, and stays invented.
+ *
+ * Every number in this file derives from ADR 0005's ~7,000 undergraduates, and
+ * a real university's crest, name and arms are that university's registered
+ * trademark — an awkward thing to have on screen when the demo is shown to a
+ * different university.
+ *
+ * `founded` and `motto` are here because the crest draws them, and a crest
+ * carrying a year and a motto that the rest of the product has never heard of
+ * is a drawing rather than an institution. Latin, ablative, and chosen for the
+ * flower the place is named after: *aster* is Greek for star.
+ */
 export const institution = {
   name: "Aster University",
   short: "Aster",
   admissionsEmail: "admissions@aster.edu",
   housingOffice: "Housing Services",
+  founded: 1867,
+  motto: "Sidere et studio",
+  mottoEnglish: "By the star, and by the work",
 } as const;
 
 export const offer = {
