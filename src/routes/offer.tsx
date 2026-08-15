@@ -5,6 +5,7 @@ import { StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { campusPhotos, formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 /* The celebration drags in GSAP and canvas-confetti — a third of the bundle for
    one moment nobody reaches on first paint. Loaded when it is actually needed. */
@@ -49,9 +50,6 @@ export function OfferRoute() {
       title="Your offer"
       lead="Read it, then accept or decline. You answer once — changing it afterwards goes through Admissions."
       saved={false}
-      centered
-      /* Three rows rather than one: the reassurance, the buttons, the deadline. */
-      actionBarHeight={response === null ? "6.5rem" : undefined}
       actions={
         response === null ? (
           <Decision onAccept={() => respond("accepted")} onDecline={() => respond("declined")} />
@@ -92,18 +90,31 @@ export function OfferRoute() {
             "The degree awarded" under Degree was the label read back slowly,
             and that per-field commentary is exactly what she was asking about
             when she said "será que é necessário isso mesmo?". */}
-        <dl className="grid grid-cols-2 gap-px border-t border-ink-100 bg-ink-100 sm:grid-cols-4">
+        {/* Hairline grid, five cells. The deadline joined them when the bar
+            became a constant 4.5rem: it is a *fact of the offer* — the same
+            kind of thing as the campus and the term — and it was only in the
+            footer because the footer was where the decision was. The coloured
+            tile stays last, and takes the full width on a phone where five
+            cells leave it alone on its row anyway. */}
+        <dl className="grid grid-cols-2 gap-px border-t border-ink-100 bg-ink-100 sm:grid-cols-5">
           <Fact label="Degree" value={offer.degree} />
           <Fact label="Starting term" value={offer.startingTerm} />
           <Fact label="Campus" value={offer.campus} />
+          <Fact label="Respond by" value={DEADLINE} />
           {/* The one coloured tile, for the one number that changes what anybody
               does next. */}
-          <Fact label="Enrollment deposit" value={DEPOSIT} tinted />
+          <Fact label="Enrollment deposit" value={DEPOSIT} tinted className="max-sm:col-span-2" />
         </dl>
 
+        {/* The reassurance, beside the thing it reassures about. It answers a
+            question asked while *reading* — "does this cost me anything?" — and
+            the footer is where you decide, not where you read. The two
+            sentences that used to say this in two places are one now; the
+            "only Admissions can reopen it" half went with them, because the
+            step's own lead already says it. */}
         <p className="border-t border-ink-100 px-5 py-3 text-small text-ink-500 sm:px-6">
-          The deposit is asked for at the last step of enrollment, it secures your place, and it is
-          credited against your first term's tuition.
+          Nothing is charged today. Accepting reserves your place and opens the rest of enrollment;
+          the deposit is asked for at the last step and credited against your first term's tuition.
         </p>
       </section>
 
@@ -127,13 +138,15 @@ function Fact({
   label,
   value,
   tinted = false,
+  className,
 }: {
   label: string;
   value: string;
   tinted?: boolean;
+  className?: string;
 }) {
   return (
-    <div className={tinted ? "bg-violet-50 px-5 py-4" : "bg-surface px-5 py-4"}>
+    <div className={cn("px-5 py-4", tinted ? "bg-violet-50" : "bg-surface", className)}>
       <dt className="field-label">{label}</dt>
       <dd
         className={
@@ -149,14 +162,17 @@ function Fact({
 }
 
 /**
- * The decision, in the fixed bar.
+ * The decision, in the fixed bar — one row, inside the constant 4.5rem.
  *
  * Upwork's shape, and for Upwork's reason: one solid button for the answer
  * almost everybody is giving, the other answer as a link that is plainly there
- * but is not competing for the eye. The reassurance sits above the pair rather
- * than under each of them, and the deadline sits below — the two questions
- * ("does this cost me anything?", "how long do I have?") answered in the place
- * where they are actually being asked.
+ * but is not competing for the eye.
+ *
+ * It used to be three rows — reassurance, buttons, deadline — which is why this
+ * step asked the shell for a 6.5rem bar and then gave it back the moment an
+ * answer was recorded, moving the column's bottom padding with it. Both extra
+ * rows moved into the body: the deadline into the facts grid, the reassurance
+ * beside the offer it reassures about. What does not fit in the bar is not bar.
  *
  * Declining is one click. The confirmation dialog it used to open asked for a
  * reason and a note before it would take the answer, which is a survey charging
@@ -164,33 +180,21 @@ function Fact({
  */
 function Decision({ onAccept, onDecline }: { onAccept: () => void; onDecline: () => void }) {
   return (
-    <div className="flex w-full flex-col gap-1.5 sm:items-end">
-      <p className="text-small text-ink-500">
-        <span className="sm:hidden">Nothing is charged today.</span>
-        <span className="hidden sm:inline">
-          Nothing is charged today. Accepting reserves your place and opens the rest of enrollment.
-        </span>
-      </p>
-      <div className="flex w-full items-center gap-4 sm:w-auto">
-        <Button
-          type="button"
-          variant="link"
-          size="sm"
-          className="px-0 text-ink-500 underline hover:text-ink-700"
-          onClick={onDecline}
-        >
-          Decline this offer
-        </Button>
-        <Button type="button" size="lg" className="ml-auto" onClick={onAccept}>
-          <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
-          Accept my place
-        </Button>
-      </div>
-      <p className="text-micro text-ink-400">
-        Respond by {DEADLINE}.
-        <span className="hidden sm:inline"> After that only Admissions can reopen it.</span>
-      </p>
-    </div>
+    <>
+      <Button
+        type="button"
+        variant="link"
+        size="sm"
+        className="mr-auto px-0 text-ink-500 underline hover:text-ink-700"
+        onClick={onDecline}
+      >
+        Decline<span className="hidden sm:inline"> this offer</span>
+      </Button>
+      <Button type="button" size="lg" onClick={onAccept}>
+        <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
+        Accept<span className="hidden sm:inline"> my place</span>
+      </Button>
+    </>
   );
 }
 

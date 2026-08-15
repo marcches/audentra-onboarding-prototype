@@ -455,3 +455,95 @@ precisa dizer é "isto foi para lá" — chegando no lugar certo, ela ainda diz.
 uma vez, e o que este número precisa é reagir à *chegada* de um token. Uma mola
 de `motion` com `key` na contagem de pousos faz isso em três linhas e sem
 segunda fonte de verdade sobre o valor.
+
+---
+
+## Rodada de 2026-08-14 (tarde) — duas réguas: empilhamento e imobilidade
+
+O cliente trouxe uma captura de Campus life com duas queixas na mesma frase:
+*"olha o tanto de informação uma contra a outra, nao dando harmonia aos olhos"*
+e *"nao e so aqui q vc erra, vc erra bastante tbm com layout, onde fica dando
+flick, de posição"*. A segunda metade é o ponto: **não era desta tela**. Daí
+esta rodada produzir régua antes de produzir tela — tickets `08` e `09`.
+
+Vinte telas varridas via `mcp__mobbin__search_screens` (plataforma `web`, dois
+recortes: catálogo de interesses com filtro; multi-seleção com contagem), todas
+**antes** de qualquer proposta, conforme `docs/agents/design-references.md`.
+
+### O que as vinte referências têm em comum
+
+- **A contagem mora no botão, nunca numa segunda lista.**
+  [Skillshare](https://mobbin.com/screens/e0394052-5731-44d8-a3b1-3fc3be2eebdc)
+  ("Pick 3 to Continue"),
+  [Substack](https://mobbin.com/screens/898419be-fb09-44aa-a5bb-4ce7181bd503)
+  ("Select 3 more to continue"),
+  [Cosmos](https://mobbin.com/screens/a8ad2460-eb22-4ded-9098-bcfc3cc8a217)
+  ("Choose 3 · 1/3"),
+  [X](https://mobbin.com/screens/40a2182f-e029-401a-9cc4-ff3c74620052)
+  ("0 of 1 selected"),
+  [Hulu](https://mobbin.com/screens/ad9f060d-9708-4f80-a92a-d0fa9412d08b)
+  ("1 ITEM SELECTED"). Nenhuma das vinte empilha filtro **e** bandeja de
+  escolhidos acima da grade, que era exatamente o que tínhamos.
+- **A escolha se expressa na própria grade.**
+  [Bloom](https://mobbin.com/screens/c7aa79c9-b8a4-4d60-b17a-a78cc8daa3e6) e
+  Hulu marcam o escolhido e **recuam o não escolhido**. É o que torna "três,
+  destes nove" legível sem imprimir os três de novo embaixo.
+- **Uma voz por tela.**
+  [Kit](https://mobbin.com/screens/da62829d-aee9-43f4-8b20-a40a9e89062d),
+  [Uxcel](https://mobbin.com/screens/74a1a5b1-244f-4dbb-bfb2-b2c3f0f630d9),
+  [Magnific](https://mobbin.com/screens/6ea5f92a-028a-422c-89c1-c35ccd7e1e88):
+  título, **uma** linha de apoio, controles. Nenhuma tem um segundo cabeçalho
+  com descrição própria dentro do conteúdo.
+- **Título ancorado no topo, mesmo com pouco conteúdo** (Magnific, Kit, Uxcel).
+  É o argumento contra centralizar uma tela e não as outras.
+- **Recusada:** o agrupamento por categoria do Cosmos. Seis cabeçalhos para nove
+  itens é mais cabeçalho do que conteúdo.
+
+### A régua de empilhamento
+
+Escrita como proibição, porque aspiração é o que o ticket 01 tinha ("densidade
+tem número, não vibe") no dia em que entregou Campus life a −4,8% sem tirar um
+bloco sequer.
+
+1. Um par título+apoio por tela. A linha de apoio diz o que se ganha; ela não
+   pede desculpa pela tela existir.
+2. `Panel` embrulha **campos**. Galeria não vai em painel — caixa branca em
+   chão cinza contendo cards brancos é borda em volta de borda. Esta é a exceção
+   escrita ao "nenhum passo renderiza direto no canvas" do ticket 01.
+3. Nenhum controle existe para trabalhar um catálogo que já cabe na tela.
+4. Contagem de seleção mora no CTA. Nunca numa segunda lista.
+5. Um significado por canal visual. Se dessaturação quer dizer "não escolhido",
+   ela não quer dizer mais nada.
+
+### A régua de imobilidade
+
+1. Todo passo ancora o `h1` no mesmo pixel.
+2. Nada nasce acima do título. O que aparece por estado vai para a barra ou é
+   overlay.
+3. A barra de ação tem altura constante. O que não couber nela não é barra.
+4. Largura de botão primário não reage ao próprio rótulo.
+5. Bloco condicional dentro do corpo ou reserva espaço, ou é overlay.
+
+As quatro causas reais do "flick", achadas com o código na mão: `centered` só na
+Offer; `--action-bar-height` mudando 6.5→4.5rem no meio da Offer e arrastando o
+`padding-bottom` do `main` junto; `ReturnToReview` nascendo acima do `h1` quando
+se chega pelo Review; e a bandeja de escolhidos nascendo dentro de Campus life.
+O salto **horizontal** já estava resolvido por `scrollbar-gutter: stable`.
+
+Metade da régua virou teste (`src/lib/layout-rules.test.ts`): as três primeiras
+foram consertadas por **deleção**, e o teste é o que as mantém deletadas — uma
+válvula de escape que não existe não pode ser usada errado por um passo futuro.
+A outra metade é julgamento e depende de revisão humana; está escrita aqui de
+propósito, e não fingindo ser executável.
+
+### ReactBits — `ChromaGrid` revogado
+
+A rodada 2 adotou o holofote do `ChromaGrid` em Campus life ("mecanismo
+emprestado, card próprio"). **Revogado.** Ele dessatura o que está fora do raio
+do ponteiro; a seleção agora dessatura o que não foi escolhido. Dois cinzas com
+pesos diferentes dizendo coisas diferentes é vocabulário que ninguém pediu para
+aprender, e a seleção é o dado que o passo captura — ela fica com o canal. O
+holofote também era enfeite para uma parede de cards, e a parede tem nove.
+
+Nada novo adotado. `SplitText`, `CountUp`, `LightRays` e o confetti seguem onde
+estavam.

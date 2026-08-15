@@ -1,13 +1,12 @@
-import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
 import { ClubDetail } from "@/components/club-detail";
 import { ClubGrid } from "@/components/club-grid";
-import { BackButton, Panel, SectionTitle, StepShell, useStepNav } from "@/components/step-shell";
+import { BackButton, StepShell, steadyAction, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
-import { type Club, type ClubCategory, clubCategories, clubs } from "@/lib/fixtures";
+import { type Club, clubs } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
-import { cn } from "@/lib/utils";
 
 /**
  * Campus life, cut from five blocks to one.
@@ -29,35 +28,27 @@ import { cn } from "@/lib/utils";
  *
  * Note for the demo: Laura never mentioned this step. This reduction is an
  * extrapolation of her argument, and has to be presented as a proposal.
+ *
+ * Round three took four more things out, this time for the stacking the client
+ * pointed at directly — "olha o tanto de informação uma contra a outra, nao
+ * dando harmonia aos olhos". Between the page title and the first club sat a
+ * panel heading with its own description, six category filters wrapping onto
+ * two rows, a tray of chosen clubs, and an empty-filter sentence: five blocks
+ * of furniture to work a catalogue of *nine* cards that fits in three rows.
+ * None of the twenty references found for this moment does any of it — the
+ * count lives in the button (Skillshare, Substack, Hulu) and the selection
+ * lives in the grid (Bloom, Hulu). So: the grid, and the button.
  */
 export function CampusLifeRoute() {
   const state = useOnboarding();
-  const { next, goNext: advance } = useStepNav("campus-life");
+  const { goNext: advance } = useStepNav("campus-life");
   const campusLife = state.campusLife;
 
-  const [categoryFilter, setCategoryFilter] = React.useState<ClubCategory[]>([]);
   const [detailClub, setDetailClub] = React.useState<Club | null>(null);
 
   const picked = campusLife.clubs
     .map((id) => clubs.find((club) => club.id === id))
     .filter((club): club is Club => Boolean(club));
-
-  /* The filter narrows what's on screen, never what's picked. `picked` above
-     always reads from the full `clubs` list, so a club chosen and then
-     filtered out of view stays chosen — the running total in `Picks` and the
-     grid's own checkmarks never depend on which categories happen to be
-     toggled right now. */
-  const visibleClubs =
-    categoryFilter.length === 0
-      ? clubs
-      : clubs.filter((club) => categoryFilter.includes(club.category));
-
-  const toggleCategory = (category: ClubCategory) =>
-    setCategoryFilter((current) =>
-      current.includes(category)
-        ? current.filter((value) => value !== category)
-        : [...current, category],
-    );
 
   const toggle = (id: string) =>
     patch("campusLife", {
@@ -67,12 +58,13 @@ export function CampusLifeRoute() {
     });
 
   /**
-   * Skipping is not answering. Both buttons used to write `submitted: true`,
-   * which put a tick against Campus life in the rail for a student who
-   * deliberately passed on it.
+   * Skipping is not answering — passing through without a pick must not put a
+   * tick against Campus life in the rail. With Skip and Next collapsed into one
+   * button, that distinction is no longer a question of which button was
+   * pressed; it is simply whether anything was chosen.
    */
-  const goNext = (answered: boolean) => {
-    if (answered) patch("campusLife", { submitted: true });
+  const goNext = () => {
+    if (picked.length > 0) patch("campusLife", { submitted: true });
     advance();
   };
 
@@ -80,65 +72,48 @@ export function CampusLifeRoute() {
     <StepShell
       current="campus-life"
       title="Campus life"
-      lead="None of this blocks your enrollment and you can change it later."
+      lead="We'll introduce you to the people who run these before term starts — pick as many as you like, or none."
       actions={
         <>
           <BackButton current="campus-life" />
-          <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
-            Skip
-          </Button>
-          <Button type="button" size="lg" onClick={() => goNext(true)}>
-            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
-            <span className="sm:hidden">Next</span>
+          {/* One button, not two. Skip and Next asked the same question by
+              different routes on an optional step, and with nothing picked
+              there was no way to tell which one you were supposed to press.
+              Skillshare's answer: the primary button carries the state. It gets
+              a width floor (`steadyAction`) so the label changing does not move
+              the one piece of furniture that never moves. */}
+          <Button type="button" size="lg" className={steadyAction} onClick={goNext}>
+            {picked.length === 0
+              ? "Skip for now"
+              : `Continue with ${picked.length} ${picked.length === 1 ? "club" : "clubs"}`}
             <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
           </Button>
         </>
       }
     >
-      <Panel className="space-y-4">
-        <SectionTitle description="We introduce you to the people who run them before term starts.">
-          Clubs and interests
-        </SectionTitle>
+      {/* No `Panel`. A panel wraps fields; this is a gallery, and a white box on
+          grey ground holding nine white cards is a border around a border. The
+          written exception to "no step renders on the canvas" is in the
+          stacking ruler, not just here. */}
+      <ClubGrid
+        clubs={clubs}
+        selected={campusLife.clubs}
+        onToggle={toggle}
+        onOpenDetail={setDetailClub}
+      />
 
-        <CategoryFilter
-          selected={categoryFilter}
-          onToggle={toggleCategory}
-          onClear={() => setCategoryFilter([])}
-        />
-
-        {/* What used to be the third column, now a strip directly above the
-            grid. "What have I picked" is asked while looking at the grid, so
-            the answer belongs against it rather than off to one side — and
-            unlike the panel it replaces, it costs nothing when empty. */}
-        <Picks picked={picked} onRemove={toggle} />
-
-        <ClubGrid
-          clubs={visibleClubs}
-          selected={campusLife.clubs}
-          onToggle={toggle}
-          onOpenDetail={setDetailClub}
-        />
-
-        {visibleClubs.length === 0 ? (
-          <p className="text-small text-ink-500">
-            Nothing matches that filter. Clear it to see all nine clubs again.
-          </p>
-        ) : null}
-
-        {/* The running total, announced. Each card reports only its own pressed
-            state, and the Picks panel that carries the count is static text
-            that sits after the whole grid in the DOM below 1280px — so without
-            this, a screen-reader user cannot tell how many they have chosen
-            without leaving the grid to go and find out. Housing keeps the
-            equivalent announcer for its ranking. */}
-        <p aria-live="polite" className="sr-only">
-          {picked.length === 0
-            ? "No clubs chosen."
-            : `${picked.length} ${picked.length === 1 ? "club" : "clubs"} chosen: ${picked
-                .map((club) => club.name)
-                .join(", ")}.`}
-        </p>
-      </Panel>
+      {/* The running total, announced. Each card reports only its own pressed
+          state, so without this a screen-reader user cannot tell how many they
+          have chosen without walking the whole grid to count — and the fade
+          that says it to everyone else says nothing to them. Housing keeps the
+          equivalent announcer for its ranking. */}
+      <p aria-live="polite" className="sr-only">
+        {picked.length === 0
+          ? "No clubs chosen."
+          : `${picked.length} ${picked.length === 1 ? "club" : "clubs"} chosen: ${picked
+              .map((club) => club.name)
+              .join(", ")}.`}
+      </p>
 
       <ClubDetail
         club={detailClub}
@@ -148,88 +123,5 @@ export function CampusLifeRoute() {
         }}
       />
     </StepShell>
-  );
-}
-
-/**
- * Category filter, above the grid. Multi-select — narrowing to "sport" and
- * "outdoors" at once is a normal way to browse nine options down to the two or
- * three someone actually cares about.
- */
-function CategoryFilter({
-  selected,
-  onToggle,
-  onClear,
-}: {
-  selected: ClubCategory[];
-  onToggle: (category: ClubCategory) => void;
-  onClear: () => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {clubCategories.map((category) => {
-        const active = selected.includes(category.value);
-        return (
-          <button
-            key={category.value}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onToggle(category.value)}
-            className={cn(
-              "rounded-[var(--radius-pill)] border px-3.5 py-1.5 text-small font-bold transition-colors",
-              active
-                ? "border-violet-500 bg-violet-500 text-white"
-                : "border-ink-200 bg-surface text-ink-600 hover:border-ink-300",
-            )}
-          >
-            {category.label}
-          </button>
-        );
-      })}
-      {selected.length > 0 ? (
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-small font-bold text-violet-600 transition-colors hover:text-violet-700"
-        >
-          Clear filter
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * What the student has chosen, accumulating.
- *
- * A grid of nine cards with a selected state on some of them answers "which one
- * is this" but not "what have I picked". As a panel in a third column that
- * needed an empty state explaining itself; as a strip above the grid it simply
- * is not there until there is something to say.
- */
-function Picks({ picked, onRemove }: { picked: Club[]; onRemove: (id: string) => void }) {
-  if (picked.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-field)] bg-violet-50/70 px-3 py-2.5">
-      <span className="text-micro font-bold tracking-[0.06em] text-violet-700 uppercase">
-        {picked.length} chosen
-      </span>
-      <ul className="flex flex-wrap gap-1.5">
-        {picked.map((club) => (
-          <li key={club.id}>
-            <button
-              type="button"
-              onClick={() => onRemove(club.id)}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-violet-200 bg-surface py-1 pr-2 pl-2.5 text-small font-bold text-violet-700 transition-colors hover:border-violet-300 hover:bg-violet-100"
-            >
-              {club.name}
-              <XIcon weight="bold" aria-hidden className="size-3" />
-              <span className="sr-only">Remove {club.name} from your picks</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

@@ -32,10 +32,35 @@ export function useStepNav(current: StepId) {
   };
 }
 
-/** Back, in the fixed bar. Absent on the first step, where there is nowhere to go. */
+/**
+ * The floor width for a primary action whose label changes with state.
+ *
+ * A button that reads "Skip for now" at zero and "Continue with 3 clubs" after
+ * three picks resizes itself as you work, which is the same defect as a block
+ * being born mid-column — moved into the one piece of furniture that is
+ * supposed to never move. The floor is measured, not guessed: the widest label
+ * the flow produces is "Continue with 9 clubs" at 249px, so the floor is 16rem
+ * with a couple of pixels to spare and every label lays out inside it.
+ */
+export const steadyAction = "min-w-[16rem] justify-between";
+
+/** Did we get here from the Review & sign summary's edit link? */
+function useArrivedFromReview() {
+  const search = useSearch({ strict: false }) as { from?: string };
+  return search.from === "review";
+}
+
+/**
+ * Back, in the fixed bar. Absent on the first step, where there is nowhere to
+ * go, and absent when the student arrived from the Review summary — there
+ * `ReturnToReview` occupies this slot instead. Two answers to "where do I go
+ * back to?" in one bar is the student choosing between two returns, and the
+ * `steps.ts`-derived one is the wrong answer when you did not arrive by Next.
+ */
 export function BackButton({ current }: { current: StepId }) {
   const { back, goBack } = useStepNav(current);
-  if (!back) return null;
+  const fromReview = useArrivedFromReview();
+  if (!back || fromReview) return null;
 
   return (
     <Button type="button" variant="ghost" size="lg" onClick={goBack}>
@@ -51,20 +76,28 @@ export function BackButton({ current }: { current: StepId }) {
  *
  * The summary's edit links carry `?from=review`; without something reading it,
  * "the edit link takes you straight to it and brings you back here" was only
- * half true. Rendered by the shell so every step gets it for free.
+ * half true.
+ *
+ * It lives in the bar, not above the title. Rendered in the column it was a
+ * block born from a query parameter, so the same step's `h1` sat ~2.5rem lower
+ * when reached from the summary than when reached by Next — one of the four
+ * causes of the position flick the client reported. The bar is where the
+ * question "where do I go back to?" already has a button, so it takes that one
+ * over rather than adding a row. Rendered by the shell so every step gets it,
+ * including Offer, which has no Back of its own but is in the summary.
  */
 function ReturnToReview() {
-  const search = useSearch({ strict: false }) as { from?: string };
-  if (search.from !== "review") return null;
+  const fromReview = useArrivedFromReview();
+  if (!fromReview) return null;
 
   return (
-    <Link
-      to="/onboarding/review"
-      className="inline-flex w-fit items-center gap-2 rounded-[var(--radius-pill)] bg-violet-50 px-3.5 py-1.5 text-small font-bold text-violet-700 transition-colors hover:bg-violet-100"
-    >
-      <ArrowUUpLeftIcon weight="bold" aria-hidden className="size-4" />
-      Back to review &amp; sign
-    </Link>
+    <Button asChild variant="ghost" size="lg">
+      <Link to="/onboarding/review">
+        <ArrowUUpLeftIcon weight="bold" aria-hidden className="size-4" />
+        <span className="hidden sm:inline">Back to review &amp; sign</span>
+        <span className="sm:hidden">Review</span>
+      </Link>
+    </Button>
   );
 }
 
@@ -83,14 +116,20 @@ function ReturnToReview() {
  *
  * Mobile is a layout, not a narrowing: segmented Phase bar at the top, one
  * column, the same action bar pinned to the bottom.
+ *
+ * The shell has no escape hatches, and that is the point. It used to take
+ * `centered` (only Offer set it) and `actionBarHeight` (only Offer set it, and
+ * only while unanswered), and between them a step could move its own `h1` by
+ * half a viewport and change the column's bottom padding mid-answer. Both are
+ * gone: every step anchors its title at the same pixel and the bar is a
+ * constant 4.5rem, so divergence is not a rule anyone has to remember — it is
+ * unexpressible. See the stillness ruler in `docs/design-research.md`.
  */
 export function StepShell({
   current,
   title,
   lead,
   actions,
-  actionBarHeight,
-  centered = false,
   saved = true,
   children,
 }: {
@@ -103,23 +142,6 @@ export function StepShell({
    * used to be a scroll away from wherever the student had finished reading.
    */
   actions?: React.ReactNode;
-  /**
-   * For the step whose bar carries more than one row of buttons — Offer puts a
-   * reassurance line above its actions and the deadline below (Upwork). The bar
-   * and the column's bottom padding read the same variable, so a step that
-   * needs a taller bar sets it once here rather than in two places that can
-   * disagree.
-   */
-  actionBarHeight?: string;
-  /**
-   * Centres the column in the space it has, for a step whose content is
-   * deliberately short. Offer is the only one: once it fits a viewport it also
-   * stops filling one, and a card pinned to the top of 500px of empty canvas
-   * reads as a page that failed to load rather than as a page with one thing on
-   * it. `-safe` so a viewport too small for the content overflows downward
-   * instead of centring the top of it off-screen.
-   */
-  centered?: boolean;
   /** The autosave line. Steps with nothing to save (Review's signed state) turn it off. */
   saved?: boolean;
   children: React.ReactNode;
@@ -127,25 +149,17 @@ export function StepShell({
   return (
     <>
       <StepRail current={current} />
-      <div
-        className="flex min-w-0 flex-1 flex-col bg-canvas"
-        style={
-          actionBarHeight
-            ? ({ "--action-bar-height": actionBarHeight } as React.CSSProperties)
-            : undefined
-        }
-      >
+      <div className="flex min-w-0 flex-1 flex-col bg-canvas">
         <PhaseBar current={current} />
         {/* The bar is fixed, so the column ends above it rather than under it.
-            `--action-bar-height` is the one number both sides read. */}
-        <main
-          className={cn(
-            "flex flex-1 flex-col px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7",
-            centered && "justify-center-safe",
-          )}
-        >
+            `--action-bar-height` is the one number both sides read, and it is a
+            constant — nothing sets it per step. */}
+        <main className="flex flex-1 flex-col px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7">
+          {/* `header` is the first child, and the ruler says nothing may be born
+              above it. Anything that appears by state — the return to Review
+              was the one offender — goes in the bar or is an overlay, because a
+              block that grows above the title moves the whole screen. */}
           <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-4">
-            <ReturnToReview />
             {/* No "Step N of 7". The rail and the segmented bar both show
                 position already, and it was being repeated in text besides. */}
             <header className="space-y-1">
@@ -155,7 +169,12 @@ export function StepShell({
             {children}
           </div>
         </main>
-        {actions ? <ActionBar saved={saved}>{actions}</ActionBar> : null}
+        {actions ? (
+          <ActionBar saved={saved}>
+            <ReturnToReview />
+            {actions}
+          </ActionBar>
+        ) : null}
       </div>
     </>
   );
