@@ -212,7 +212,10 @@ function StudentCard({ residence }: { residence?: string }) {
         {/* Uneven columns: the enrolment ID is the longest string on the card
             and an even third wraps it onto two lines, which on a card that is
             meant to be screenshotted is the one thing that must not happen. */}
-        <dl className="mt-2 grid grid-cols-[1.5fr_1fr_0.6fr] gap-2">
+        {/* `pr-14` keeps the last column clear of the wordmark in the corner.
+            On a card that exists to be screenshotted, a mark sitting on top of
+            the enrolment year is the one thing that must not happen. */}
+        <dl className="mt-2 grid grid-cols-[1.5fr_1fr_0.6fr] gap-2 pr-14">
           <div>
             <dt className="text-[0.5625rem] font-bold tracking-[0.1em] uppercase opacity-70">
               Enrolment ID
