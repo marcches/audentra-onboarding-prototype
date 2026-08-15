@@ -3,6 +3,7 @@ import {
   EnvelopeSimpleIcon,
   HouseLineIcon,
   IdentificationCardIcon,
+  SparkleIcon,
   WalletIcon,
 } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/wordmark";
 import { legalName } from "@/lib/agreement";
 import { formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
+import { creditReleased, formatCredit, totalPoints } from "@/lib/points";
 import { resetOnboarding, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -218,6 +220,8 @@ export function CompletionRoute() {
           </motion.p>
         </div>
 
+        <ClosingBalance points={totalPoints(state)} rise={rise} />
+
         {/* Grid items stretch by default, so the two cards in a row already
             share a height whatever their text runs to. Deliberately *not*
             `auto-rows-fr`, which equalises every row against the tallest and
@@ -226,7 +230,7 @@ export function CompletionRoute() {
           {nextSteps.map((entry, index) => (
             <motion.li
               key={entry.title}
-              {...rise(1.55 + index * 0.09)}
+              {...rise(1.68 + index * 0.09)}
               className={cn(
                 "flex gap-3.5 rounded-[var(--radius-card)] border border-white/15 bg-white/8 p-4 backdrop-blur-sm",
                 entry.wide && "sm:col-span-2",
@@ -307,6 +311,59 @@ export function CompletionRoute() {
         </motion.div>
       </div>
     </main>
+  );
+}
+
+/**
+ * Where the Points ended up.
+ *
+ * The Balance is in the rail on every step and the rail is not on this screen,
+ * so without this the running total the student watched climb all flow simply
+ * stops existing at the moment it is finally spendable. Stated as credit first
+ * and points second: the number was only ever a way of counting the credit
+ * (ADR-0002).
+ *
+ * No countdown to the next block here. Everywhere else "N points to your next
+ * $10" is an invitation, and there is nothing left to do — an unreachable
+ * target on the arrival screen reads as a debt, not a reward.
+ */
+function ClosingBalance({
+  points,
+  rise,
+}: {
+  points: number;
+  rise: (delay: number) => Record<string, unknown>;
+}) {
+  const released = creditReleased(points);
+
+  /* Nothing to report is not the same as reporting nothing. "You earned 0
+     points" on the arrival screen is a worse moment than no band at all — it
+     is the product volunteering that the student got nothing. Reachable in
+     practice: every Quest that awards points can be skipped or arrived at
+     out of order. */
+  if (points === 0) return null;
+
+  return (
+    <motion.div
+      {...rise(1.58)}
+      className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-[var(--radius-card)] border border-mint-500/25 bg-mint-500/10 px-5 py-3.5 text-center backdrop-blur-sm"
+    >
+      <SparkleIcon weight="fill" aria-hidden className="size-5 text-mint-500" />
+      <p className="text-body text-white/75">
+        {released > 0 ? (
+          <>
+            You earned{" "}
+            <span className="font-bold text-white">{formatCredit(released)} bookstore credit</span>{" "}
+            on the way here — {points} points, waiting on your Aster account.
+          </>
+        ) : (
+          <>
+            You earned <span className="font-bold text-white">{points} points</span> on the way
+            here. They sit on your Aster account as bookstore credit.
+          </>
+        )}
+      </p>
+    </motion.div>
   );
 }
 

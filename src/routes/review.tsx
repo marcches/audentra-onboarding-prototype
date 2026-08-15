@@ -413,54 +413,57 @@ function SummaryPanel({
         </p>
       </header>
 
-      <div className="divide-y divide-ink-50">
-        {summary.map((group) => (
-          <div key={group.id} className="px-6 py-4">
-            <header className="flex items-center gap-2">
-              <h3 className="flex-1 text-body font-bold text-ink-900">{group.label}</h3>
-              {/* Read straight from the step-order source (see `steps.ts`), so
-                  this can never say something different from the rail or
-                  About you's own section index. */}
-              <span className="text-micro font-bold tracking-[0.06em] text-ink-400 uppercase">
-                ~{group.timeEstimateMinutes} min
-              </span>
-              <span
-                className={cn(
-                  "rounded-[var(--radius-pill)] px-2 py-0.5 text-micro font-bold tracking-[0.06em] uppercase",
-                  group.required ? "bg-violet-50 text-violet-700" : "bg-ink-50 text-ink-500",
-                )}
-              >
-                {group.required ? "Required" : "Optional"}
-              </span>
-              <Button asChild variant="ghost" size="sm">
-                {/* `from=review` is what the destination step reads to offer
-                    the way back — see ReturnToReview in step-shell.tsx. */}
-                <Link to={group.path} search={{ from: "review" as const }}>
-                  <PencilSimpleIcon aria-hidden className="size-4" />
-                  Edit
-                  <span className="sr-only"> {group.label}</span>
-                </Link>
-              </Button>
-            </header>
-            {/* Two columns of label→value once there is room for them. These
-                are short facts being checked at a glance, not prose — in one
-                column they were a 700px ribbon of mostly empty line. */}
-            <dl className="mt-1.5 grid gap-x-8 gap-y-1 sm:grid-cols-2">
-              {group.rows.map((row) => (
-                <div key={row.label} className="flex gap-3 text-small">
-                  <dt className="w-[9rem] shrink-0 text-ink-500">{row.label}</dt>
-                  <dd
-                    className={cn(
-                      "min-w-0 flex-1",
-                      row.missing ? "text-ink-400 italic" : "text-ink-800",
-                    )}
-                  >
-                    {row.value}
-                  </dd>
+      {/* Grouped by Phase, the way the flow is grouped and the way the student
+          remembers filling it in. What used to sit in these headers — a time
+          estimate and a Required/Optional tag per Quest — is gone: both live on
+          the Phase rows in the rail now, where they are read before the work
+          rather than reported back after it, when neither can be acted on. */}
+      <div className="divide-y divide-ink-100">
+        {summary.map((section) => (
+          <section key={section.id}>
+            <h3 className="bg-ink-50/60 px-6 py-2 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
+              {section.label}
+            </h3>
+
+            <div className="divide-y divide-ink-50">
+              {section.groups.map((group) => (
+                <div key={group.id} className="px-6 py-4">
+                  <header className="flex items-center gap-2">
+                    <h4 className="flex-1 text-body font-bold text-ink-900">{group.label}</h4>
+                    <Button asChild variant="ghost" size="sm">
+                      {/* `from=review` is what the destination step reads to
+                          offer the way back — see ReturnToReview in
+                          step-shell.tsx. */}
+                      <Link to={group.path} search={{ from: "review" as const }}>
+                        <PencilSimpleIcon aria-hidden className="size-4" />
+                        Edit
+                        <span className="sr-only"> {group.label}</span>
+                      </Link>
+                    </Button>
+                  </header>
+                  {/* Two columns of label→value once there is room for them.
+                      These are short facts being checked at a glance, not prose
+                      — in one column they were a 700px ribbon of mostly empty
+                      line. */}
+                  <dl className="mt-1.5 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+                    {group.rows.map((row) => (
+                      <div key={row.label} className="flex gap-3 text-small">
+                        <dt className="w-[9rem] shrink-0 text-ink-500">{row.label}</dt>
+                        <dd
+                          className={cn(
+                            "min-w-0 flex-1",
+                            row.missing ? "text-ink-400 italic" : "text-ink-800",
+                          )}
+                        >
+                          {row.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
               ))}
-            </dl>
-          </div>
+            </div>
+          </section>
         ))}
       </div>
     </section>
