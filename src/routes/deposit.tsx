@@ -279,7 +279,7 @@ function MethodRow({
 function DepositSummary({ waiver }: { waiver: boolean }) {
   return (
     <div className="col-span-5 narrow:col-span-1">
-      <Sections className="sticky top-3">
+      <Sections signature className="sticky top-3">
         <Section title="Deposit" collapsible={false}>
           <dl>
             <Fact label="Enrollment deposit">
@@ -445,7 +445,7 @@ function Receipt() {
       actions={<ContinueAction label="Finish" onClick={goNext} />}
     >
       <div className="grid grid-cols-12 gap-3 narrow:grid-cols-1">
-        <Sections className="col-span-7 narrow:col-span-1">
+        <Sections signature className="col-span-7 narrow:col-span-1">
           <Section title="Your receipt" collapsible={false}>
             <div className="flex items-center gap-2.5">
               {outcome.processing ? (

@@ -37,6 +37,12 @@ import { presence, widthClasses } from "@/lib/layout";
  * 7. **No sheet can stretch.** `fill` and `grow` are gone from the prop surface
  *    rather than from the call sites, and the dropzone that genuinely wanted the
  *    room carries its own height instead of borrowing the column's.
+ * 8. **The signature lands twice and no more.** The brand gradient is confined
+ *    to four files, each with a reason written beside it; a route signs each of
+ *    its screens once; the guide never signs; and "which Section is in progress"
+ *    is answered by the sheet rather than by nine routes.
+ * 9. **The prose measure is declared once** and carried by one element, the
+ *    pattern the archetype measures and the action bar height already follow.
  *
  * What it deliberately does **not** assert: content above the fold, and the
  * ceiling of three surfaces. The repo has no DOM environment, and measuring a
@@ -357,5 +363,81 @@ describe("every sheet is the height of its content", () => {
     const upload = files.find((file) => file.name === "components/document-upload.tsx");
     expect(upload?.text).toMatch(/h-\[9rem\]/);
     expect(upload?.text).not.toMatch(/min-h-0|max-h-\[/);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   11 · The signature lands twice, and no more
+   ------------------------------------------------------------------------ */
+
+/**
+ * The four files the brand gradient may appear in, each for a stated reason.
+ *
+ * - `surfaces.tsx` — the Section marker's "in progress" fill, and the sheet
+ *   hairline. The two places ADR 0012 admits.
+ * - `step-rail.tsx` — the group marker on the spine, which is the same grammar
+ *   one level up and predates this round.
+ * - `completion.tsx` — the student card. It is an object handed over on a
+ *   celebration screen outside the Step shell, not a mark on a working screen.
+ * - `style-guide.tsx` — the swatch that documents the rule. A system that
+ *   cannot show its own gradient cannot be reviewed.
+ *
+ * Anything else — a field, a chip, the primary action, an eyebrow above an
+ * `h1` — is what turns a signature into a stripe on every component, which is
+ * the decision this list exists to stop being remade every fortnight.
+ */
+const GRADIENT_ALLOWED = new Set([
+  "components/surfaces.tsx",
+  "components/step-rail.tsx",
+  "routes/completion.tsx",
+  "routes/style-guide.tsx",
+]);
+
+/** Every `<Sections …>` opening tag in a file. */
+function sheetTags(text: string) {
+  return text.match(/<Sections\b[^>]*?>/gs) ?? [];
+}
+
+describe("the Audentra signature", () => {
+  it("appears in four files, each of which had to argue for it", () => {
+    for (const file of components) {
+      if (GRADIENT_ALLOWED.has(file.name)) continue;
+      expect(file.text, file.name).not.toMatch(/brand-gradient/);
+    }
+  });
+
+  it("lands exactly twice in the surfaces module: the marker, and the hairline", () => {
+    expect(surfaces?.text.match(/brand-gradient/g)).toHaveLength(2);
+  });
+
+  it("signs each of a route's screens once and no more", () => {
+    // A source-level count cannot tell one screen from another inside a route —
+    // Deposit is three screens in one file — so the ceiling is the number of
+    // shells the route renders. Two hairlines on one screen would need a fourth
+    // `Sections`, and there is nowhere in this flow that has one.
+    for (const route of routes) {
+      const signed = sheetTags(route.text).filter((tag) => /\bsignature\b/.test(tag));
+      const shells = route.text.match(/<StepShell\b/g)?.length ?? 0;
+      expect(signed.length, route.name).toBeLessThanOrEqual(shells);
+    }
+  });
+
+  it("never signs the guide", () => {
+    // The guide is a second sheet on the same screen. Signing it would put the
+    // signature twice on every form Step in the flow, which is the definition
+    // of a stripe rather than a signature.
+    for (const tag of sheetTags(shell?.text ?? "")) {
+      expect(tag).not.toMatch(/\bsignature\b/);
+    }
+  });
+
+  it("decides `in progress` in the sheet, and lets no route pass it", () => {
+    // A Section cannot know it is first on the screen, and nine routes working
+    // it out is the answer living in nine places.
+    expect(surfaces?.text).toMatch(/useSheetProgress\(\)/);
+    expect(surfaces?.text).toMatch(/SheetProgress\.Provider/);
+    for (const route of routes) {
+      expect(route.text, route.name).not.toMatch(/SheetProgress|inProgress/);
+    }
   });
 });

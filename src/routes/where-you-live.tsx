@@ -140,7 +140,7 @@ export function WhereYouLiveRoute() {
         </>
       }
     >
-      <Sections as="fieldset">
+      <Sections as="fieldset" signature>
         <Section
           step={1}
           done={filled === 5}

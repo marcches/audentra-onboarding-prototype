@@ -3,3 +3,6 @@ dist
 .vercel
 *.local
 .DS_Store
+
+# Playwright MCP scratch: page snapshots, console logs and acceptance screenshots.
+.playwright-mcp

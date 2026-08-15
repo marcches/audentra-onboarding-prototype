@@ -1,6 +1,7 @@
 import { CaretDownIcon, CheckIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
+import { SheetProgress, useSheetProgress } from "@/components/sections-context";
 import { cn } from "@/lib/utils";
 
 /**
@@ -62,6 +63,7 @@ import { cn } from "@/lib/utils";
 export function Sections({
   as: Tag = "div",
   columns = 1,
+  signature = false,
   footer,
   className,
   children,
@@ -75,18 +77,52 @@ export function Sections({
    * already inside a narrow half — Review's left-hand column asks for that.
    */
   columns?: 1 | 2;
+  /**
+   * The Audentra hairline: a 2px rule of the brand gradient across the top of
+   * this sheet, and one of the two places in the whole system the gradient is
+   * allowed to appear (ADR 0012).
+   *
+   * It is a signature rather than a stripe, which is a claim about *frequency*
+   * before it is a claim about anything else: the screen's work sheet takes it
+   * and nothing else on the screen does. The guide never carries it — a guide
+   * signed like the work would make the signature furniture.
+   *
+   * It costs no height. The strip is drawn over the sheet's own top border
+   * inside the existing `overflow-hidden`, so a signed sheet and an unsigned
+   * one put their first Section header on the same pixel.
+   */
+  signature?: boolean;
   /** The guidance strip at the foot of the sheet — what is left, and what is next. */
   footer?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
+  /**
+   * The first numbered Section that is not done — the one being filled in right
+   * now. Decided here because it is a fact about the sheet: a Section cannot
+   * know it is first, and a route made to work it out would be nine routes
+   * working it out. See `sections-context.ts`.
+   */
+  const inProgress = React.useMemo(() => {
+    for (const child of React.Children.toArray(children)) {
+      if (!React.isValidElement<{ step?: number; done?: boolean }>(child)) continue;
+      const { step, done } = child.props;
+      if (step !== undefined && !done) return step;
+    }
+    return undefined;
+  }, [children]);
+
   return (
     <Tag
       className={cn(
-        "flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-ink-100 bg-panel",
+        "relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-ink-100 bg-panel",
         className,
       )}
     >
+      {signature ? (
+        <span aria-hidden className="brand-gradient absolute inset-x-0 top-0 h-0.5" />
+      ) : null}
+
       {/* The rules between Sections, drawn as a grid rather than as a stack of
           frames. Every Section carries a top and a left hairline and the
           wrapper pulls itself one pixel up and left, so the outer edges land
@@ -98,7 +134,7 @@ export function Sections({
           columns === 2 ? "grid grid-cols-2 narrow:grid-cols-1" : "flex flex-col",
         )}
       >
-        {children}
+        <SheetProgress.Provider value={inProgress}>{children}</SheetProgress.Provider>
       </div>
 
       {footer ? <div className="border-t border-ink-100 bg-well px-3 py-2">{footer}</div> : null}
@@ -152,10 +188,14 @@ export function Section({
    */
   icon?: React.ReactNode;
   /**
-   * Its place in the Step's own order, drawn as a numbered marker that turns
-   * into a mint check once `done`. This is the conduction: a Step is a short
-   * checklist and the student can see how far along it they are without
+   * Its place in the Step's own order, drawn as a numbered marker in one of
+   * three states: grey untouched, the brand gradient where the student is
+   * standing, a mint check once `done`. This is the conduction — a Step is a
+   * short checklist and the student can see how far along it they are without
    * counting fields.
+   *
+   * Which one is "here" is decided by the sheet and handed down; see
+   * `sections-context.ts`. Nothing passes it in.
    */
   step?: number;
   done?: boolean;
@@ -179,6 +219,10 @@ export function Section({
   const [open, setOpen] = React.useState(defaultOpen);
   const shown = collapsible ? open : true;
   const complete = count ? count[0] >= count[1] : false;
+  /* Handed down by the sheet, never computed here and never passed by a route:
+     "first incomplete Section on this screen" is not a fact a Section has. */
+  const active = useSheetProgress();
+  const inProgress = step !== undefined && !done && step === active;
 
   /**
    * The header is a tinted band, not a line of text sitting on the body.
@@ -189,13 +233,30 @@ export function Section({
    * at the right. That single tone is what turns a column of fields into a
    * record — and it costs nothing, because it is a fill rather than a shadow.
    */
+  /**
+   * The marker, in three states rather than two.
+   *
+   * It had grey and mint, which made "not started" and "being filled in right
+   * now" the same grey — so a numbered checklist could not say where the
+   * student was standing in it, which is the one thing a numbered checklist is
+   * for. The third state is the brand gradient with a white numeral, and this
+   * is one of the two places in the system it is allowed (ADR 0012).
+   *
+   * That works because the grammar is the rail's own, one level in: grey for
+   * untouched, brand for here, mint for done. The gradient reads as *material*
+   * rather than as status — flat violet keeps meaning "you are here" on the
+   * rail and on the primary action, and nothing on this marker competes with
+   * it, because a marker is not a control.
+   */
   const marker =
     step === undefined ? null : (
       <span
         className={cn(
           "flex size-5 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold numeric",
           "transition-colors duration-[var(--duration-base)]",
-          done ? "bg-mint-500 text-white" : "bg-ink-200 text-ink-600",
+          done && "bg-mint-500 text-white",
+          !done && inProgress && "brand-gradient text-white",
+          !done && !inProgress && "bg-ink-200 text-ink-600",
         )}
       >
         {done ? <CheckIcon weight="bold" aria-hidden className="size-3" /> : step}
