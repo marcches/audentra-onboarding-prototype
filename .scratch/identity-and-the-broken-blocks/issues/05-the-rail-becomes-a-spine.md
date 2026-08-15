@@ -1,6 +1,6 @@
 # 05 — The rail becomes a spine
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student glancing left sees a line that runs through the
 centre of its markers and carries a mark for every Quest, so the rail reads as a
@@ -49,3 +49,24 @@ group, starting under its own marker and ending at its last Quest.
 - [ ] The Closing and After stay visibly apart from the three Phases
 - [ ] The layout ruler asserts the connector offset equals the marker's centre, computed rather than compared to a literal
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** `RAIL_MARKER`, `RAIL_ROW_PAD` and `RAIL_CONNECTOR_OFFSET` are named
+exports of the layout domain and the rail computes from them. The ruler asserts
+the arithmetic rather than a literal, and also ties the constants to the `size-5`
+and `px-1` actually drawn — so a class changing without the constant fails rather
+than drifts.
+
+Measured at 1366x768 after: **marker centre, line centre and mark centre all at
+x=28**, on all five groups. Before: 28 and 23.5.
+
+Every Quest carries a mark on the line — hollow dot unstarted, filled dot
+current, check done. The check that sat out on the right moved onto the line;
+nothing new was added to the screen, and the ruler asserts the rail draws exactly
+two `CheckIcon`s.
+
+The segments are drawn per row rather than as one run, which is what lets a
+segment start under its own group marker and stop at its last Quest without
+anything measuring a row's height. The Closing and After stay visibly apart from
+the three Phases.

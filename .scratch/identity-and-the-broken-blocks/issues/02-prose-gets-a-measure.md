@@ -1,6 +1,6 @@
 # 02 — Prose gets a measure
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student reading anything the flow explains — the FERPA
 paragraph, the accommodation note, the deposit terms — reads lines that stop at a
@@ -35,3 +35,29 @@ problem, and capping them would put a 68ch limit on a two-column field grid.
 - [ ] The four rules are written into `docs/copy-inventory.md` beside the rules already there
 - [ ] The layout ruler asserts the token is declared once and never reassigned
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped, with one correction to the ticket's own number.**
+
+The ticket asked for ~68ch. Measured in the browser, one CSS `ch` in Satoshi is
+**1.604 characters** of ordinary prose — `ch` is the width of a zero, not of an
+average character. So 68ch would have been a 109-character cap, and the value
+that gives ~68 characters is **42ch**. The same arithmetic explains why the
+existing cap did nothing: the FERPA paragraph already carried `max-w-prose`,
+which is Tailwind's 65ch and therefore a 104-character limit it never reached.
+A limit that cannot bind is worse than no limit, because it reads in the source
+as a decision already taken.
+
+`--measure-prose: 42ch` is declared once in the theme beside the archetype
+measures, and `Prose` is the one element that carries it. `SectionLabel` takes
+it too, which is what stops Housing's "a preference is a request" running 105
+characters across a 72rem catalogue.
+
+FERPA now sets at **68 characters and 373px**, from 89 and 577.
+
+**Beyond the ticket.** The screen lead under the `h1` was exempt on the grounds
+that a subtitle is scanned rather than read, and ticket 09 found Campus life's
+running to 113 characters on one line — three sentences, not a subtitle. It
+takes the measure now. Five more paragraphs the first pass missed were caught by
+the same sweep and are fixed in ticket 09.

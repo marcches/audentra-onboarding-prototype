@@ -1,6 +1,6 @@
 # 06 — About you in three, and the machinery that goes with it
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student answers everything about themselves — name, number,
 Student status, Identity document, permanent address — on one screen, and About
@@ -52,3 +52,31 @@ more Sections.
 - [ ] The summary folds the address rows into `who-you-are` conditionally and emits no section for the retired Step
 - [ ] Every "N of M" in the UI reads nine, for every student
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** Nine Steps; About you holds *Who you are*, *Health information* and
+*Who we call, who can see*. The permanent address and the residency check are
+Sections 4 and 5 inside *Who you are*, present for a citizen and a permanent
+resident and absent for an international student. `addressSchemaFor()` is
+untouched and `validation.test.ts` did not need an edit, which the spec named as
+the signal that the address had not moved further than asked.
+
+*Who you are* is 5 minutes and 50 Points; the total is 215 either way. The
+one-to-three-minute rule is rewritten to say it was written against a
+distribution rather than a length, and the test allows the five-minute Step by
+name.
+
+Deleted: `Step.appliesTo`, `stepApplies()`, the `status` parameter on all eight
+spine functions, `useSpine`, and the nine-versus-ten branch in the spine test.
+`stepIndexFor` became private, having had no caller.
+
+`/onboarding/where-you-live` redirects to `/onboarding/who-you-are`;
+`whereYouLive.submitted` is gone and `whoYouAre.submitted` governs both; the key
+is v6. Verified in the browser: a v5 blob leaks nothing — not the preferred name,
+not the old address, not the retired flag.
+
+Every "N of M" reads nine. Verified for a citizen, a permanent resident and an
+international student; the summary shows **17 answers across 6 sections** for a
+citizen and **15** for an international student, the difference being exactly the
+two address rows.

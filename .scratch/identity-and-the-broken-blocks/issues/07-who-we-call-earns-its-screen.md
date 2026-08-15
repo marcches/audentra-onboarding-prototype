@@ -1,6 +1,6 @@
 # 07 — Who we call earns its screen
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** The shortest Step in the flow gets its text fixed, its empty
 state drawn, and a rule behind the button that is already on it. It does **not**
@@ -38,3 +38,28 @@ rewritten to), 01 (the void under this sheet is that ticket's).
 - [ ] No content is invented to fill the sheet, and Ground under the sheet is accepted
 - [ ] The Step still reads as two minutes of work
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** The FERPA block is one `Prose` block at measure, the emphasis is a
+whole sentence, and the link sits on its own line with a chevron.
+
+**Where the delivery differs from the ticket.** The disclosure is a **list inside
+a Well**, not a second paragraph. Rule 4 says one block of prose per Section, and
+a progressively revealed second paragraph breaks it — but the substance of that
+paragraph is three nouns (grades, bill, housing), and three nouns in a sentence
+is a sentence you have to parse to find a list in. So the rule was applied rather
+than worked around.
+
+"Nobody has access to your record." is a drawn empty state inside a Well: a mark,
+the true sentence, a line saying that leaving it that way is fine, and one
+action. While the list is empty that action appears **only** in the empty state —
+the same control twice on one Section makes the empty state read as decoration.
+
+One contact required, a second optional, capped at two in `whoWeCallSchema` and
+in the UI. Verified in the browser: adding a second removes the invitation and
+adds a "Second contact (optional)" heading; removing it brings the invitation
+back. The primary action counts both contacts, so a second added and left blank
+reads as "3 fields to go" rather than failing into an error on Continue.
+
+The screen still ends where the work ends, with Ground under it.

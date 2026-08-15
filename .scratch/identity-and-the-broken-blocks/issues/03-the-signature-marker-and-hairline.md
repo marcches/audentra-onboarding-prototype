@@ -1,6 +1,6 @@
 # 03 — The signature: a marker with three states, and one hairline
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student meets Audentra's identity once on every screen, in
 the two places where it is a signature rather than decoration: the numbered
@@ -48,3 +48,33 @@ lands on a sheet that has just stopped being able to stretch.
 - [ ] No gradient on the action pill, on a field, or on a chip
 - [ ] The layout ruler asserts the gradient appears only on the Section marker, the sheet hairline and the rail's group marker, and at most once per route for the hairline
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** The Section marker has three states; "in progress" is the first
+incomplete Section on the screen, decided by `Sections` walking its children and
+published through `SheetProgress` context. No route computes it, and the ruler
+asserts no route can. Focus was the other candidate and was rejected in the code
+comment: a marker that followed the caret is a cursor, and it would go blank the
+moment the student clicked away to read something.
+
+The hairline is drawn over the sheet's own top border inside the existing
+`overflow-hidden`, so it costs **zero height** — a signed sheet and an unsigned
+one put their first Section header on the same pixel.
+
+**Where the delivery differs from the ticket.** The ticket says "one hairline
+per screen"; **Housing and Campus life have none**. They are `catalogue`
+archetypes: the collection is the screen and sits on the Ground, so there is no
+work sheet, and signing the Shortlist Well instead would be exactly the
+stripe-on-a-component this ticket exists to prevent. The identity on those two
+screens is carried by the rail. Recorded in ADR 0012 as a decision rather than
+left as a gap.
+
+The ruler's rule is therefore "at most one per screen" rather than "exactly
+one", expressed as: a route may carry no more `signature` props than it renders
+`StepShell`s. Deposit is three screens in one file and carries two.
+
+The gradient is confined to four files, each with its reason written beside it
+in the test: the surfaces module (marker and hairline), the rail (group marker),
+Enrolled (the student card, an object handed over outside the Step shell), and
+the style guide (the swatch that documents the rule).

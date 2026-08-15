@@ -1,6 +1,6 @@
 # 01 — Every sheet is content-height
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student on a short Quest sees the sheet end where the work
 ends. No block in the flow holds white space under content that has run out, and
@@ -37,3 +37,26 @@ honest intrinsic height instead of borrowing the column's slack.
 - [ ] The step shell's comment claiming the void was already solved goes with the props it described
 - [ ] The layout ruler asserts that neither prop exists anywhere in the sources
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** `fill` left `Sections` and `grow` left `Section` — the props, not
+just the call sites — so passing either is a TypeScript error rather than a
+review note. Health's dropzone carries `h-[9rem]` instead of `min-h-0 flex-1`,
+which also stops its size being a fact about which screen it happens to be on.
+The step shell's comment claiming the void was already solved by "putting
+something worth reading in the space" went with the props it described.
+
+Verified at 1366x768: `who-you-are` §3 and `health` §2 both measure **0px** of
+slack, from ~90 and ~140. `who-we-call` still ends around y≈400 with Ground
+below it, and that is accepted rather than filled.
+
+The ruler takes three new assertions: neither prop exists in the surfaces
+module, no `.tsx` passes either as a JSX attribute (with string literals blanked
+first, so the style guide's caption "Selection is fill and a check" does not
+trip a rule about props), and the dropzone carries no `min-h-0`.
+
+**Beyond the ticket.** Ticket 09's browser walk found two more ways a block
+could hold white after the props were gone, and both are fixed there rather than
+here: a CSS grid row stretching its items to the tallest sibling on Deposit's
+receipt, and the `Reveal` keeping its collapsed subtree focusable.

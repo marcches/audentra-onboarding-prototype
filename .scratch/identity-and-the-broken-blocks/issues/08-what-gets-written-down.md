@@ -1,6 +1,6 @@
 # 08 — What gets written down
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** The round reverses a decision from the last one and deletes a
 subsystem. Both are the kind of thing a reader finds in six weeks and cannot
@@ -42,3 +42,24 @@ shipped, or the documents describe an app that does not exist yet.
 - [ ] `docs/copy-inventory.md` lists nine Steps and carries the four prose rules
 - [ ] No document in the repo still claims the flow has ten Steps or that About you has four
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** `CONTEXT.md`'s **Phase** entry says three Steps, names what moved,
+and keeps the half of the reasoning that survives. **Emergency contact** is in
+the glossary with the distinction from Family access written out — who Aster
+calls, against who may ask.
+
+**ADR 0011** records About you as three Steps with the trade-off argued rather
+than asserted, and lists what reversing it would cost. **ADR 0012** records where
+the signature may appear, and where it may not, including why the two catalogues
+carry none.
+
+`docs/copy-inventory.md` lists nine Steps with the address folded into Who you
+are, and carries the four prose rules, the rewritten FERPA block, the drawn empty
+state and the cap of two. `docs/review-script.md` lost the retired screen, gained
+this round's checks, and takes the acceptance measurements from ticket 09. The
+README's test table and `docs/design-research.md` stop saying ten.
+
+No document in the repo still claims ten Steps or four About-you Steps, except
+ADR 0011 where the reversal is the subject.

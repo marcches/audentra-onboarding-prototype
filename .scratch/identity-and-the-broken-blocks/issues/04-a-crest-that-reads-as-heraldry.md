@@ -1,6 +1,6 @@
 # 04 — A crest that reads as heraldry, not as an app icon
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** A student opening the flow sees a mark at the head of the rail
 that reads as a university's arms. The client asked for "o símbolo de uma
@@ -40,3 +40,27 @@ the distinction gets lost again.
 - [ ] Aster stays fictional; no real university's arms, name or motto are reproduced
 - [ ] The layout ruler asserts the crest's colours never reach the theme
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Comments
+
+**Shipped.** Shield with square shoulders drawn to a point in flat navy, a gold
+chief carrying **1867**, the aster as a drawn charge rather than eight identical
+ellipses, an open book below it, and a motto ribbon carrying **Sidere et
+studio** — by the star, and by the work. `institution.founded` and
+`institution.motto` join the fixture; `mottoEnglish` joins them so the Latin is
+translatable by anything that needs to be.
+
+Navy `#12244d` and gold `#c9a227` are declared inside the SVG. The ruler asserts
+neither reaches `app.css` and neither appears in any other component. The gold
+is deliberately unlike `amber-500`, which means a warning and must go on meaning
+only that.
+
+Checked at 220, 96, 44, 36 and 24px. At rail size the year and the motto are a
+texture rather than a legible line, and that is the delivery rather than a
+compromise: it is what an inscribed chief looks like on a crest in a sidebar,
+and drawing them large enough to read is the move that turns arms back into an
+icon.
+
+**Beyond the ticket.** `InstitutionBadge` was deleted. Nothing had imported it
+since the rail took over the slot, and this round is already deleting one
+subsystem kept for an imagined caller.
