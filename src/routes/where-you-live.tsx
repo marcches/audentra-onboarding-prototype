@@ -12,7 +12,7 @@ import {
   StepShell,
   useStepNav,
 } from "@/components/step-shell";
-import { Section, SectionFields, Sections } from "@/components/surfaces";
+import { Prose, Section, SectionFields, Sections } from "@/components/surfaces";
 import { Input } from "@/components/ui/input";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
@@ -283,12 +283,12 @@ export function WhereYouLiveRoute() {
           defaultOpen={false}
           value="It decides your tuition rate, and where official post goes"
         >
-          <p className="max-w-prose text-small leading-5 text-ink-600">
+          <Prose>
             Your permanent address decides your residency classification, which decides your tuition
             rate. It is also where anything official goes, including your enrolment confirmation and
-            your first bill. It is not where you will be living during term — Housing Services
+            your first bill. It is not where you will be living during term. Housing Services
             handles that in the next Phase.
-          </p>
+          </Prose>
         </Section>
       </Sections>
     </StepShell>

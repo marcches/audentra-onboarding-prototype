@@ -6,7 +6,7 @@ import { PricePill, useCelebration } from "@/components/celebration";
 import { SignatureLine } from "@/components/signature-line";
 import { type DrawnSignature, SignaturePad } from "@/components/signature-pad";
 import { BackButton, ContinueAction, StepShell, useStepNav } from "@/components/step-shell";
-import { Section, Sections, Well } from "@/components/surfaces";
+import { Prose, Section, Sections, Well } from "@/components/surfaces";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -399,7 +399,7 @@ function Agreement({
               <span className="numeric">{clause.number}. </span>
               {clause.heading}
             </p>
-            <p className="mt-0.5 max-w-prose text-small leading-5 text-ink-700">
+            <Prose className="mt-0.5 text-ink-700">
               {clause.runs.map((run, index) => (
                 <React.Fragment key={`${clause.number}-${index}`}>
                   {run.emphasis ? (
@@ -409,7 +409,7 @@ function Agreement({
                   )}
                 </React.Fragment>
               ))}
-            </p>
+            </Prose>
           </li>
         ))}
       </ol>

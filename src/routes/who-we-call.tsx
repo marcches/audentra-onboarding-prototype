@@ -11,7 +11,14 @@ import {
   StepShell,
   useStepNav,
 } from "@/components/step-shell";
-import { Section, SectionFields, Sections, SelectionMark, Well } from "@/components/surfaces";
+import {
+  Prose,
+  Section,
+  SectionFields,
+  Sections,
+  SelectionMark,
+  Well,
+} from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -346,7 +353,7 @@ function FerpaExplanation() {
 
   return (
     <div>
-      <p className="max-w-prose text-small leading-5 text-ink-600">
+      <Prose>
         FERPA gives parents the right to see their children's education records.{" "}
         <strong className="font-strong text-ink-900">
           When you turn 18, or enter a postsecondary institution at any age, that right transfers
@@ -361,15 +368,15 @@ function FerpaExplanation() {
         >
           What this means in practice
         </button>
-      </p>
+      </Prose>
 
       {open ? (
-        <p className="mt-1.5 max-w-prose text-small leading-5 text-ink-600">
+        <Prose className="mt-1.5">
           Without your permission, Aster staff will decline to discuss your grades, your bill or
           your housing with anyone who asks, including a parent who is paying your fees. Naming
           someone here is how you change that. You can widen, narrow or withdraw it at any time in
           writing.
-        </p>
+        </Prose>
       ) : null}
     </div>
   );

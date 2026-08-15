@@ -361,6 +361,63 @@ export function Fact({
 }
 
 /* -------------------------------------------------------------------------
+   Prose
+   ---------------------------------------------------------------------- */
+
+/**
+ * A block of prose, at the one measure a person can read a line at.
+ *
+ * The defect this exists to close: a paragraph inside a Section tracked the
+ * *sheet's* width, and the sheet is 64rem because fact rows and field pairs get
+ * denser with width. Prose does the opposite. Measured at 1366×768, the FERPA
+ * block set at 89 characters per line against the style guide's 38 — same
+ * system, same type, 2.3× apart, and 89 is 20% past the limit anyone can hold
+ * their place at.
+ *
+ * So the measure is a property of the *paragraph*, not of the screen it happens
+ * to be on, and it is carried by one element rather than by a class every
+ * screen has to remember. `--measure-prose` is declared once, in the theme,
+ * beside the archetype measures it deliberately does not track.
+ *
+ * The four rules it belongs to, written out in `docs/copy-inventory.md`:
+ *
+ * 1. Prose inside a Section sets to ~68 characters, whatever the sheet does.
+ * 2. Emphasis is a whole sentence or nothing — no bold clause opening and
+ *    closing mid-sentence.
+ * 3. A link never shares a line with the tail of a paragraph.
+ * 4. One block of prose per Section. Everything else is a field, a list, or a
+ *    drawn empty state.
+ *
+ * Two sizes, because the flow genuinely has two: the paragraph that explains
+ * why a screen is asking, and the note that qualifies one control. Both are
+ * prose and both take the measure; neither is a third voice.
+ */
+export function Prose({
+  as: Tag = "p",
+  size = "body",
+  className,
+  children,
+}: {
+  as?: "p" | "div";
+  /** `note` is the quiet line under a legend or a control. */
+  size?: "body" | "note";
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tag
+      className={cn(
+        "max-w-[var(--measure-prose)]",
+        size === "body" ? "text-small leading-5 text-ink-600" : "text-micro leading-4 text-ink-500",
+        className,
+      )}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+/* -------------------------------------------------------------------------
    Well
    ---------------------------------------------------------------------- */
 
@@ -508,6 +565,10 @@ export function OnGround({
 
 /**
  * A section label on the Ground — the first exception, and the common one.
+ *
+ * Its description is prose, and it sits on the widest thing in the system: a
+ * catalogue at 72rem. Housing's "a preference is a request, not an assignment"
+ * is 105 characters and set as one line before this took the measure.
  */
 export function SectionLabel({
   children,
@@ -522,7 +583,7 @@ export function SectionLabel({
     <OnGround reason="section-label" as="header" className="flex items-end gap-3">
       <div className="min-w-0 flex-1">
         <h2 className="text-h3 text-ink-900">{children}</h2>
-        {description ? <p className="text-small text-ink-600">{description}</p> : null}
+        {description ? <Prose>{description}</Prose> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </OnGround>

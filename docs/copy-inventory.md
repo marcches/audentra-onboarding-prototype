@@ -21,6 +21,34 @@ The seam between them is a Step boundary, never a paragraph boundary.
 
 ## Rules
 
+### The four prose rules
+
+Written down here rather than fixed where the finger pointed, because the
+paragraph the client photographed was one of nine and the other eight were set
+the same way.
+
+1. **Prose inside a Section sets to ~68 characters per line, whatever the sheet
+   does.** The sheet is 64rem because fact rows and field pairs get denser with
+   width; prose does the opposite. `--measure-prose` is the token, `Prose` is
+   the one element that carries it, and no screen sets its own. Measured before
+   this rule existed: the FERPA block ran at **89 characters** while the same
+   prose in the style guide ran at 38.
+2. **Emphasis is a whole sentence or nothing.** No bold clause opening and
+   closing mid-sentence. The reader cannot tell what the emphasis is scoped to,
+   and the sentence has to be re-read to find out where it ended.
+3. **A link never shares a line with the tail of a paragraph.** Welded to the
+   last words it stops reading as a link, and it takes whatever orphan the
+   paragraph happened to leave.
+4. **One block of prose per Section.** Everything else is a field, a list, or a
+   drawn empty state. Two paragraphs in a Section is an article about a thing to
+   do rather than a thing to do.
+
+Fields, lists, tables and drawn empty states are unaffected by rule 1. They were
+never the problem, and capping them would put a 68-character limit on a
+two-column address grid.
+
+### The rest
+
 - A radio option carries its own consequence in its label (Fiverr's "U.S. tax
   authorities might request Form W-9"), never in a footnote under the group.
 - A question that needs justifying says why it is asked, **once** (Remote's "We

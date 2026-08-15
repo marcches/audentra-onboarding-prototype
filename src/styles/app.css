@@ -272,6 +272,33 @@
   --catalogue-measure: 72rem;
   --decision-measure: 82rem;
 
+  /* The measure a *paragraph* sets at, which is not the measure its sheet sets
+     at and never was.
+
+     The three above get denser with width, because what they hold is fact rows,
+     field pairs and cards. Prose does the opposite: at 1366x768 the FERPA
+     paragraph on `who-we-call` set at **89 characters per line** — 577px at
+     13px — while the same size of prose inside the style guide set at 38. Same
+     system, same type, 2.3x apart, and a paragraph 20% past the reading limit
+     cannot be rescued by the words inside it.
+
+     **42ch, and the number is not a typo.** `ch` is the width of a zero, not of
+     an average character, and in Satoshi one `ch` measures 1.6 characters of
+     ordinary prose — 8.89px against 5.54px at 13px, measured in the browser
+     rather than assumed. Tailwind's own `max-w-prose` is 65ch, which is a
+     **104-character** cap: the FERPA paragraph carried that class and still set
+     at 89, because the cap was never reached. A limit that cannot bind is worse
+     than no limit, because it reads in the source as a decision already taken.
+     42ch is ~68 characters at both prose sizes; `ch` scales with font-size, so
+     the character count holds while the pixel width does not, which is the whole
+     reason the token is in `ch` at all.
+
+     Declared here beside the archetype measures and carried by exactly one
+     element, `Prose`. Fields, lists, tables and drawn empty states never read
+     it: they were never the problem, and capping them would put a 68-character
+     limit on a two-column address grid. */
+  --measure-prose: 42ch;
+
   /* What the foot of the screen costs, whichever form it takes.
      `compact` spends it on a fixed bar; from `medium` up on a floating pill,
      which is shorter — so the same number over-reserves there by a few pixels

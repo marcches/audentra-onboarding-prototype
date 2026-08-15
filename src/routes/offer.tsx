@@ -11,7 +11,7 @@ import * as React from "react";
 
 import { PricePill, useCelebration } from "@/components/celebration";
 import { BackButton, ContinueAction, StepShell, useStepNav } from "@/components/step-shell";
-import { Fact, IconTile, Section, SectionFields, Sections } from "@/components/surfaces";
+import { Fact, IconTile, Prose, Section, SectionFields, Sections } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Overlay } from "@/components/ui/overlay";
@@ -147,9 +147,7 @@ export function OfferRoute() {
             {/* Below the fold, and allowed to be — the two blocks the old
                 `overflow-hidden` deleted rather than let scroll. */}
             <Section title="About the programme">
-              <p className="max-w-prose text-small leading-5 text-ink-600">
-                {offer.programmeDescription}
-              </p>
+              <Prose>{offer.programmeDescription}</Prose>
             </Section>
 
             <Section title="What accepting does">
@@ -168,10 +166,10 @@ export function OfferRoute() {
 
           {/* The reassurance, as a quiet block rather than as fine print
               (Artsy). */}
-          <p className="text-micro leading-4 text-ink-500">
+          <Prose size="note">
             Accepting does not lock you in for good. You can withdraw in writing any time before
             term starts.
-          </p>
+          </Prose>
         </div>
       </div>
 

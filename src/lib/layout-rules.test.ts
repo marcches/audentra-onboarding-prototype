@@ -131,19 +131,35 @@ describe("nothing is born above the title", () => {
    ------------------------------------------------------------------------ */
 
 describe("the foot of the screen is a constant", () => {
-  it("declares its height and every archetype measure exactly once, in the theme", () => {
+  it("declares its height and every measure exactly once, in the theme", () => {
     expect(css.match(/--action-bar-height:/g)).toHaveLength(1);
     expect(css.match(/--step-measure:/g)).toHaveLength(1);
     expect(css.match(/--catalogue-measure:/g)).toHaveLength(1);
     expect(css.match(/--decision-measure:/g)).toHaveLength(1);
+    // The prose measure joins them, and deliberately does not track them.
+    expect(css.match(/--measure-prose:/g)).toHaveLength(1);
   });
 
   it("lets no component reassign any of them", () => {
     for (const file of files) {
       expect(file.text, file.name).not.toMatch(
-        /"--action-bar-height"|"--step-measure"|"--catalogue-measure"|"--decision-measure"/,
+        /"--action-bar-height"|"--step-measure"|"--catalogue-measure"|"--decision-measure"|"--measure-prose"/,
       );
       expect(file.text, file.name).not.toMatch(/\bactionBarHeight\b/);
+    }
+  });
+
+  it("gives prose one element to be measured by, and no screen its own", () => {
+    // `max-w-prose` is Tailwind's 65ch, which in Satoshi is a 104-character
+    // cap — the FERPA paragraph carried it and still set at 89, because the cap
+    // was never reached. A limit that cannot bind reads in the source as a
+    // decision already taken, which is why it goes rather than being tuned.
+    expect(surfaces?.text).toMatch(/export function Prose/);
+    expect(surfaces?.text).toMatch(/max-w-\[var\(--measure-prose\)\]/);
+    for (const file of components) {
+      expect(file.text, file.name).not.toMatch(/max-w-prose/);
+      if (file.name === "components/surfaces.tsx") continue;
+      expect(file.text, file.name).not.toMatch(/max-w-\[var\(--measure-prose\)\]/);
     }
   });
 

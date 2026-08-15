@@ -11,7 +11,7 @@ import {
   StepShell,
   useStepNav,
 } from "@/components/step-shell";
-import { Reveal, Section, SectionFields, Sections } from "@/components/surfaces";
+import { Prose, Reveal, Section, SectionFields, Sections } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -114,10 +114,10 @@ export function HealthRoute() {
             <legend className="field-label">
               Do you need an accommodation for a disability or health condition?
             </legend>
-            <p className="mt-0.5 text-micro leading-4 text-ink-500">
+            <Prose size="note" className="mt-0.5">
               Accessibility Services uses this to reach you before term starts. Nobody teaching you
               sees it.
-            </p>
+            </Prose>
             <RadioGroup
               className="mt-2 grid grid-cols-2 gap-1.5 narrow:grid-cols-1"
               value={health.accommodations}
@@ -169,9 +169,9 @@ export function HealthRoute() {
               : undefined
           }
         >
-          <p className="mb-2 text-micro leading-4 text-ink-500">
+          <Prose size="note" className="mb-2">
             Aster holds this on file for every student, whatever you answered above.
-          </p>
+          </Prose>
           <DocumentUpload
             tall
             label="Immunization record"

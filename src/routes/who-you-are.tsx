@@ -18,7 +18,7 @@ import {
   StepShell,
   useStepNav,
 } from "@/components/step-shell";
-import { Section, SectionFields, Sections } from "@/components/surfaces";
+import { Prose, Section, SectionFields, Sections } from "@/components/surfaces";
 import { Input } from "@/components/ui/input";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { studentRecord, studentStatusOptions } from "@/lib/fixtures";
@@ -138,9 +138,9 @@ export function WhoYouAreRoute() {
               value={`${studentRecord.legalFirstName} ${studentRecord.legalLastName}`}
             />
             <ReadOnlyField width="medium" label="Email" value={studentRecord.personalEmail} />
-            <p className="col-span-12 text-micro leading-4 text-ink-500">
+            <Prose size="note" className="col-span-12">
               Admissions holds both of these. Write to them if either is wrong.
-            </p>
+            </Prose>
           </SectionFields>
         </Section>
 
@@ -194,9 +194,9 @@ export function WhoYouAreRoute() {
           icon={<IdentificationCardIcon weight="duotone" aria-hidden className="size-4" />}
           title="Your student status"
         >
-          <p className="text-micro leading-4 text-ink-500">
+          <Prose size="note">
             This decides which document we ask you for, and whether we need a U.S. address.
-          </p>
+          </Prose>
           <RadioGroup
             className="mt-2 grid grid-cols-3 gap-1.5 narrow:grid-cols-1"
             value={status}
@@ -239,9 +239,7 @@ export function WhoYouAreRoute() {
               ) : null}
             </>
           ) : (
-            <p className="text-small text-ink-500">
-              Answer your student status above and we will ask for the right one.
-            </p>
+            <Prose>Answer your student status above and we will ask for the right one.</Prose>
           )}
         </Section>
       </Sections>

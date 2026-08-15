@@ -13,6 +13,7 @@ import { BackButton, ContinueAction, StepShell, useStepNav } from "@/components/
 import {
   Fact,
   OnGround,
+  Prose,
   Reveal,
   Section,
   SectionFields,
@@ -114,9 +115,9 @@ function SecureYourPlace() {
         >
           <div>
             <p className="field-label">How you want to pay</p>
-            <p className="mt-0.5 text-micro leading-4 text-ink-500">
+            <Prose size="note" className="mt-0.5">
               Three ways to finish this. None of them is giving up your place.
-            </p>
+            </Prose>
             <RadioGroup
               className="mt-2 grid gap-1.5"
               value={deposit.choice}
@@ -296,11 +297,11 @@ function DepositSummary({ waiver }: { waiver: boolean }) {
             </span>
           </div>
 
-          <p className="mt-1.5 text-micro leading-4 text-ink-500">
+          <Prose size="note" className="mt-1.5">
             {waiver
               ? `Student Accounts reviews waiver requests within ${depositTerms.waiverReviewDays} working days. Your place is held while they do.`
               : `Refundable in full until ${DEADLINE}.`}
-          </p>
+          </Prose>
         </Section>
       </Sections>
     </div>

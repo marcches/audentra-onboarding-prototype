@@ -12,7 +12,7 @@ import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { PhaseBar, StepRail } from "@/components/step-rail";
-import { Section, Sections } from "@/components/surfaces";
+import { Prose, Section, Sections } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { aboveCompact, inCompactFlex, RAIL_OFFSET } from "@/lib/layout";
 import { type Archetype, nextStep, previousStep, type StepId, stepById } from "@/lib/steps";
@@ -207,7 +207,7 @@ export function StepGuide({
         icon={<CompassIcon weight="duotone" aria-hidden className="size-4" />}
         count={tasks.length ? [done, tasks.length] : undefined}
       >
-        <p className="text-small leading-5 text-ink-600">{why}</p>
+        <Prose>{why}</Prose>
 
         {tasks.length ? (
           <ol className="mt-2.5 space-y-1.5 border-t border-ink-100 pt-2.5">
