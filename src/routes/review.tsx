@@ -1,12 +1,12 @@
 import { ArrowRightIcon, PencilSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { SignatureLine } from "@/components/signature-line";
 import { type DrawnSignature, SignaturePad } from "@/components/signature-pad";
-import { ContextPanel, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ const LEGAL_NAME = legalName();
  */
 export function ReviewRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { next, goNext } = useStepNav("review");
   const review = state.review;
   const summary = buildSummary(state);
   const clauses = buildAgreement(state);
@@ -91,19 +91,31 @@ export function ReviewRoute() {
       current="review"
       title="Read it, then sign it"
       lead="Your answers are written into the agreement below. Read to the end — signing unlocks when you have."
-      /* The context column holds one short panel, and it is the one thing that
-         has to be reachable at every scroll position: signing.
-         The summary moved out of it and into the column below the document,
-         where it reads as the appendix it is — and, more to the point, a sticky
-         panel with a sibling below it gets scrolled into, so the two had to stop
-         sharing a column. */
-      context={
-        <SignPanel
-          canSign={canSign}
-          typedMatches={typedMatches}
-          onSign={sign}
-          onContinue={() => navigate({ to: "/onboarding/deposit" })}
-        />
+      /* The one action that has to be reachable at every scroll position is
+         signing — which is exactly what the fixed bar is for, and why the
+         sticky panel this replaces is no longer needed. What stays in the
+         column is the *choosing* half: type or draw, and the consent tick.
+         Reading order is now the honest one — the agreement, then how you sign
+         it, then the answers it was built from. */
+      saved={!review.submitted}
+      actions={
+        review.submitted ? (
+          <>
+            <BackButton current="review" />
+            <Button type="button" size="lg" onClick={goNext}>
+              <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+              <span className="sm:hidden">Next</span>
+              <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <BackButton current="review" />
+            <Button type="button" size="lg" disabled={!canSign} onClick={sign}>
+              Sign the agreement
+            </Button>
+          </>
+        )
       }
     >
       <AgreementSheet
@@ -113,6 +125,7 @@ export function ReviewRoute() {
         review={review}
         applyToken={applyToken}
       />
+      <SignPanel typedMatches={typedMatches} />
       <SummaryPanel summary={summary} points={points} />
     </StepShell>
   );
@@ -254,24 +267,19 @@ function AgreementSheet({
   );
 }
 
-/** The context column: sign the thing, reachable from anywhere on the page. */
-function SignPanel({
-  canSign,
-  typedMatches,
-  onSign,
-  onContinue,
-}: {
-  canSign: boolean;
-  typedMatches: boolean;
-  onSign: () => void;
-  onContinue: () => void;
-}) {
+/**
+ * How you sign: type it or draw it, then tick the consent.
+ *
+ * The act of signing is the button in the fixed bar; this panel is the choice
+ * that feeds it. Splitting the two is what let the panel stop being sticky.
+ */
+function SignPanel({ typedMatches }: { typedMatches: boolean }) {
   const state = useOnboarding();
   const review = state.review;
 
   if (review.submitted) {
     return (
-      <ContextPanel sticky title="Signed">
+      <Panel title="Signed">
         <Notice tone="success" title="Your agreement is signed">
           Signed on{" "}
           {new Date(review.signedAt ?? Date.now()).toLocaleDateString("en-US", {
@@ -279,23 +287,15 @@ function SignPanel({
             day: "numeric",
             year: "numeric",
           })}
-          . Reference {review.reference}. It is on the sheet beside this, and changing an answer
-          re-opens it for signing.
+          . Reference {review.reference}. It is on the sheet above, and changing an answer re-opens
+          it for signing.
         </Notice>
-        <Button type="button" size="lg" className="w-full" onClick={onContinue}>
-          Next: your deposit
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </ContextPanel>
+      </Panel>
     );
   }
 
   return (
-    <ContextPanel
-      sticky
-      title="Sign"
-      description="Type your name or draw it. Both count the same here."
-    >
+    <Panel title="Sign" description="Type your name or draw it. Both count the same here.">
       <Tabs
         value={review.signatureMode}
         onValueChange={(value) => patch("review", { signatureMode: value as "type" | "draw" })}
@@ -366,11 +366,7 @@ function SignPanel({
           I have read the agreement and I agree to it.
         </label>
       </div>
-
-      <Button type="button" size="lg" className="w-full" disabled={!canSign} onClick={onSign}>
-        Sign the agreement
-      </Button>
-    </ContextPanel>
+    </Panel>
   );
 }
 
@@ -436,12 +432,18 @@ function SummaryPanel({
                 </Link>
               </Button>
             </header>
-            <dl className="mt-1.5 space-y-1">
+            {/* Two columns of label→value once there is room for them. These
+                are short facts being checked at a glance, not prose — in one
+                column they were a 700px ribbon of mostly empty line. */}
+            <dl className="mt-1.5 grid gap-x-8 gap-y-1 sm:grid-cols-2">
               {group.rows.map((row) => (
-                <div key={row.label} className="flex gap-4 text-small">
-                  <dt className="w-[11rem] shrink-0 text-ink-500">{row.label}</dt>
+                <div key={row.label} className="flex gap-3 text-small">
+                  <dt className="w-[9rem] shrink-0 text-ink-500">{row.label}</dt>
                   <dd
-                    className={cn("flex-1", row.missing ? "text-ink-400 italic" : "text-ink-800")}
+                    className={cn(
+                      "min-w-0 flex-1",
+                      row.missing ? "text-ink-400 italic" : "text-ink-800",
+                    )}
                   >
                     {row.value}
                   </dd>

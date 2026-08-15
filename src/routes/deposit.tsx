@@ -5,13 +5,12 @@ import {
   HandHeartIcon,
   SealCheckIcon,
 } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 import { useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
-import { ContextPanel, SectionTitle, StepActions, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, SectionTitle, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDeadline, formatMoney, institution, offer } from "@/lib/fixtures";
@@ -37,7 +36,7 @@ const AMOUNT = formatMoney(offer.depositAmount, offer.depositCurrency);
  */
 export function DepositRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { goNext } = useStepNav("deposit");
   const deposit = state.deposit;
 
   /**
@@ -51,7 +50,9 @@ export function DepositRoute() {
    */
   const finish = (answered: boolean) => {
     if (answered) patch("deposit", { submitted: true });
-    navigate({ to: "/done" });
+    /* Deposit is the last Quest in the Closing, so "next" is the arrival
+       screen — `useStepNav` already knows that and nothing here has to. */
+    goNext();
   };
 
   return (
@@ -59,9 +60,22 @@ export function DepositRoute() {
       current="deposit"
       title="Your enrollment deposit"
       lead={`This secures your place and is credited against your balance. Refundable up to ${formatDeadline(offer.responseDeadline)}.`}
-      context={<AmountPanel />}
+      actions={
+        <>
+          <BackButton current="deposit" />
+          <Button type="button" variant="ghost" size="lg" onClick={() => finish(false)}>
+            Skip
+          </Button>
+          <Button type="button" size="lg" disabled={!deposit.choice} onClick={() => finish(true)}>
+            Finish enrollment
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
+      }
     >
-      <section className="space-y-4">
+      <AmountBand />
+
+      <Panel className="space-y-4">
         <SectionTitle>How would you like to handle it?</SectionTitle>
         <div className="grid gap-3">
           <ChoiceCard
@@ -107,55 +121,50 @@ export function DepositRoute() {
         ) : null}
 
         {deposit.choice === "waiver" ? <WaiverRequest /> : null}
-      </section>
-
-      <StepActions>
-        <Button type="button" variant="ghost" size="lg" onClick={() => finish(false)}>
-          Skip for now
-        </Button>
-        <Button type="button" size="lg" disabled={!deposit.choice} onClick={() => finish(true)}>
-          Finish enrollment
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </StepActions>
+      </Panel>
     </StepShell>
   );
 }
 
 /**
- * The fixed column: the amount and the date it is due.
+ * The amount and the date it is due, as a band above the options.
  *
- * The two facts every one of the three options is a decision about, kept beside
- * the options rather than scrolled past above them.
+ * These are the two facts all three options are a decision about. As a tall
+ * panel in a third column they were a paragraph of prose and a stacked
+ * definition list; laid out horizontally they are three fact columns and about
+ * a third of the height, which is the whole density argument in one component.
  */
-function AmountPanel() {
+function AmountBand() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <ContextPanel sticky title="What is owed">
+    <Panel className="flex flex-wrap items-center gap-x-8 gap-y-4">
       <div className="flex items-center gap-3">
         <span className="brand-gradient flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-card)] text-white">
           <SealCheckIcon weight="fill" aria-hidden className="size-5" />
         </span>
-        <p className="text-display font-black tracking-[-0.03em] text-ink-900">
-          {reduceMotion ? (
-            AMOUNT
-          ) : (
-            <React.Suspense fallback={AMOUNT}>
-              {/* The odometer is decoration over a plain, always-correct
-                  string: a screen reader should be told $500, not read a
-                  number that is still climbing. */}
-              <span className="sr-only">{AMOUNT}</span>
-              <span aria-hidden>
-                $
-                <CountUp to={offer.depositAmount} duration={0.85} separator="," />
-              </span>
-            </React.Suspense>
-          )}
-        </p>
+        <div>
+          <p className="field-label">Deposit</p>
+          <p className="text-h1 font-black tracking-[-0.03em] text-ink-900">
+            {reduceMotion ? (
+              AMOUNT
+            ) : (
+              <React.Suspense fallback={AMOUNT}>
+                {/* The odometer is decoration over a plain, always-correct
+                    string: a screen reader should be told $500, not read a
+                    number that is still climbing. */}
+                <span className="sr-only">{AMOUNT}</span>
+                <span aria-hidden>
+                  $
+                  <CountUp to={offer.depositAmount} duration={0.85} separator="," />
+                </span>
+              </React.Suspense>
+            )}
+          </p>
+        </div>
       </div>
 
-      <dl className="space-y-3 border-t border-ink-100 pt-4">
+      <dl className="flex flex-wrap gap-x-8 gap-y-3">
         <div>
           <dt className="field-label">Due by</dt>
           <dd className="text-body font-bold text-ink-900">
@@ -163,14 +172,11 @@ function AmountPanel() {
           </dd>
         </div>
         <div>
-          <dt className="field-label">What it does</dt>
-          <dd className="text-small text-ink-600">
-            Secures your place in {offer.programme} for {offer.startingTerm} and is credited against
-            your first term's tuition.
-          </dd>
+          <dt className="field-label">Credited against</dt>
+          <dd className="text-body font-bold text-ink-900">First term's tuition</dd>
         </div>
       </dl>
-    </ContextPanel>
+    </Panel>
   );
 }
 

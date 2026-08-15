@@ -14,16 +14,20 @@ import type { StepId } from "@/lib/steps";
 /**
  * Bumped whenever a stored value can no longer be interpreted by this build.
  *
+ * v3, for the Phases round: the `aboutYou` slice is now `identityContact`,
+ * following the step it belongs to. The shallow merge below is forgiving about
+ * *missing* keys, so a v2 blob would not error — it would quietly restore an
+ * empty Identity & contact over answers the student had actually given, which
+ * is worse than a clean slate because it looks like data loss rather than a
+ * reset.
+ *
  * v2, for round 3: two housing intents were removed, the review slice replaced
  * `readDocuments` with `documentRead` and gained the signature strokes, and the
- * deposit lost its paid flags. The shallow merge below is deliberately
- * forgiving about *missing* keys, but it cannot help with keys whose meaning
- * changed — a v1 blob would restore `intent: "commuting"` against a list that
- * no longer contains it, or a drawn signature with no strokes to replay. A
- * reviewer with the old preview open gets a clean slate instead of a subtly
- * wrong one.
+ * deposit lost its paid flags. Keys whose *meaning* changed are exactly what
+ * the merge cannot help with — a v1 blob would restore `intent: "commuting"`
+ * against a list that no longer contains it.
  */
-const STORAGE_KEY = "audentra.onboarding.v2";
+const STORAGE_KEY = "audentra.onboarding.v3";
 
 export type EntryState = {
   /** Live draft of the create-account email field — changes on every keystroke. */
@@ -80,7 +84,7 @@ export type UploadedFile = {
   size: number;
 };
 
-export type AboutYouState = {
+export type IdentityContactState = {
   openSections: string[];
   /** Identity documents attached. Optional — the sheet marks this field `n`. */
   idDocuments: UploadedFile[];
@@ -164,7 +168,7 @@ export type DepositState = {
 export type OnboardingState = {
   entry: EntryState;
   offer: OfferState;
-  aboutYou: AboutYouState;
+  identityContact: IdentityContactState;
   housing: HousingState;
   campusLife: CampusLifeState;
   health: HealthState;
@@ -202,7 +206,7 @@ const initialState: OnboardingState = {
     declineNote: "",
     shared: false,
   },
-  aboutYou: {
+  identityContact: {
     openSections: ["identity"],
     idDocuments: [],
     idExtracted: false,
@@ -273,7 +277,7 @@ function read(): OnboardingState {
     const merged: OnboardingState = {
       entry: { ...initialState.entry, ...parsed.entry },
       offer: { ...initialState.offer, ...parsed.offer },
-      aboutYou: { ...initialState.aboutYou, ...parsed.aboutYou },
+      identityContact: { ...initialState.identityContact, ...parsed.identityContact },
       housing: { ...initialState.housing, ...parsed.housing },
       campusLife: { ...initialState.campusLife, ...parsed.campusLife },
       health: { ...initialState.health, ...parsed.health },
@@ -327,7 +331,7 @@ function getSnapshot() {
 /** The slices the Review & sign summary reads back and the packet covers. */
 const SIGNED_OVER: (keyof OnboardingState)[] = [
   "offer",
-  "aboutYou",
+  "identityContact",
   "housing",
   "campusLife",
   "health",
@@ -389,7 +393,7 @@ export function useOnboarding(): OnboardingState {
 export function completedSteps(current: OnboardingState): StepId[] {
   const done: StepId[] = [];
   if (current.offer.response !== null) done.push("offer");
-  if (current.aboutYou.submitted) done.push("about-you");
+  if (current.identityContact.submitted) done.push("identity-contact");
   if (current.housing.submitted) done.push("housing");
   if (current.campusLife.submitted) done.push("campus-life");
   if (current.health.submitted) done.push("health");

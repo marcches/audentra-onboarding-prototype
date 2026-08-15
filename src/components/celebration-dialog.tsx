@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { institution, offer } from "@/lib/fixtures";
 import { SHARE_POINTS } from "@/lib/points";
+import { nextStep } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 
 const CONFETTI_COLORS = ["#6a38ff", "#1e5bff", "#00c49a", "#a888ff", "#ffffff"];
@@ -199,8 +200,11 @@ export function CelebrationDialog({
             ) : null}
           </div>
 
+          {/* Named from `steps.ts` rather than written out. This said "Next:
+              about you" for a step that is now called Identity & contact, and
+              a hand-typed label is how that happens. */}
           <Button ref={continueRef} type="button" size="lg" className="w-full" onClick={onContinue}>
-            Next: about you
+            Next: {nextStep("offer")?.label.toLowerCase()}
           </Button>
         </div>
       </DialogContent>

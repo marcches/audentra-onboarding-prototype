@@ -11,7 +11,6 @@ import {
   TrashIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { type FieldErrors, useFieldArray, useForm } from "react-hook-form";
 
@@ -20,7 +19,7 @@ import { IdUpload } from "@/components/id-upload";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
 import { PhoneInput } from "@/components/phone-input";
-import { ContextPanel, StepActions, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, StepShell, useStepNav } from "@/components/step-shell";
 import {
   Accordion,
   AccordionContent,
@@ -43,7 +42,6 @@ import {
   citizenshipOptions,
   countries,
   disclosureScopeOptions,
-  institution,
   relationshipOptions,
   residencyVerificationOptions,
   studentRecord,
@@ -52,7 +50,7 @@ import {
 } from "@/lib/fixtures";
 import { emptyEmergencyContact, newContactId, patch, useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { type AboutYouValues, aboutYouSchema } from "@/lib/validation";
+import { type IdentityContactValues, identityContactSchema } from "@/lib/validation";
 
 type SectionId = "identity" | "residence" | "emergency" | "family";
 
@@ -102,32 +100,35 @@ function idDocumentHint(citizenship: string) {
   }
 }
 
-export function AboutYouRoute() {
-  const state = useOnboarding();
-  const navigate = useNavigate();
+/** The form lives in the column; its submit button lives in the fixed bar. */
+const FORM_ID = "identity-contact-form";
 
-  const form = useForm<AboutYouValues>({
-    resolver: zodResolver(aboutYouSchema),
+export function IdentityContactRoute() {
+  const state = useOnboarding();
+  const { next, goNext } = useStepNav("identity-contact");
+
+  const form = useForm<IdentityContactValues>({
+    resolver: zodResolver(identityContactSchema),
     mode: "onBlur",
     defaultValues: {
-      preferredName: state.aboutYou.preferredName,
-      pronouns: state.aboutYou.pronouns,
-      dialCode: state.aboutYou.dialCode,
-      phone: state.aboutYou.phone,
-      citizenship: state.aboutYou.citizenship,
-      street: state.aboutYou.street,
-      unit: state.aboutYou.unit,
-      city: state.aboutYou.city,
-      state: state.aboutYou.state,
-      postalCode: state.aboutYou.postalCode,
-      country: state.aboutYou.country,
-      residencyVerification: state.aboutYou.residencyVerification,
-      emergencyContacts: state.aboutYou.emergencyContacts,
-      grantsFamilyAccess: state.aboutYou.grantsFamilyAccess,
-      familyMemberName: state.aboutYou.familyMemberName,
-      familyMemberEmail: state.aboutYou.familyMemberEmail,
-      familyMemberRelationship: state.aboutYou.familyMemberRelationship,
-      disclosureScope: state.aboutYou.disclosureScope,
+      preferredName: state.identityContact.preferredName,
+      pronouns: state.identityContact.pronouns,
+      dialCode: state.identityContact.dialCode,
+      phone: state.identityContact.phone,
+      citizenship: state.identityContact.citizenship,
+      street: state.identityContact.street,
+      unit: state.identityContact.unit,
+      city: state.identityContact.city,
+      state: state.identityContact.state,
+      postalCode: state.identityContact.postalCode,
+      country: state.identityContact.country,
+      residencyVerification: state.identityContact.residencyVerification,
+      emergencyContacts: state.identityContact.emergencyContacts,
+      grantsFamilyAccess: state.identityContact.grantsFamilyAccess,
+      familyMemberName: state.identityContact.familyMemberName,
+      familyMemberEmail: state.identityContact.familyMemberEmail,
+      familyMemberRelationship: state.identityContact.familyMemberRelationship,
+      disclosureScope: state.identityContact.disclosureScope,
     },
   });
 
@@ -137,14 +138,14 @@ export function AboutYouRoute() {
   // "your progress is saved automatically" without a backend.
   React.useEffect(() => {
     const subscription = form.watch((values) => {
-      patch("aboutYou", values as Partial<AboutYouValues>);
+      patch("identityContact", values as Partial<IdentityContactValues>);
     });
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const openSections = state.aboutYou.openSections;
+  const openSections = state.identityContact.openSections;
   const setOpenSections = React.useCallback((next: string[]) => {
-    patch("aboutYou", { openSections: next });
+    patch("identityContact", { openSections: next });
   }, []);
 
   const values = form.watch();
@@ -182,8 +183,8 @@ export function AboutYouRoute() {
 
   function handleValid() {
     setSectionsNeedingAttention([]);
-    patch("aboutYou", { submitted: true });
-    navigate({ to: "/onboarding/housing" });
+    patch("identityContact", { submitted: true });
+    goNext();
   }
 
   /* A collapsed section hiding a validation error is the one way this pattern
@@ -193,7 +194,7 @@ export function AboutYouRoute() {
 
      React Hook Form's own focus-first-error cannot do this: it runs before the
      reopened accordion content is mounted, so it finds nothing to focus. */
-  function handleInvalid(invalid: FieldErrors<AboutYouValues>) {
+  function handleInvalid(invalid: FieldErrors<IdentityContactValues>) {
     const failing = new Set(openSections);
     const named: SectionId[] = [];
     for (const key of Object.keys(invalid)) {
@@ -228,7 +229,7 @@ export function AboutYouRoute() {
    * it would block Continue, by construction.
    */
   const sectionStatus = React.useMemo(() => {
-    const parsed = aboutYouSchema.safeParse(values);
+    const parsed = identityContactSchema.safeParse(values);
     const status: Record<SectionId, "done" | "needed"> = {
       identity: "done",
       residence: "done",
@@ -243,31 +244,43 @@ export function AboutYouRoute() {
     return status;
   }, [values]);
 
-  const identityNote = state.aboutYou.idExtracted
+  const identityNote = state.identityContact.idExtracted
     ? "Read from the document you uploaded and checked against your application. The Registrar changes this, not you."
     : "From your application. The Registrar changes this, not you.";
 
   return (
     <StepShell
-      current="about-you"
-      title="About you"
-      lead="Who you are, where you live, who we call in an emergency, and who else may see your record. Open a section to fill it in."
-      context={
-        <SectionIndex
-          status={sectionStatus}
-          onOpen={(section) => {
-            if (!openSections.includes(section)) setOpenSections([...openSections, section]);
-            window.setTimeout(() => {
-              document.getElementById(`section-${section}`)?.scrollIntoView({ block: "start" });
-            }, 60);
-          }}
-        />
+      current="identity-contact"
+      /* The step is Identity & contact; "About you" is the Phase it sits in.
+         A Phase can be described loosely, a form cannot — `CONTEXT.md`. */
+      title="Identity & contact"
+      lead="Who you are, where you live, who we call in an emergency, and who else may see your record."
+      actions={
+        <>
+          <BackButton current="identity-contact" />
+          <Button type="submit" form={FORM_ID} size="lg">
+            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+            <span className="sm:hidden">Next</span>
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
       }
     >
+      <SectionIndex
+        status={sectionStatus}
+        onOpen={(section) => {
+          if (!openSections.includes(section)) setOpenSections([...openSections, section]);
+          window.setTimeout(() => {
+            document.getElementById(`section-${section}`)?.scrollIntoView({ block: "start" });
+          }, 60);
+        }}
+      />
+
       <form
+        id={FORM_ID}
         onSubmit={form.handleSubmit(handleValid, handleInvalid)}
         noValidate
-        className="space-y-6"
+        className="space-y-4"
       >
         <Accordion
           type="multiple"
@@ -316,15 +329,15 @@ export function AboutYouRoute() {
               </Field>
 
               <IdUpload
-                files={state.aboutYou.idDocuments}
-                extracted={state.aboutYou.idExtracted}
+                files={state.identityContact.idDocuments}
+                extracted={state.identityContact.idExtracted}
                 documentHint={idDocumentHint(values.citizenship)}
                 /* Removing the last file takes the extraction with it. The
                    success notice and the "read from the document you uploaded"
                    note on every locked field both claim provenance from a file
                    that is no longer attached, and both persist. */
                 onChange={(files) =>
-                  patch("aboutYou", {
+                  patch("identityContact", {
                     idDocuments: files,
                     ...(files.length === 0 ? { idExtracted: false } : {}),
                   })
@@ -339,7 +352,7 @@ export function AboutYouRoute() {
                    document uses to mark the student's own answers, a legal
                    status they never chose. A simulated read may confirm what is
                    already on record; it may not invent a fact about someone. */
-                onExtracted={() => patch("aboutYou", { idExtracted: true })}
+                onExtracted={() => patch("identityContact", { idExtracted: true })}
               />
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -866,24 +879,19 @@ export function AboutYouRoute() {
             problem marked.
           </Notice>
         ) : null}
-
-        <StepActions>
-          <Button type="submit" size="lg">
-            Next: housing
-            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-          </Button>
-        </StepActions>
       </form>
     </StepShell>
   );
 }
 
 /**
- * The fixed column: the four sections and which of them still need you.
+ * The four sections and which of them still need you, as a strip above the form.
  *
- * Not a duplicate of the accordion headers — it is the one view of the step
- * that survives scrolling past section three, and it answers "how much of this
- * is left" without collapsing anything to find out.
+ * Not a duplicate of the accordion headers: it is the one view of the step that
+ * answers "how much of this is left" without collapsing anything to find out.
+ * It was a tall numbered list in a column that only existed above 1280px; laid
+ * out as chips it is one row, and it exists on a phone — which is where "how
+ * much more of this is there" is asked most.
  */
 function SectionIndex({
   status,
@@ -895,52 +903,36 @@ function SectionIndex({
   const remaining = SECTION_ORDER.filter((section) => status[section] === "needed").length;
 
   return (
-    <ContextPanel
-      sticky
-      title="This step"
-      description={
-        remaining === 0
-          ? "All four sections are filled in."
-          : `${remaining} of 4 sections still need you.`
-      }
-    >
-      <ol className="space-y-1">
-        {SECTION_ORDER.map((section, index) => {
+    <Panel aside className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <p className="text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
+        {remaining === 0 ? "All four done" : `${remaining} of 4 left`}
+      </p>
+      <ul className="flex flex-wrap gap-1.5">
+        {SECTION_ORDER.map((section) => {
           const done = status[section] === "done";
           return (
             <li key={section}>
               <button
                 type="button"
                 onClick={() => onOpen(section)}
-                className="flex w-full items-center gap-3 rounded-[var(--radius-field)] px-2 py-2 text-left transition-colors hover:bg-ink-50"
-              >
-                <span
-                  className={cn(
-                    "flex size-6 shrink-0 items-center justify-center rounded-full border text-micro font-bold",
-                    done
-                      ? "border-mint-500 bg-mint-500 text-white"
-                      : "border-ink-200 bg-surface text-ink-400",
-                  )}
-                >
-                  {done ? <CheckIcon weight="bold" aria-hidden className="size-3.5" /> : index + 1}
-                </span>
-                <span className="flex-1 text-body text-ink-800">{SECTION_LABELS[section]}</span>
-                {done ? null : (
-                  <span className="text-micro font-bold tracking-[0.06em] text-violet-600 uppercase">
-                    Needs you
-                  </span>
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border px-2.5 py-1 text-small font-bold transition-colors",
+                  done
+                    ? "border-mint-100 bg-mint-50 text-mint-700 hover:border-mint-500"
+                    : "border-ink-200 bg-surface text-ink-700 hover:border-violet-300 hover:text-violet-700",
                 )}
+              >
+                {done ? (
+                  <CheckIcon weight="bold" aria-hidden className="size-3.5 text-mint-600" />
+                ) : null}
+                {SECTION_LABELS[section]}
+                <span className="sr-only">{done ? " — done" : " — still needs you"}</span>
               </button>
             </li>
           );
         })}
-      </ol>
-
-      <p className="border-t border-ink-100 pt-4 text-small text-ink-500">
-        Anything wrong on a locked field? Write to {institution.admissionsEmail} and the Registrar
-        will fix it.
-      </p>
-    </ContextPanel>
+      </ul>
+    </Panel>
   );
 }
 

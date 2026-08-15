@@ -1,11 +1,10 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 
 import { DocumentUpload } from "@/components/document-upload";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
-import { ContextPanel, SectionTitle, StepActions, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, SectionTitle, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +28,7 @@ import { patch, useOnboarding } from "@/lib/store";
  */
 export function HealthRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { next, goNext: advance } = useStepNav("health");
   const health = state.health;
 
   /* Skipping is not answering — same rule as Campus life next door. Both
@@ -38,17 +37,29 @@ export function HealthRoute() {
      deliberately passed on it. */
   const goNext = (answered: boolean) => {
     if (answered) patch("health", { submitted: true });
-    navigate({ to: "/onboarding/review" });
+    advance();
   };
 
   return (
     <StepShell
       current="health"
       title="Health information"
-      lead="Optional — this doesn't block your enrollment. The student portal may ask again once you're in, and some accommodations need this documentation before they can be arranged."
-      context={<HealthContext accommodations={health.accommodations} />}
+      lead="Optional — skipping it doesn't block your enrollment. Some accommodations need documentation before they can be arranged."
+      actions={
+        <>
+          <BackButton current="health" />
+          <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
+            Skip
+          </Button>
+          <Button type="button" size="lg" onClick={() => goNext(true)}>
+            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+            <span className="sm:hidden">Next</span>
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
+      }
     >
-      <section className="space-y-4">
+      <Panel className="space-y-4">
         <SectionTitle description="Ask Disability Services to contact you. Do not upload medical records here.">
           Do you need any accommodations?
         </SectionTitle>
@@ -94,19 +105,21 @@ export function HealthRoute() {
               />
             </Field>
 
-            <DocumentUpload
-              label="Medical documentation"
-              hint="A letter or report from a clinician describing the condition, optional."
-              files={health.medicalDocuments}
-              onChange={(files) => patch("health", { medicalDocuments: files })}
-            />
+            {/* Both uploads are optional and both say so on the field itself —
+                the hints under them were repeating the word a third time. */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DocumentUpload
+                label="Medical documentation"
+                files={health.medicalDocuments}
+                onChange={(files) => patch("health", { medicalDocuments: files })}
+              />
 
-            <DocumentUpload
-              label="Immunization record"
-              hint="Your vaccination history, if you have it to hand, optional."
-              files={health.immunizationDocuments}
-              onChange={(files) => patch("health", { immunizationDocuments: files })}
-            />
+              <DocumentUpload
+                label="Immunization record"
+                files={health.immunizationDocuments}
+                onChange={(files) => patch("health", { immunizationDocuments: files })}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -115,31 +128,7 @@ export function HealthRoute() {
             Ask {institution.housingOffice} or Disability Services whenever you need to.
           </Notice>
         ) : null}
-      </section>
-
-      <StepActions>
-        <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
-          Skip for now
-        </Button>
-        <Button type="button" size="lg" onClick={() => goNext(true)}>
-          Next: review &amp; sign
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </StepActions>
+      </Panel>
     </StepShell>
-  );
-}
-
-function HealthContext({ accommodations }: { accommodations: "yes" | "no" | "" }) {
-  return (
-    <ContextPanel sticky title="This step" description="Optional — it doesn't block enrollment.">
-      <p className="text-small text-ink-600">
-        {accommodations === ""
-          ? "Answer the question and, if you need anything, attach documentation below."
-          : accommodations === "yes"
-            ? "Disability Services will follow up by email. Attach documentation now, or add it later from the student portal."
-            : "Nothing is recorded. You can come back to this at any point in the year."}
-      </p>
-    </ContextPanel>
   );
 }

@@ -327,3 +327,67 @@ pregado e tudo acima dele parecer uma coluna indiferenciada.
   tempo, então encolher o número endurece a mola *e* aumenta o amortecimento, e o
   tempo de acomodação satura. Trocado por mola por duração do `motion`
   (`{ duration, bounce: 0 }`), onde `duration` quer dizer o que diz.
+
+---
+
+## Rodada de 2026-08-14 — a casca: Fases, chão rebaixado, barra fixa, mobile-first
+
+Buscas via `mcp__mobbin__search_screens` / `search_flows` feitas **antes** de
+propor a solução, conforme `docs/agents/design-references.md`. As referências
+abaixo são as citadas no ticket 01; aqui fica o que foi efetivamente tirado de
+cada uma e o que foi deliberadamente **não** copiado.
+
+### O chão e os painéis
+
+- [Deel — bulk edit](https://mobbin.com/screens/ff59116e-b033-499e-badb-b4c9e02cd84a)
+  é a tese inteira: chão cinza, painéis brancos, um painel de passos *pequeno*
+  em vez de uma sidebar de 19rem, e Exit/Continue numa barra fixa no pé.
+  Tomado: os quatro. O `--step-measure` deixou de ser `coluna + gap + coluna` e
+  virou um número só (56rem), porque a terceira coluna morreu com isso.
+- [Mixpanel](https://mobbin.com/screens/7a76dace-f4de-4782-89dc-441056f53e85) e
+  [Clay](https://mobbin.com/screens/1ed67bda-94e7-4a4d-a49a-0072ee2a29b3):
+  sidebar + conteúdo em painéis com borda. Tomado o painel como *unidade* — o
+  componente `Panel` é o que substituiu tanto o `ContextPanel` (que só existia
+  na coluna morta) quanto as seções soltas que renderizavam direto no branco.
+  **Não** tomada a barra de contexto no topo: aqui o topo do desktop já é o
+  título do passo, e uma segunda faixa acima dele seria a terceira coisa
+  dizendo onde você está.
+
+### As Fases no rail
+
+- [Adaline](https://mobbin.com/screens/36261cc6-0b4a-4cd5-a957-e679828ec74f):
+  capítulos nomeados com os sub-passos dentro e os concluídos riscados. Tomados
+  os dois. O risco importa mais do que parece — um tique sozinho lê como
+  *status*, um risco lê como "acabou, siga".
+  Só a Fase ativa abre; as outras ficam na linha-título. Foi o que permitiu o
+  rail cair de 19rem para 14rem sem esconder a estrutura.
+
+### O topo no telefone
+
+- [MyFitnessPal](https://mobbin.com/screens/3dfe2002-71de-42d7-97f2-98f707da5b3c):
+  barra segmentada em que **cada segmento é um capítulo**. É a razão de o
+  Closing não estar nela: ele não é a Fase quatro. Cada segmento preenche pela
+  fração de Quests salvos da própria Fase, então a barra também anda *dentro*
+  de uma Fase, não só entre elas.
+- [Zopa](https://mobbin.com/screens/3117af6d-d7d7-41b0-b296-06e764439d8d) e
+  [Alan](https://mobbin.com/screens/e1a0f7bf-2e64-4436-9508-66ec9cd02d70):
+  progresso em cima, botão preso embaixo. É a mesma `ActionBar` do desktop, não
+  um componente de telefone à parte — o que muda entre os dois layouts é onde
+  ela encosta, não o que ela é.
+
+### Overlay responsivo
+
+Sem referência nova: a decisão saiu da sessão de design (folha embaixo no
+telefone, diálogo no desktop) e o `Overlay` implementa os dois com um wrapper
+flex em vez de `top-1/2 -translate-y-1/2`, porque translate estático briga com
+os keyframes de entrada — é isso que deixa o mesmo elemento *subir* no telefone
+e *dar zoom* no desktop. A celebração fica **de fora** de propósito: folha é
+gaveta de detalhe de apoio, e a celebração é o momento que deve tomar a tela.
+
+### ReactBits
+
+Nada novo adotado nesta rodada. `CountUp` continua no depósito (agora numa
+faixa horizontal, não num painel alto) e a celebração segue com `SplitText` +
+confetti. A casca é justamente a parte do produto que **não** deve ter
+personalidade própria: ela é a moldura, e a régua que o cliente deu para ela
+foi Salesforce — "um sistema de verdade", não um conjunto de telas.

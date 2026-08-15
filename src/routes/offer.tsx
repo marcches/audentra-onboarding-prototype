@@ -6,12 +6,10 @@ import {
   GraduationCapIcon,
   ProhibitIcon,
 } from "@phosphor-icons/react";
-import { Link, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import { Field } from "@/components/field";
-import { Notice } from "@/components/notice";
-import { ContextPanel, StepShell } from "@/components/step-shell";
+import { StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,6 +35,7 @@ import {
   institution,
   offer,
 } from "@/lib/fixtures";
+import { steps } from "@/lib/steps";
 import { patch, useOnboarding } from "@/lib/store";
 
 /* The celebration drags in GSAP and canvas-confetti — a third of the bundle for
@@ -51,7 +50,7 @@ const DEPOSIT = formatMoney(offer.depositAmount, offer.depositCurrency);
 
 export function OfferRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { goNext } = useStepNav("offer");
   const [celebrating, setCelebrating] = React.useState(false);
   const [declining, setDeclining] = React.useState(false);
 
@@ -67,7 +66,8 @@ export function OfferRoute() {
       current="offer"
       title="Your offer"
       lead="Read it, then accept or decline. You can answer once — changing it afterwards goes through Admissions."
-      context={
+      saved={false}
+      actions={
         <Decision response={response} onAccept={accept} onDecline={() => setDeclining(true)} />
       }
     >
@@ -152,9 +152,15 @@ export function OfferRoute() {
             Admissions is told the same day, and the place is held for {offer.startingTerm}.
             Deferring to a later term is a separate request and is not automatic.
           </Consequence>
-          <Consequence n={2} title="Six more steps open">
-            About you, housing, campus life, health information, your document packet and the
-            deposit. Your answers are kept as you go.
+          {/* Counted and named from `steps.ts`. Written out by hand this said
+              "Six more steps" beside a list of six, then a seventh step was
+              added and the sentence quietly became wrong. */}
+          <Consequence n={2} title={`${steps.length - 1} more quests open`}>
+            {steps
+              .slice(1)
+              .map((step) => step.label)
+              .join(", ")}
+            . Your answers are kept as you go.
           </Consequence>
           <Consequence n={3} title="Your answer is final here">
             One response only. To change it afterwards, contact Admissions at{" "}
@@ -170,7 +176,7 @@ export function OfferRoute() {
             onOpenChange={setCelebrating}
             onContinue={() => {
               setCelebrating(false);
-              navigate({ to: "/onboarding/about-you" });
+              goNext();
             }}
           />
         ) : null}
@@ -182,11 +188,16 @@ export function OfferRoute() {
 }
 
 /**
- * The fixed column: the decision, in view the whole way down the facts.
+ * The decision, in the fixed bar.
  *
- * Two buttons, not a checkbox. Both are one click and the words say what
- * happens — "Accept and continue" next to a tickbox made people ask what
- * exactly they were confirming.
+ * It used to be a sticky panel in the third column, which is the column that no
+ * longer exists — and the bar is the better home for it anyway: this is the one
+ * screen whose whole purpose is a single irreversible choice, and Deel puts
+ * exactly this pair in exactly this place.
+ *
+ * The reassurance line sits above the buttons rather than under each of them
+ * (Upwork). Ticket 02 takes this further — Decline down to a link, the deadline
+ * underneath, the copy rewritten. What ticket 01 settles is where it lives.
  */
 function Decision({
   response,
@@ -200,31 +211,20 @@ function Decision({
   if (response !== null) return <RecordedResponse />;
 
   return (
-    <ContextPanel
-      sticky
-      title="Your answer"
-      description={`Due by ${formatDeadline(offer.responseDeadline)}.`}
-    >
-      <div className="space-y-3">
-        <Button type="button" size="lg" className="w-full" onClick={onAccept}>
-          <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
-          Yes, I'm joining
-        </Button>
-        <p className="text-small text-ink-500">
-          Your place is reserved and the rest of enrollment opens. Nothing is charged.
-        </p>
-      </div>
-
-      <div className="space-y-3 border-t border-ink-100 pt-4">
-        <Button type="button" variant="secondary" size="lg" className="w-full" onClick={onDecline}>
-          <ProhibitIcon aria-hidden className="size-5" />
-          No, I won't be joining
-        </Button>
-        <p className="text-small text-ink-500">
-          Your record closes. Telling us why is optional and helps us improve.
-        </p>
-      </div>
-    </ContextPanel>
+    <>
+      <p className="mr-auto hidden text-small text-ink-500 md:block">
+        Nothing is charged. Your place is reserved and the rest of enrollment opens.
+      </p>
+      <Button type="button" variant="secondary" size="lg" onClick={onDecline}>
+        <ProhibitIcon aria-hidden className="size-5" />
+        <span className="hidden sm:inline">No, I won't be joining</span>
+        <span className="sm:hidden">Decline</span>
+      </Button>
+      <Button type="button" size="lg" onClick={onAccept}>
+        <CheckCircleIcon weight="fill" aria-hidden className="size-5" />
+        Yes, I'm joining
+      </Button>
+    </>
   );
 }
 
@@ -277,32 +277,28 @@ function Detail({
 
 function RecordedResponse() {
   const state = useOnboarding();
+  const { next, goNext } = useStepNav("offer");
   const accepted = state.offer.response === "accepted";
-  const reason = declineReasons.find((item) => item.value === state.offer.declineReason);
   const when = formatRespondedAt(state.offer.respondedAt);
 
   return (
-    <ContextPanel sticky title="Your answer" description={`Recorded on ${when}.`}>
-      {accepted ? (
-        <Notice tone="success" title="Your place is reserved">
-          You accepted this offer on {when}. To change your response, contact Admissions at{" "}
-          {institution.admissionsEmail}.
-        </Notice>
-      ) : (
-        <Notice tone="caution" title="You declined this offer">
-          Thank you for letting us know. Your response is recorded.
-          {reason ? ` You told us: ${reason.label.toLowerCase()}.` : ""} To change it, contact
-          Admissions at {institution.admissionsEmail}.
-        </Notice>
-      )}
-
-      <Button asChild size="lg" className="w-full">
-        <Link to="/onboarding/about-you">
-          Next: about you
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Link>
+    <>
+      <p className="mr-auto flex items-center gap-2 text-small text-ink-600">
+        {accepted ? (
+          <CheckCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-mint-600" />
+        ) : (
+          <ProhibitIcon weight="fill" aria-hidden className="size-4 shrink-0 text-ink-400" />
+        )}
+        <span className="hidden sm:inline">
+          {accepted ? "Accepted" : "Declined"} on {when}
+        </span>
+      </p>
+      <Button type="button" size="lg" onClick={goNext}>
+        <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+        <span className="sm:hidden">Next</span>
+        <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
       </Button>
-    </ContextPanel>
+    </>
   );
 }
 

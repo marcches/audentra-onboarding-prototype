@@ -95,7 +95,11 @@ export function ClubGrid({
                    whatever crossed that boundary. The extra height is the
                    fix; the line-clamps below cap it so even the longest name
                    and blurb can't reopen the same problem. */
-                className="aspect-square w-full object-cover transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
+                /* 4:3 rather than square. The column is wider than it was, so a
+                   square card grew with it — three rows of them cost more
+                   height than the whole step used to. The photo is a
+                   thumbnail, not the content. */
+                className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
               />
               <span
                 aria-hidden

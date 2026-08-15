@@ -1,10 +1,9 @@
 import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import { ClubDetail } from "@/components/club-detail";
 import { ClubGrid } from "@/components/club-grid";
-import { ContextPanel, SectionTitle, StepActions, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, SectionTitle, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { type Club, type ClubCategory, clubCategories, clubs } from "@/lib/fixtures";
 import { patch, useOnboarding } from "@/lib/store";
@@ -33,7 +32,7 @@ import { cn } from "@/lib/utils";
  */
 export function CampusLifeRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { next, goNext: advance } = useStepNav("campus-life");
   const campusLife = state.campusLife;
 
   const [categoryFilter, setCategoryFilter] = React.useState<ClubCategory[]>([]);
@@ -74,17 +73,29 @@ export function CampusLifeRoute() {
    */
   const goNext = (answered: boolean) => {
     if (answered) patch("campusLife", { submitted: true });
-    navigate({ to: "/onboarding/health" });
+    advance();
   };
 
   return (
     <StepShell
       current="campus-life"
       title="Campus life"
-      lead="None of this blocks your enrollment and you can change it later. Skip the whole step if you would rather."
-      context={<Picks picked={picked} onRemove={toggle} />}
+      lead="None of this blocks your enrollment and you can change it later."
+      actions={
+        <>
+          <BackButton current="campus-life" />
+          <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
+            Skip
+          </Button>
+          <Button type="button" size="lg" onClick={() => goNext(true)}>
+            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+            <span className="sm:hidden">Next</span>
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
+      }
     >
-      <section className="space-y-4">
+      <Panel className="space-y-4">
         <SectionTitle description="We introduce you to the people who run them before term starts.">
           Clubs and interests
         </SectionTitle>
@@ -94,6 +105,12 @@ export function CampusLifeRoute() {
           onToggle={toggleCategory}
           onClear={() => setCategoryFilter([])}
         />
+
+        {/* What used to be the third column, now a strip directly above the
+            grid. "What have I picked" is asked while looking at the grid, so
+            the answer belongs against it rather than off to one side — and
+            unlike the panel it replaces, it costs nothing when empty. */}
+        <Picks picked={picked} onRemove={toggle} />
 
         <ClubGrid
           clubs={visibleClubs}
@@ -121,7 +138,7 @@ export function CampusLifeRoute() {
                 .map((club) => club.name)
                 .join(", ")}.`}
         </p>
-      </section>
+      </Panel>
 
       <ClubDetail
         club={detailClub}
@@ -130,16 +147,6 @@ export function CampusLifeRoute() {
           if (!open) setDetailClub(null);
         }}
       />
-
-      <StepActions>
-        <Button type="button" variant="ghost" size="lg" onClick={() => goNext(false)}>
-          Skip for now
-        </Button>
-        <Button type="button" size="lg" onClick={() => goNext(true)}>
-          Next: health information
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </StepActions>
     </StepShell>
   );
 }
@@ -193,43 +200,36 @@ function CategoryFilter({
 }
 
 /**
- * The fixed column: what the student has chosen, accumulating.
+ * What the student has chosen, accumulating.
  *
  * A grid of nine cards with a selected state on some of them answers "which one
- * is this" but not "what have I picked" — and the second question is the one
- * being asked after the third scroll.
+ * is this" but not "what have I picked". As a panel in a third column that
+ * needed an empty state explaining itself; as a strip above the grid it simply
+ * is not there until there is something to say.
  */
 function Picks({ picked, onRemove }: { picked: Club[]; onRemove: (id: string) => void }) {
+  if (picked.length === 0) return null;
+
   return (
-    <ContextPanel
-      sticky
-      title="Your picks"
-      description={picked.length > 0 ? `${picked.length} chosen so far.` : undefined}
-    >
-      {picked.length === 0 ? (
-        /* Empty state, per the Message Library rule: say why it is empty and
-           what would fill it. "Nothing picked yet." said the first half only. */
-        <p className="text-small text-ink-500">
-          Nothing picked yet. Choose a club on the left and it appears here. Picking none is a fine
-          answer — nothing on this step blocks your enrollment.
-        </p>
-      ) : (
-        <ul className="flex flex-wrap gap-2">
-          {picked.map((club) => (
-            <li key={club.id}>
-              <button
-                type="button"
-                onClick={() => onRemove(club.id)}
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-violet-200 bg-violet-50 py-1.5 pr-2 pl-3 text-small font-bold text-violet-700 transition-colors hover:border-violet-300 hover:bg-violet-100"
-              >
-                {club.name}
-                <XIcon weight="bold" aria-hidden className="size-3.5" />
-                <span className="sr-only">Remove {club.name} from your picks</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </ContextPanel>
+    <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-field)] bg-violet-50/70 px-3 py-2.5">
+      <span className="text-micro font-bold tracking-[0.06em] text-violet-700 uppercase">
+        {picked.length} chosen
+      </span>
+      <ul className="flex flex-wrap gap-1.5">
+        {picked.map((club) => (
+          <li key={club.id}>
+            <button
+              type="button"
+              onClick={() => onRemove(club.id)}
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-violet-200 bg-surface py-1 pr-2 pl-2.5 text-small font-bold text-violet-700 transition-colors hover:border-violet-300 hover:bg-violet-100"
+            >
+              {club.name}
+              <XIcon weight="bold" aria-hidden className="size-3" />
+              <span className="sr-only">Remove {club.name} from your picks</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

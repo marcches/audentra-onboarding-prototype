@@ -5,14 +5,13 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-
-import { AboutYouRoute } from "@/routes/about-you";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
 import { DepositRoute } from "@/routes/deposit";
 import { EntryRoute } from "@/routes/entry";
 import { HealthRoute } from "@/routes/health";
 import { HousingRoute } from "@/routes/housing";
+import { IdentityContactRoute } from "@/routes/identity-contact";
 import { OfferRoute } from "@/routes/offer";
 import { ReviewRoute } from "@/routes/review";
 import { StyleGuideRoute } from "@/routes/style-guide";
@@ -59,8 +58,10 @@ const onboardingRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { from?: "review" } => ({
     from: search.from === "review" ? "review" : undefined,
   }),
+  /* Row at every width: the rail hides itself below `lg`, so there is no
+     direction to switch. The shell's own column carries the recessed ground. */
   component: () => (
-    <div className="flex min-h-dvh flex-col lg:flex-row">
+    <div className="flex min-h-dvh bg-canvas">
       <Outlet />
     </div>
   ),
@@ -80,10 +81,10 @@ const offerRoute = createRoute({
   component: OfferRoute,
 });
 
-const aboutYouRoute = createRoute({
+const identityContactRoute = createRoute({
   getParentRoute: () => onboardingRoute,
-  path: "about-you",
-  component: AboutYouRoute,
+  path: "identity-contact",
+  component: IdentityContactRoute,
 });
 
 const housingRoute = createRoute({
@@ -135,7 +136,7 @@ const routeTree = rootRoute.addChildren([
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,
-    aboutYouRoute,
+    identityContactRoute,
     housingRoute,
     campusLifeRoute,
     healthRoute,

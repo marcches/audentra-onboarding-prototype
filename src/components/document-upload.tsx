@@ -38,7 +38,12 @@ export function DocumentUpload({
   onChange,
 }: {
   label: string;
-  hint: string;
+  /**
+   * Optional. Where the label already says what the file is, this line was
+   * repeating it — the format-and-limits sentence below is the part that
+   * genuinely cannot be guessed, and it is always shown.
+   */
+  hint?: string;
   files: UploadedFile[];
   onChange: (files: UploadedFile[]) => void;
 }) {
@@ -91,7 +96,7 @@ export function DocumentUpload({
         <div className="space-y-1">
           <p className="text-body font-bold text-ink-900">{label}</p>
           <p className="text-small text-ink-500">
-            {hint} PDF, JPEG or PNG, up to 8 files, 30 MB in total.
+            {hint ? `${hint} ` : null}PDF, JPEG or PNG, up to 8 files, 30 MB in total.
           </p>
         </div>
         <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}>

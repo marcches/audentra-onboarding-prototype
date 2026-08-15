@@ -109,7 +109,7 @@ const emergencyContactSchema = z.object({
   phone: phoneNumber,
 });
 
-export const aboutYouSchema = z
+export const identityContactSchema = z
   .object({
     preferredName: z.string().trim().max(60, { message: "That's longer than 60 characters." }),
     pronouns: z.string().trim().max(40, { message: "That's longer than 40 characters." }),
@@ -205,4 +205,4 @@ export const aboutYouSchema = z
     }
   });
 
-export type AboutYouValues = z.infer<typeof aboutYouSchema>;
+export type IdentityContactValues = z.infer<typeof identityContactSchema>;

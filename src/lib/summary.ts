@@ -53,11 +53,11 @@ function labelFor(
 /**
  * The permanent address, in the words a person reads rather than the values a
  * `<select>` stores. State and city are cascading selects now (see About
- * you's residence section), so what's in `aboutYou.state`/`.city` is a postal
+ * you's residence section), so what's in `identityContact.state`/`.city` is a postal
  * abbreviation and a slug — "CA", "los-angeles" — never what the agreement or
  * the summary should print.
  */
-export function formatAddress(about: OnboardingState["aboutYou"]): string {
+export function formatAddress(about: OnboardingState["identityContact"]): string {
   const stateLabel = labelFor(usStates, about.state) ?? about.state;
   const cityLabel =
     citiesByState[about.state as UsStateCode]?.find((option) => option.value === about.city)
@@ -97,8 +97,8 @@ function offerRows(state: OnboardingState): SummaryRow[] {
   ];
 }
 
-function aboutYouRows(state: OnboardingState): SummaryRow[] {
-  const about = state.aboutYou;
+function identityContactRows(state: OnboardingState): SummaryRow[] {
+  const about = state.identityContact;
   const international = about.citizenship === "international";
   const address = formatAddress(about);
 
@@ -255,9 +255,13 @@ function healthRows(state: OnboardingState): SummaryRow[] {
 export function buildSummary(state: OnboardingState): SummaryGroup[] {
   return [
     group("offer", offerRows(state)),
-    group("about-you", aboutYouRows(state)),
+    group("identity-contact", identityContactRows(state)),
+    /* Health before Housing, because that is the order the student answered
+       them in — Health closes the About you Phase and Housing opens the next.
+       A summary that reads back in a different order than it was filled in
+       makes checking it harder than it needs to be. */
+    group("health", healthRows(state)),
     group("housing", housingRows(state)),
     group("campus-life", campusLifeRows(state)),
-    group("health", healthRows(state)),
   ].filter((entry): entry is SummaryGroup => entry !== null);
 }

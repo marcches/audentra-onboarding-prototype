@@ -10,14 +10,13 @@ import {
   QuestionIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 import { motion, Reorder, useDragControls, useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
 import { ResidenceGallery } from "@/components/residence-gallery";
-import { ContextPanel, StepActions, StepShell } from "@/components/step-shell";
+import { BackButton, Panel, StepShell, useStepNav } from "@/components/step-shell";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
@@ -57,7 +56,7 @@ const SLOTS = 3;
  */
 export function HousingRoute() {
   const state = useOnboarding();
-  const navigate = useNavigate();
+  const { next, goNext } = useStepNav("housing");
   const reduceMotion = useReducedMotion();
   const [gallery, setGallery] = React.useState<Residence | null>(null);
   const [announcement, setAnnouncement] = React.useState("");
@@ -119,18 +118,26 @@ export function HousingRoute() {
     <StepShell
       current="housing"
       title="Where you'll live"
-      context={
-        <HousingContext
-          intent={intent}
-          ranked={ranked}
-          onMove={move}
-          onRemove={remove}
-          onReorder={setRanking}
-          onOpenGallery={setGallery}
-        />
+      actions={
+        <>
+          <BackButton current="housing" />
+          <Button
+            type="button"
+            size="lg"
+            disabled={!intent}
+            onClick={() => {
+              patch("housing", { submitted: true });
+              goNext();
+            }}
+          >
+            <span className="hidden sm:inline">Next: {next?.label.toLowerCase()}</span>
+            <span className="sm:hidden">Next</span>
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
+          </Button>
+        </>
       }
     >
-      <fieldset className="space-y-4">
+      <Panel as="fieldset" className="space-y-4">
         {/* The sheet's own wording for this field. What was here — "Where do you
             picture starting your day?" — Laura read out loud and laughed at. */}
         <legend className="text-h3 mb-3 text-ink-900">
@@ -151,7 +158,7 @@ export function HousingRoute() {
             />
           ))}
         </RadioGroup>
-      </fieldset>
+      </Panel>
 
       {/* Enter-only, no AnimatePresence: changing the key swaps the branch on
           the same frame as the answer. An exit animation here just puts a
@@ -164,6 +171,19 @@ export function HousingRoute() {
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-5"
         >
+          {/* The ranking, which used to be the third column, now sits directly
+              above the catalogue it is built from — the question it answers
+              ("what have I picked so far") is asked while looking at the
+              cards. */}
+          {intent === "on-campus" ? (
+            <RankingSlots
+              ranked={ranked}
+              onMove={move}
+              onRemove={remove}
+              onReorder={setRanking}
+              onOpenGallery={setGallery}
+            />
+          ) : null}
           {intent === "on-campus" ? (
             <ResidenceCatalogue
               rankedIds={rankedIds}
@@ -186,21 +206,6 @@ export function HousingRoute() {
         {announcement}
       </p>
 
-      <StepActions>
-        <Button
-          type="button"
-          size="lg"
-          disabled={!intent}
-          onClick={() => {
-            patch("housing", { submitted: true });
-            navigate({ to: "/onboarding/campus-life" });
-          }}
-        >
-          Next: campus life
-          <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
-        </Button>
-      </StepActions>
-
       <ResidenceGallery
         residence={gallery}
         open={gallery !== null}
@@ -209,54 +214,6 @@ export function HousingRoute() {
         }}
       />
     </StepShell>
-  );
-}
-
-/**
- * The fixed column.
- *
- * On campus it is the three slots, which is the whole reason this step has a
- * second column: you can see what you have already chosen while you are still
- * looking at the photographs. On the other two answers there is nothing to
- * rank, so it says what the answer means instead of showing empty furniture.
- */
-function HousingContext({
-  intent,
-  ranked,
-  onMove,
-  onRemove,
-  onReorder,
-  onOpenGallery,
-}: {
-  intent: HousingIntent | null;
-  ranked: Residence[];
-  onMove: (index: number, direction: -1 | 1) => void;
-  onRemove: (residence: Residence) => void;
-  onReorder: (next: string[]) => void;
-  onOpenGallery: (residence: Residence) => void;
-}) {
-  if (intent === "on-campus") {
-    return (
-      <RankingSlots
-        ranked={ranked}
-        onMove={onMove}
-        onRemove={onRemove}
-        onReorder={onReorder}
-        onOpenGallery={onOpenGallery}
-      />
-    );
-  }
-
-  return (
-    <ContextPanel sticky title="Your housing plan">
-      <p className="text-small text-ink-600">
-        {intent === "off-campus"
-          ? `Nothing else is needed here. ${institution.housingOffice} does not assign rooms to students living off campus.`
-          : intent === "not-sure"
-            ? `You can decide later. The deadline is ${formatDeadline(offer.responseDeadline)}.`
-            : "Answer the question and what happens next appears here."}
-      </p>
-    </ContextPanel>
   );
 }
 
@@ -277,8 +234,7 @@ function RankingSlots({
   const empty = Math.max(0, SLOTS - ranked.length);
 
   return (
-    <ContextPanel
-      sticky
+    <Panel
       title="Your ranking"
       description="First choice at the top. Housing considers this, it does not guarantee it — rooms are assigned after the deadline."
     >
@@ -329,7 +285,7 @@ function RankingSlots({
           })}
         </ol>
       ) : null}
-    </ContextPanel>
+    </Panel>
   );
 }
 

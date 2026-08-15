@@ -57,7 +57,7 @@ const t = (text: string): Run => ({ text });
 const v = (text: string): Run => ({ text, emphasis: true });
 
 export function buildAgreement(state: OnboardingState): Clause[] {
-  const about = state.aboutYou;
+  const about = state.identityContact;
   const housing = state.housing;
 
   const address = formatAddress(about) || NOT_GIVEN;

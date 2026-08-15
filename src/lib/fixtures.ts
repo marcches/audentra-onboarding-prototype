@@ -775,7 +775,7 @@ export const enrollmentDocuments: EnrollmentDocument[] = [
       {
         heading: "What you're agreeing to",
         paragraphs: [
-          "If you named someone in the family access section of About you, this release lets Aster staff discuss the categories you ticked with that person. It does not give them an account, a login, or the ability to act for you.",
+          "If you named someone in the family access section of Identity & contact, this release lets Aster staff discuss the categories you ticked with that person. It does not give them an account, a login, or the ability to act for you.",
           "If you named nobody, nothing is released. Staff will decline to discuss your record with anyone who calls, including a parent who is paying your fees.",
         ],
       },

@@ -1,18 +1,57 @@
-import { ArrowUUpLeftIcon, CloudCheckIcon } from "@phosphor-icons/react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { ArrowLeftIcon, ArrowUUpLeftIcon, CloudCheckIcon } from "@phosphor-icons/react";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import type * as React from "react";
 
-import { StepRail } from "@/components/step-rail";
-import type { StepId } from "@/lib/steps";
+import { PhaseBar, StepRail } from "@/components/step-rail";
+import { Button } from "@/components/ui/button";
+import { nextStep, previousStep, type StepId } from "@/lib/steps";
 import { cn } from "@/lib/utils";
+
+/**
+ * Where Back and Continue actually go, derived from `steps.ts`.
+ *
+ * Every step used to name its neighbour as a literal path, which meant the flow
+ * order lived in seven files as well as in `steps.ts`. Reordering the spine
+ * into Phases moved three of those neighbours, and a literal would have been
+ * wrong in each place without anything failing to build.
+ */
+export function useStepNav(current: StepId) {
+  const navigate = useNavigate();
+  const back = previousStep(current);
+  const next = nextStep(current);
+
+  return {
+    back,
+    next,
+    /* `to` is typed against the generated route union and these paths are
+       strings from a fixture; the cast is the one seam between the two. The
+       test suite asserts every path is unique and the router declares each of
+       them, so a wrong string cannot survive a run of the app. */
+    goBack: () => back && navigate({ to: back.path as never }),
+    goNext: () => navigate({ to: (next?.path ?? "/done") as never }),
+  };
+}
+
+/** Back, in the fixed bar. Absent on the first step, where there is nowhere to go. */
+export function BackButton({ current }: { current: StepId }) {
+  const { back, goBack } = useStepNav(current);
+  if (!back) return null;
+
+  return (
+    <Button type="button" variant="ghost" size="lg" onClick={goBack}>
+      <ArrowLeftIcon weight="bold" aria-hidden className="size-4" />
+      <span className="hidden sm:inline">Back</span>
+      <span className="sr-only sm:hidden">Back to {back.label}</span>
+    </Button>
+  );
+}
 
 /**
  * The return half of the Review & sign round trip.
  *
  * The summary's edit links carry `?from=review`; without something reading it,
  * "the edit link takes you straight to it and brings you back here" was only
- * half true — fixing one line meant walking the rest of the flow again to get
- * back to the summary. Rendered by the shell so every step gets it for free.
+ * half true. Rendered by the shell so every step gets it for free.
  */
 function ReturnToReview() {
   const search = useSearch({ strict: false }) as { from?: string };
@@ -21,7 +60,7 @@ function ReturnToReview() {
   return (
     <Link
       to="/onboarding/review"
-      className="-mb-2 inline-flex w-fit items-center gap-2 rounded-[var(--radius-pill)] bg-violet-50 px-3.5 py-1.5 text-small font-bold text-violet-700 transition-colors hover:bg-violet-100"
+      className="inline-flex w-fit items-center gap-2 rounded-[var(--radius-pill)] bg-violet-50 px-3.5 py-1.5 text-small font-bold text-violet-700 transition-colors hover:bg-violet-100"
     >
       <ArrowUUpLeftIcon weight="bold" aria-hidden className="size-4" />
       Back to review &amp; sign
@@ -30,160 +69,148 @@ function ReturnToReview() {
 }
 
 /**
- * The step layout: rail, the step's own column, and a fixed column beside it.
+ * The step layout: rail, one column of panels on a recessed ground, and a fixed
+ * action bar at the foot.
  *
- * The single 46rem column this replaces was the root of the complaint Laura
- * made on four consecutive screens. On a 1600px monitor it left ~232px of dead
- * gutter on each side, and the fix is not a wider form — a long measure is
- * tiring to read, which is why 46rem was chosen in the first place. The extra
- * width gets its own job instead: `context` is whatever that step needs kept in
- * view while the left column scrolls (the ranking slots, the picks so far, the
- * amount and the deadline).
+ * Two things went out with this rewrite. The third column — `context` — is
+ * gone: it was a place to put things, which meant every step found something to
+ * put there, and it cost the layout 1280px before it could exist at all.
+ * Anything that lived there now has a home in the single column, above the fold
+ * where it is actually read. And the step no longer renders on a white canvas:
+ * the ground is recessed and the content sits in white panels, which is what
+ * makes it read as an application rather than as a document (Deel, Mixpanel,
+ * Clay).
  *
- * Three columns need roughly 1280px to exist without squeezing any of them, so
- * the pair collapses at `xl` and the rail at `lg`, in that order.
+ * Mobile is a layout, not a narrowing: segmented Phase bar at the top, one
+ * column, the same action bar pinned to the bottom.
  */
 export function StepShell({
   current,
   title,
   lead,
-  context,
+  actions,
+  saved = true,
   children,
 }: {
   current: StepId;
   title: string;
   lead?: React.ReactNode;
-  /** The fixed column. Omitted where a step genuinely has no second thing. */
-  context?: React.ReactNode;
+  /**
+   * Back/Continue and anything else that ends the step. Rendered into the fixed
+   * bar rather than at the bottom of the column — on a long step the actions
+   * used to be a scroll away from wherever the student had finished reading.
+   */
+  actions?: React.ReactNode;
+  /** The autosave line. Steps with nothing to save (Review's signed state) turn it off. */
+  saved?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <>
       <StepRail current={current} />
-      <main className="flex-1 px-4 pt-6 pb-12 sm:px-8 lg:px-10 lg:pt-9">
-        {/* The container is exactly as wide as the two columns plus the gap
-            between them — see the tokens in app.css.
-
-            It used to be 84rem while the tracks came to 69.5rem, and grid does
-            not stretch fixed tracks to fill their container: the leftover
-            14.5rem piled up at the right-hand end, so `mx-auto` centred a box
-            whose contents sat left inside it. The page read as though the rail
-            had shoved everything sideways. Two numbers that have to agree,
-            written in two places, is the whole bug — so now there is one
-            number and the other is derived from it. */}
-        <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-5">
-          <ReturnToReview />
-          {/* No "Step N of 7" here. The trail in the rail already shows the
-              position, visually and continuously, and it was being repeated in
-              text three times besides. */}
-          <header className="max-w-[var(--step-column)] space-y-1.5">
-            <h1 className="text-h1 text-ink-900 sm:text-display">{title}</h1>
-            {lead ? <div className="text-lead text-ink-600">{lead}</div> : null}
-          </header>
-          <div
-            className={cn(
-              /* Rows stretch — deliberately not `items-start`. A sticky panel
-                 can only travel inside its own container, so an `aside` sized
-                 to its content has nowhere to stick to and simply scrolls away
-                 with the page. Stretching the column to the row's height is
-                 what gives it the distance. */
-              "grid gap-5",
-              context &&
-                "xl:grid-cols-[minmax(0,var(--step-column))_minmax(17rem,var(--step-context))]",
-            )}
-          >
-            <div className="flex min-w-0 max-w-[var(--step-column)] flex-col gap-5">{children}</div>
-            {context ? (
-              /* No scroller of its own, and no sticky of its own.
-                 Both used to live here, which put a second scrollbar beside the
-                 page's on any step whose context column ran long, and a third
-                 on Review & sign — wheel over one and it scrolled until it hit
-                 its end, then the page lurched. Whether the panel should stick
-                 depends on how tall that step's panel is, which only the step
-                 knows, so each one now asks for it on the panel itself. */
-              <aside className="min-w-0">{context}</aside>
-            ) : null}
+      <div className="flex min-w-0 flex-1 flex-col bg-canvas">
+        <PhaseBar current={current} />
+        {/* The bar is fixed, so the column ends above it rather than under it.
+            `--action-bar-height` is the one number both sides read. */}
+        <main className="flex-1 px-4 pt-5 pb-[calc(var(--action-bar-height)+1.5rem)] sm:px-6 lg:px-8 lg:pt-7">
+          <div className="mx-auto flex w-full max-w-[var(--step-measure)] flex-col gap-4">
+            <ReturnToReview />
+            {/* No "Step N of 7". The rail and the segmented bar both show
+                position already, and it was being repeated in text besides. */}
+            <header className="space-y-1">
+              <h1 className="text-h2 text-ink-900 sm:text-h1">{title}</h1>
+              {lead ? <div className="text-body text-ink-600">{lead}</div> : null}
+            </header>
+            {children}
           </div>
-        </div>
-      </main>
+        </main>
+        {actions ? <ActionBar saved={saved}>{actions}</ActionBar> : null}
+      </div>
     </>
   );
 }
 
 /**
- * The action row. The autosave line lives here rather than in a toast because
- * "did that save?" is a question people ask at the moment they are about to
- * leave the step, not a moment earlier.
+ * The fixed action bar. One piece of furniture, in the same place on every step
+ * and in both layouts — Deel puts Exit/Continue in a footer bar, Zopa and Alan
+ * pin the button to the bottom on the phone, and the reason is the same in both
+ * cases: the way out of a step should not depend on where you have scrolled to.
+ *
+ * The autosave line rides along because "did that save?" is a question people
+ * ask at the moment they are about to leave, not a moment earlier.
  */
-export function StepActions({
-  className,
-  children,
+export function ActionBar({
   saved = true,
+  children,
 }: {
-  className?: string;
-  children: React.ReactNode;
   saved?: boolean;
+  children: React.ReactNode;
 }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col-reverse gap-4 border-t border-ink-100 pt-5 sm:flex-row sm:items-center",
-        className,
-      )}
-    >
-      {saved ? (
-        <p className="flex items-center gap-2 text-small text-ink-500">
-          <CloudCheckIcon weight="fill" aria-hidden className="size-4 text-mint-600" />
-          Saved automatically
-        </p>
-      ) : (
-        <span />
-      )}
-      <div className="flex flex-col gap-3 sm:ml-auto sm:flex-row sm:items-center">{children}</div>
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-surface/95 backdrop-blur lg:left-56">
+      <div className="mx-auto flex h-[var(--action-bar-height)] w-full max-w-[var(--step-measure)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+        {saved ? (
+          <p className="hidden items-center gap-2 text-small text-ink-500 sm:flex">
+            <CloudCheckIcon weight="fill" aria-hidden className="size-4 text-mint-600" />
+            Saved automatically
+          </p>
+        ) : null}
+        <div className="flex flex-1 items-center justify-end gap-2.5">{children}</div>
+      </div>
     </div>
   );
 }
 
 /**
- * The fixed column's container. One shape for all six steps, so the right-hand
- * side reads as the same piece of furniture rather than as six different cards
- * that happen to sit in the same place.
+ * A white panel on the recessed ground. The unit the whole flow is built from —
+ * no step renders content directly onto the canvas.
+ *
+ * This replaces both `ContextPanel` (which only ever appeared in the dead third
+ * column) and the loose sections that used to sit on white. `title` is
+ * optional: plenty of panels are a single group of fields that the step's own
+ * heading has already introduced, and a heading per panel was a good part of
+ * the bulk the client was complaining about.
  */
-export function ContextPanel({
+export function Panel({
+  as: Tag = "section",
   title,
   description,
-  sticky = false,
+  aside = false,
   className,
   children,
 }: {
-  title: string;
+  /**
+   * `fieldset` where the panel *is* a group of related controls — a panel with
+   * a legend that isn't a fieldset is a heading pretending to be one.
+   */
+  as?: "section" | "fieldset";
+  title?: string;
   description?: React.ReactNode;
   /**
-   * Holds position while the step's column scrolls past it.
-   *
-   * Opt-in, and only for a panel that comfortably fits the viewport: a sticky
-   * element taller than the screen pins its top and puts its own bottom out of
-   * reach, and the fix for that — giving it its own scrollbar — is what put
-   * three of them on Review & sign.
+   * A panel carrying context rather than input — what used to be the third
+   * column. Tinted rather than white so it reads as reference beside the work,
+   * now that it no longer has a column of its own to say so.
    */
-  sticky?: boolean;
+  aside?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section
+    <Tag
       className={cn(
-        "space-y-3 rounded-[var(--radius-slab)] border border-ink-100 bg-surface p-4 shadow-card",
-        sticky && "xl:sticky xl:top-9",
+        "rounded-[var(--radius-card)] border p-4 sm:p-5",
+        aside ? "border-ink-100 bg-ink-50/60" : "border-ink-100 bg-surface shadow-soft",
         className,
       )}
     >
-      <div className="space-y-1">
-        <h2 className="text-h3 text-ink-900">{title}</h2>
-        {description ? <p className="text-small text-ink-500">{description}</p> : null}
-      </div>
+      {title ? (
+        <div className="mb-3 space-y-0.5">
+          <h2 className="text-h3 text-ink-900">{title}</h2>
+          {description ? <p className="text-small text-ink-500">{description}</p> : null}
+        </div>
+      ) : null}
       {children}
-    </section>
+    </Tag>
   );
 }
 
@@ -195,9 +222,9 @@ export function SectionTitle({
   description?: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <h2 className="text-h2 text-ink-900">{children}</h2>
-      {description ? <p className="text-body text-ink-600">{description}</p> : null}
+    <div className="space-y-0.5">
+      <h2 className="text-h3 text-ink-900">{children}</h2>
+      {description ? <p className="text-small text-ink-600">{description}</p> : null}
     </div>
   );
 }

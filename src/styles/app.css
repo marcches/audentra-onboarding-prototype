@@ -112,14 +112,22 @@
   --text-display--letter-spacing: -0.03em;
 
   /* The step layout's measures.
-     `--step-measure` is derived, never typed by hand: a container wider than
-     its tracks does not stretch them, it leaves the difference stranded at one
-     end, and the page then reads as if the rail had pushed everything
-     sideways. One number changes, the other follows. */
-  --step-column: 46rem; /* the reading column — long lines are tiring */
-  --step-context: 24rem; /* the fixed column beside it */
-  --step-gap: 1.5rem; /* matches gap-6 on the grid */
-  --step-measure: calc(var(--step-column) + var(--step-gap) + var(--step-context));
+
+     One column now, not two-plus-a-rail. The pair of tracks this replaces
+     needed ~1280px before both could exist, which is how the app came to only
+     really work on a large monitor; the third column is gone and the measure
+     is a single number again.
+
+     56rem is wider than the 46rem reading column it grew out of, deliberately:
+     the content inside is panels, grids and fact rows rather than prose, and
+     those get *denser* with width where a paragraph would only get harder to
+     read. Prose inside a panel still sets its own narrower measure. */
+  --step-measure: 56rem;
+
+  /* The fixed action bar's height. The bar reads it, and so does the bottom
+     padding of the column that must not end underneath it — two numbers that
+     have to agree, so there is only one of them. */
+  --action-bar-height: 4.5rem;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
