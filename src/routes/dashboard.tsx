@@ -50,16 +50,7 @@ export function DashboardRoute() {
     <PortalShell
       current="dashboard"
       title={`Hello, ${name}`}
-      lead={
-        <p className="text-small text-ink-500 numeric">
-          {/* A student who has finished nothing yet is at a beginning, not
-              looking at a backlog, and the line says so rather than opening
-              with `0%`. */}
-          {progress.complete === 0
-            ? `${progress.total} things to do before term starts`
-            : `${progress.complete} of ${progress.total} done · ${progress.percent}%`}
-        </p>
-      }
+      lead={<ProgressLine complete={progress.complete} total={progress.total} />}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_17rem] items-start gap-3 compact:grid-cols-1">
         <div className="flex min-w-0 flex-col gap-2">
@@ -110,6 +101,47 @@ export function DashboardRoute() {
         </div>
       </div>
     </PortalShell>
+  );
+}
+
+/**
+ * How far through, as a figure and a bar, on the line the greeting already
+ * occupies.
+ *
+ * What the last cycle cut was the *ring* — Langdock's `0 / 595` crowning the
+ * page and pushing the first card below the fold. The instrument itself is in
+ * four of the six dashboards in the catalogue (Square, Wix, Google Workspace,
+ * Circle), and on an existing line it costs no height at all.
+ *
+ * A student who has finished nothing reads a beginning rather than `0%`: the bar
+ * is still drawn, because an empty track is what says there is a track.
+ */
+function ProgressLine({ complete, total }: { complete: number; total: number }) {
+  const percent = Math.round((complete / total) * 100);
+
+  return (
+    <span className="flex items-center gap-2">
+      <span className="text-small text-ink-500 numeric">
+        {complete === 0
+          ? `${total} things to do before term starts`
+          : `${complete} of ${total} done · ${percent}%`}
+      </span>
+      <span
+        role="progressbar"
+        aria-valuenow={complete}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-label={`${complete} of ${total} requirements complete`}
+        className="h-1 w-28 shrink-0 overflow-hidden rounded-full bg-ink-100"
+      >
+        {/* `scaleX`, not `width`: no animation rule in this system touches a
+            layout property. */}
+        <span
+          className="progress-fill block h-full origin-left rounded-full transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
+          style={{ transform: `scaleX(${complete / total})` }}
+        />
+      </span>
+    </span>
   );
 }
 

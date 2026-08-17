@@ -90,7 +90,11 @@ export function QuestCard({
       </div>
 
       <div className="mt-2.5 flex items-center gap-1.5">
-        <Button asChild size="sm">
+        {/* One primary action per screen. Three violet buttons stacked is three
+            invitations arguing with each other, and the ordering has already
+            said which one to take — the card that carries `Best next step` is
+            the one that carries the filled button (Square). */}
+        <Button asChild size="sm" variant={lead ? "primary" : "secondary"}>
           <Link to={requirement.path as never}>
             {requirement.action}
             <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />

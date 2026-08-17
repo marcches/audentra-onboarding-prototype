@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { CelebrationProvider } from "@/components/celebration";
 import { ImageViewerProvider } from "@/components/image-viewer";
+import { seedFinishedGate } from "@/lib/demo";
 import { AreaScreen, RequirementScreen } from "@/routes/area";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
@@ -184,6 +185,14 @@ const completionRoute = createRoute({
 const portalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal",
+  /* The prototype's bootstrap, and the only place it is called from: a student
+     arriving on an untouched machine gets a finished gate behind them, because
+     every screen in here presupposes one. It is a no-op the moment anything has
+     been answered — see `demo.ts` for why this is not the portal writing the
+     gate. */
+  beforeLoad: () => {
+    seedFinishedGate();
+  },
   component: () => (
     <div className="flex min-h-dvh bg-canvas">
       <Outlet />

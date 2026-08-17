@@ -450,6 +450,17 @@ export function resetOnboarding() {
   emit();
 }
 
+/**
+ * The current state, outside React.
+ *
+ * One caller: the prototype's demo bootstrap, which runs in a route's
+ * `beforeLoad` and therefore has no hook available to it. Screens read the store
+ * through `useOnboarding` and nothing else should reach for this.
+ */
+export function onboardingSnapshot(): OnboardingState {
+  return state;
+}
+
 export function useOnboarding(): OnboardingState {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

@@ -26,6 +26,12 @@ one definition of it.
   starting state. A Quest the student skipped in the gate arrives in the portal
   as a carried-over Requirement, which is why the portal can honestly say nothing
   was lost. The portal never writes back into the gate.
+  The one exception is named and lives in `src/lib/demo.ts`: on a machine where
+  the gate's store has never been touched, opening the portal seeds a finished
+  gate. That is the prototype's bootstrap rather than a consequence of anything
+  the student does in the portal — the rule it excepts is about *consequence*,
+  because a finished onboarding that changes under the student is the worst thing
+  this repo could do.
 - **Shared ← both**: `Points`, `Balance` and `Bookstore credit` are one currency
   with one source of truth (`src/lib/points.ts`). A student's total does not
   reset at the boundary, and neither surface owns the number.

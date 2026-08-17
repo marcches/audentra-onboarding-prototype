@@ -103,6 +103,21 @@ export function CompletionRoute() {
           </Button>
         </div>
 
+        {/* The hand-off, and the one deliberate change to the gate in this
+            cycle. The portal is where the student lives from here — arriving at
+            it by typing an address is not a product, and on a walkthrough it is
+            the moment the demonstration stops being a demonstration. */}
+        <p className="mt-4 text-small text-white/70">
+          <Link
+            to="/portal/dashboard"
+            className="inline-flex items-center gap-1 font-strong text-white underline-offset-4 hover:underline"
+          >
+            Go to your student portal
+            <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+          </Link>
+          <span className="ml-1.5">— what Aster needs from you next</span>
+        </p>
+
         {/* The journey as a receipt: Phases with checks and their Points. On the
             stage it is quiet, at the foot, under the object — it is the proof,
             not the point. */}

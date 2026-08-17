@@ -63,7 +63,7 @@ export function PortalShell({
 
           <nav
             aria-label="Areas"
-            className="min-h-0 flex-1 overflow-y-auto border-t border-ink-100 pt-2.5"
+            className="min-h-0 overflow-y-auto border-t border-ink-100 pt-2.5"
           >
             <ul className="flex flex-col gap-2.5">
               {areaGroups.map((group) => (
@@ -109,8 +109,17 @@ export function PortalShell({
             </ul>
           </nav>
 
-          <div className="flex border-t border-ink-100 pt-2.5">
-            <CompactBalance />
+          {/* Against the last Area rather than at the bottom of the column.
+              Pinned to the foot it sat 334px below the thing above it, which is
+              not "permanent", it is orphaned — and the flight that justified a
+              fixed pixel in the gate does not happen here. */}
+          <div className="flex flex-col gap-1 border-t border-ink-100 pt-2.5">
+            <p className="px-1 text-meta font-bold tracking-[0.08em] text-ink-400 uppercase">
+              Your balance
+            </p>
+            <div className="flex">
+              <CompactBalance />
+            </div>
           </div>
         </div>
       </aside>
@@ -129,14 +138,26 @@ export function PortalShell({
           <CompactBalance />
         </header>
 
+        {/* The Audentra signature, once per screen (ADR 0012).
+
+            The gate signs the screen's work sheet. The portal has no single work
+            sheet — its screens are a shell with a column in it — so the mark
+            lands at the head of the content column, which is the same claim
+            about frequency: one per screen, and nothing else on the screen
+            carries it. Without this the portal was the only surface in the
+            product with no signature at all, which is a fair part of why it read
+            as somebody else's work. */}
+        <span aria-hidden className="brand-gradient h-0.5 shrink-0" />
+
         <main className="flex flex-1 flex-col px-4 pt-3 pb-6 compact:px-3 compact:pb-[5.5rem]">
           <div className="mx-auto flex w-full max-w-[var(--catalogue-measure)] flex-1 flex-col gap-2.5">
             {/* Greeting and progress on one line. A section that celebrates
                 progress before showing the next action is doing the opposite of
                 what was asked for — and it is what puts the first card below the
-                fold at 1366×768. */}
+                fold at 1366×768. The `h1` is the gate's own token: the portal
+                setting its own title size was typed rather than decided. */}
             <header className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-              <h1 className="text-h2 text-ink-900">{title}</h1>
+              <h1 className="text-h1 text-ink-900">{title}</h1>
               {lead ? <div className="min-w-0 flex-1">{lead}</div> : null}
             </header>
             {children}

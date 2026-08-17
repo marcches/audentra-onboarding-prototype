@@ -467,6 +467,14 @@ const GRADIENT_ALLOWED = new Set([
   "components/step-rail.tsx",
   "routes/completion.tsx",
   "routes/style-guide.tsx",
+  /* The portal's shell — the fifth, argued for in the cycle that added it. The
+     gate signs a screen's *work sheet*; the portal has no single work sheet,
+     because its screens are a shell with a column in them. So the mark lands
+     once at the head of the content column, which is the same claim about
+     frequency the rule was always making: one per screen, and nothing else on
+     the screen carries it. Before this the portal was the only surface in the
+     product with no signature at all. */
+  "components/portal-shell.tsx",
 ]);
 
 /** Every `<Sections …>` opening tag in a file. */
@@ -478,6 +486,25 @@ describe("the Audentra signature", () => {
   it("appears in four files, each of which had to argue for it", () => {
     for (const file of components) {
       if (GRADIENT_ALLOWED.has(file.name)) continue;
+      expect(file.text, file.name).not.toMatch(/brand-gradient/);
+    }
+  });
+
+  it("lands exactly once in the portal's shell, and once per portal screen", () => {
+    // One shell, one mark, every Area — the portal's version of "a route signs
+    // each of its screens once".
+    const portal = files.find((file) => file.name === "components/portal-shell.tsx");
+    expect(portal?.text.match(/brand-gradient/g)).toHaveLength(1);
+    // Every other file the portal is made of, so a second mark on a portal
+    // screen is a test failure rather than a review note.
+    const PORTAL = [
+      "components/quest-card.tsx",
+      "routes/dashboard.tsx",
+      "routes/area.tsx",
+      "routes/appointments.tsx",
+    ];
+    for (const file of files) {
+      if (!PORTAL.includes(file.name)) continue;
       expect(file.text, file.name).not.toMatch(/brand-gradient/);
     }
   });
