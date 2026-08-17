@@ -4,9 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { RichBalance } from "@/components/balance";
 import { PortalShell } from "@/components/portal-shell";
 import { QuestCard } from "@/components/quest-card";
-import { Well } from "@/components/surfaces";
+import { Prose, Section, Sections, Well } from "@/components/surfaces";
+import { Button } from "@/components/ui/button";
 import { studentRecord } from "@/lib/fixtures";
-import { availableInOrder, portalProgress, requirementsInState } from "@/lib/portal";
+import { availableInOrder, carriedOver, portalProgress, requirementsInState } from "@/lib/portal";
 import { usePortal } from "@/lib/portal-store";
 import { useOnboarding } from "@/lib/store";
 
@@ -105,8 +106,62 @@ export function DashboardRoute() {
             in the sidebar already answers the question it answers at length. */}
         <div className="flex flex-col gap-2.5">
           <RichBalance size="full" />
+          <NothingWasLost />
         </div>
       </div>
     </PortalShell>
+  );
+}
+
+/** One, two, three — the most a student can carry over, so no fourth is needed. */
+const COUNTED = ["nothing", "one thing", "two things", "three things"];
+
+/**
+ * The only place the two contexts touch, and the emotional hinge of the whole
+ * checklist.
+ *
+ * The gate lets a student skip *Health information*, *Campus life* and the
+ * *Deposit* by design. If the portal shows those back without saying why they
+ * are there, skipping turns out to have been quietly costly and the permission
+ * the gate offered was a trap. So the portal says it in one sentence, once.
+ *
+ * **What is separate is the explanation, not the work.** The carried-over
+ * Requirements sit in the ordinary list with everything else rather than in a
+ * penalty box — Vercel's Production Checklist marks an item `Skipped` in the
+ * same list as `Done`, and Portrait leaves unfinished items at full weight
+ * rather than demoting them.
+ *
+ * **Conditional on there being any.** A student who skipped nothing sees no
+ * block, because an empty "you skipped nothing" state invents a problem they do
+ * not have — and the gate already knows the answer.
+ *
+ * The count is read from the gate's store and nothing is written back to it:
+ * the portal never marks a Quest as seen, resumed or acknowledged.
+ */
+function NothingWasLost() {
+  const state = usePortal();
+  const carried = carriedOver(state);
+  if (carried.length === 0) return null;
+
+  const [first] = carried;
+
+  return (
+    <Sections>
+      <Section title="Nothing was lost">
+        <Prose>
+          You skipped {COUNTED[carried.length] ?? `${carried.length} things`} while accepting your
+          offer. We saved your place, so nothing you entered was lost — they are in your list, with
+          everything else.
+        </Prose>
+        <div className="mt-2.5">
+          <Button asChild variant="secondary" size="sm">
+            <Link to={first.path as never}>
+              {first.action}
+              <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+            </Link>
+          </Button>
+        </div>
+      </Section>
+    </Sections>
   );
 }
