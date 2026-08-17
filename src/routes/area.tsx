@@ -119,18 +119,25 @@ function Placeholder({ area, title, sentence }: { area?: Area; title: string; se
           </>
         ) : null}
 
-        {/* The one true pointer, where there is one. It is a Well rather than a
-            Section of its own: a second frame under the first is the stacking
-            three rounds of review have objected to, and this is one card. */}
-        {area?.pointer ? (
+        {/* Where the student can act today — or why nowhere. A Well rather than
+            a Section of its own: a second frame under the first is the stacking
+            three rounds of review have objected to, and this is one card.
+
+            The two Areas with no destination still get the block, because the
+            sentence in it is a fact the student can use. What they do not get is
+            a button: the rule that survives is that a pointer goes somewhere
+            real, never to another placeholder. */}
+        {area?.meanwhile ? (
           <Well label="Meanwhile" className="mt-3.5">
-            <Prose className="mb-2">{area.pointer.note}</Prose>
-            <Button asChild variant="secondary" size="sm">
-              <Link to={area.pointer.path as never}>
-                {area.pointer.label}
-                <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
-              </Link>
-            </Button>
+            <Prose className={area.pointer ? "mb-2" : undefined}>{area.meanwhile}</Prose>
+            {area.pointer ? (
+              <Button asChild variant="secondary" size="sm">
+                <Link to={area.pointer.path as never}>
+                  {area.pointer.label}
+                  <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+                </Link>
+              </Button>
+            ) : null}
           </Well>
         ) : null}
 

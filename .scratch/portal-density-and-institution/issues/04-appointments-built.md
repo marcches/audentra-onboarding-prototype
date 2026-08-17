@@ -1,6 +1,6 @@
 # 04 — Appointments, built
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** The Area whose absence started this entire body of work. The
 client's words, hunting for it in the portal that shipped: *"Cadê a pointment na
@@ -24,9 +24,9 @@ claim; anything past that is the next cycle inventing itself.
 - [Motion](https://mobbin.com/screens/90e54b69-a702-4b76-9e01-2c5730f24b05) — a dense day and slot list where the time is the primary field and everything else is metadata beside it.
 - [Superlist](https://mobbin.com/screens/2b0e4165-892c-4bdc-8e80-f6a0bdf57311) — the plain, ungarnished list this screen should look like, rather than a calendar widget nobody asked for.
 
-- [ ] Three services, each named as a thing a student would actually book
-- [ ] Days and slots, from a fixture, with `TODAY` as the clock
-- [ ] Booking one shows it back on the screen and survives a reload
-- [ ] The booked time is reachable from the Area without hunting
-- [ ] Nothing about rescheduling, staff profiles or availability rules
-- [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+- [x] Three services, each named as a thing a student would actually book
+- [x] Days and slots, from a fixture, with `TODAY` as the clock
+- [x] Booking one shows it back on the screen and survives a reload
+- [x] The booked time is reachable from the Area without hunting
+- [x] Nothing about rescheduling, staff profiles or availability rules
+- [x] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass

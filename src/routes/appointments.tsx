@@ -220,7 +220,11 @@ function TheBooking({ booking }: { booking: Booking }) {
           <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-field)] bg-mint-50 text-mint-deep">
             <CheckIcon weight="bold" aria-hidden className="size-4" />
           </span>
-          <span className="min-w-0 flex-1">
+          {/* On a phone the date takes the row and the two metadata facts drop
+              below it. Sharing 390px three ways broke `Mon, Aug 9 · 10:00 am`
+              across two lines, which is the one string on this screen that must
+              not wrap. */}
+          <span className="min-w-0 flex-1 compact:basis-full">
             <span className="block text-h3 text-ink-900 numeric">
               {formatDay(booking.date)} · {formatTime(booking.time)}
             </span>

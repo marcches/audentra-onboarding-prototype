@@ -72,18 +72,25 @@ export type Area = {
    */
   willLive: readonly string[];
   /**
-   * The one place the student can act on this subject **today**, when there is
-   * one.
+   * One sentence about acting on this subject **today** — where, or why there
+   * is nowhere.
+   *
+   * Both halves are information. `My Classrooms` and `Messages` have no
+   * destination, and the sweep found that saying nothing at all left them ending
+   * in 379px of Ground — so they say *why* instead, which is a fact the student
+   * can use ("your courses appear once you have registered") rather than a
+   * block added to fill a screen.
+   */
+  meanwhile: string;
+  /**
+   * The destination, when there is a real one.
    *
    * Every pointer here goes to a screen that exists and really does the work —
    * mostly back into the gate, which is where the only finished versions of
-   * these things are. `My Classrooms` and `Messages` have none, and they say
-   * nothing rather than inventing a destination: a dead end dressed as a door is
-   * worse than an honest wall.
+   * these things are. It is never a link to another placeholder: a dead end
+   * dressed as a door is worse than an honest wall.
    */
   pointer?: {
-    /** One sentence: what is actually over there. Not "learn more". */
-    note: string;
     label: string;
     path: string;
   };
@@ -115,6 +122,7 @@ export const areaGroups: readonly AreaGroup[] = [
         icon: SquaresFourIcon,
         future: "",
         willLive: [],
+        meanwhile: "",
         built: true,
       },
       {
@@ -130,8 +138,9 @@ export const areaGroups: readonly AreaGroup[] = [
           "What the university is holding, and which office is holding it",
           "What you have already finished, summarised underneath",
         ],
+        meanwhile:
+          "The three you can act on now are on the Dashboard, with the rest of the list under them.",
         pointer: {
-          note: "The three you can act on now are on the Dashboard, with the rest of the list under them.",
           label: "Go to the Dashboard",
           path: "/portal/dashboard",
         },
@@ -155,7 +164,11 @@ export const areaGroups: readonly AreaGroup[] = [
         ],
         /* No pointer, and that is the finding rather than an omission: nothing
            in this product registers a course yet, so every candidate
-           destination is another screen that is not built. */
+           destination is another screen that is not built. The sentence says so
+           — a student who is told why there is nowhere to go has been told
+           something; one who is told nothing has been shown a wall. */
+        meanwhile:
+          "There is nowhere to go for this yet. Your courses appear here once you have registered for them, and registering for courses is one of the twelve on your list.",
       },
       {
         id: "campus-life",
@@ -169,8 +182,9 @@ export const areaGroups: readonly AreaGroup[] = [
           "Your route round the Involvement Fair",
           "Sign-ups and tickets you are holding",
         ],
+        meanwhile:
+          "The organisations you marked while accepting your offer are still there, with your route round the fair.",
         pointer: {
-          note: "The organisations you marked while accepting your offer are still there, with your route round the fair.",
           label: "Open Campus life",
           path: "/onboarding/campus-life",
         },
@@ -192,8 +206,9 @@ export const areaGroups: readonly AreaGroup[] = [
           "Your financial aid award, and the documents behind it",
           "A payment plan, if you need to spread it",
         ],
+        meanwhile:
+          "The enrollment deposit is the one payment you can make today, and it comes off your first-term bill.",
         pointer: {
-          note: "The enrollment deposit is the one payment you can make today, and it comes off your first-term bill.",
           label: "Secure your place",
           path: "/onboarding/deposit",
         },
@@ -210,8 +225,9 @@ export const areaGroups: readonly AreaGroup[] = [
           "What is still missing, and which office is waiting for it",
           "The agreement you signed, to read again",
         ],
+        meanwhile:
+          "The enrollment agreement you signed, and the packet it came in, are on Review and sign.",
         pointer: {
-          note: "The enrollment agreement you signed, and the packet it came in, are on Review and sign.",
           label: "Open Review and sign",
           path: "/onboarding/review",
         },
@@ -224,6 +240,7 @@ export const areaGroups: readonly AreaGroup[] = [
         future:
           "Book a time with financial aid, your adviser or student support, without going through a topic first.",
         willLive: [],
+        meanwhile: "",
         built: true,
       },
     ],
@@ -244,6 +261,8 @@ export const areaGroups: readonly AreaGroup[] = [
         ],
         /* No pointer either. Nothing in this product sends or receives a
            message, and "email Admissions" is a mailto dressed up as a feature. */
+        meanwhile:
+          "There is nowhere to go for this yet. Until it is built, the university writes to the email address you gave when you created your account.",
       },
       {
         id: "profile",
@@ -257,8 +276,9 @@ export const areaGroups: readonly AreaGroup[] = [
           "Who may be told about your record, and what about it",
           "Your student number and your ID photograph",
         ],
+        meanwhile:
+          "Your name, your pronouns and your contact details are on Who you are, where you entered them.",
         pointer: {
-          note: "Your name, your pronouns and your contact details are on Who you are, where you entered them.",
           label: "Open Who you are",
           path: "/onboarding/who-you-are",
         },
