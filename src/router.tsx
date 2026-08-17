@@ -9,6 +9,7 @@ import { CelebrationProvider } from "@/components/celebration";
 import { ImageViewerProvider } from "@/components/image-viewer";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
+import { DashboardRoute } from "@/routes/dashboard";
 import { DepositRoute } from "@/routes/deposit";
 import { EntryRoute } from "@/routes/entry";
 import { HealthRoute } from "@/routes/health";
@@ -171,11 +172,44 @@ const completionRoute = createRoute({
   component: CompletionRoute,
 });
 
+/**
+ * The portal, beside the gate rather than inside it.
+ *
+ * A separate branch of the tree because it is a separate shell: its own
+ * navigation, its own Balance role and its own Presence table (ADR 0014).
+ * Nothing under `/onboarding` changes, and nothing here reaches into it —
+ * except to read, which is what the carried-over Requirements do.
+ */
+const portalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portal",
+  component: () => (
+    <div className="flex min-h-dvh bg-canvas">
+      <Outlet />
+    </div>
+  ),
+});
+
+const portalIndexRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/portal/dashboard" });
+  },
+});
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "dashboard",
+  component: DashboardRoute,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   entryRoute,
   styleGuideRoute,
   completionRoute,
+  portalRoute.addChildren([portalIndexRoute, dashboardRoute]),
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,

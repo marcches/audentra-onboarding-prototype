@@ -183,6 +183,24 @@
      This is the second setting of the same declaration in one round, and that
      is exactly why the scale has no call sites: moving it is one edit.
      ------------------------------------------------------------------ */
+  /* The step the portal added, and the only thing it is for: **metadata**.
+
+     A deadline, a time estimate, a value, a category, an urgency, a group
+     label in the sidebar. Not body copy, not a caption, and never a heading —
+     the test in `layout-rules.test.ts` counts this declaration and forbids a
+     component reassigning it, the same shape the archetype measures and the
+     action bar height already follow.
+
+     11px against the body's 14. `micro` was the nearest thing to hand and is
+     not it: `micro` is a *label* — uppercase, tracked to 0.05em, and set at
+     the size of small body text — so a card whose facts were set in it read as
+     a row of five little headings. Linear is the reference: the item's name
+     and the facts about it are unmistakably different sizes, and the facts are
+     lower case. This is not a rescale; body and headings do not move. */
+  --text-meta: 0.6875rem;
+  --text-meta--line-height: 1rem;
+  --text-meta--letter-spacing: 0.01em;
+
   --text-micro: 0.75rem;
   --text-micro--line-height: 1.05rem;
   --text-micro--letter-spacing: 0.05em;
