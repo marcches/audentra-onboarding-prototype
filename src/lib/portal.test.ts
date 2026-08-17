@@ -113,7 +113,7 @@ const gate: OnboardingState = {
 
 const fresh: PortalContext = {
   gate,
-  portal: { completed: [], underReview: ["final-transcript"] },
+  portal: { completed: [], underReview: ["final-transcript"], booking: null },
 };
 
 /** The same student, having skipped nothing in the gate. */
@@ -130,7 +130,11 @@ const skippedNothing: PortalContext = {
 /** The same student, a good way in. */
 const partway: PortalContext = {
   ...fresh,
-  portal: { completed: ["financial-aid", "student-id-photo"], underReview: ["final-transcript"] },
+  portal: {
+    completed: ["financial-aid", "student-id-photo"],
+    underReview: ["final-transcript"],
+    booking: null,
+  },
 };
 
 const stores: Record<string, PortalContext> = { fresh, skippedNothing, partway };

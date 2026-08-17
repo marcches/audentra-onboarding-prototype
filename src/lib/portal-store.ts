@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import type { Booking } from "@/lib/appointments";
 import type { RequirementId } from "@/lib/portal";
 import { type OnboardingState, useOnboarding } from "@/lib/store";
 
@@ -29,6 +30,15 @@ export type PortalState = {
    * not the student's own doing.
    */
   underReview: RequirementId[];
+  /**
+   * The one appointment the student holds, or none.
+   *
+   * Singular on purpose. A list would need a cancellation policy, a past
+   * / upcoming split and a rule about double-booking the same hour — three
+   * decisions this cycle deliberately does not take. Booking a second time
+   * replaces the first, and the screen says so.
+   */
+  booking: Booking | null;
 };
 
 const STORAGE_KEY = "audentra.portal.v1";
@@ -36,6 +46,7 @@ const STORAGE_KEY = "audentra.portal.v1";
 const initialState: PortalState = {
   completed: [],
   underReview: ["final-transcript"],
+  booking: null,
 };
 
 function read(): PortalState {

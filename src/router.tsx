@@ -8,6 +8,7 @@ import {
 import { CelebrationProvider } from "@/components/celebration";
 import { ImageViewerProvider } from "@/components/image-viewer";
 import { seedFinishedGate } from "@/lib/demo";
+import { AppointmentsRoute } from "@/routes/appointments";
 import { AreaScreen, RequirementScreen } from "@/routes/area";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
@@ -215,13 +216,16 @@ const dashboardRoute = createRoute({
 });
 
 /**
- * The seven Areas this cycle did not build, plus My Enrollment, each on its own
- * URL and each rendering the one shared placeholder.
+ * The Areas that are still an honest placeholder, each on its own URL and each
+ * rendering the one shared component.
  *
  * Declared from `areas.ts` by hand rather than generated from it, because
  * `createRoute` wants a literal path to type against — but the labels and the
- * sentences come from the data module, so a wrong string here is a 404 rather
+ * bodies come from the data module, so a wrong string here is a 404 rather
  * than a screen that quietly disagrees with the sidebar.
+ *
+ * `appointments` left this list in the cycle that built it, which is the only
+ * way an Area ever leaves it.
  */
 const areaRoutes = (
   [
@@ -230,7 +234,6 @@ const areaRoutes = (
     "campus-life",
     "financials",
     "documents",
-    "appointments",
     "messages",
     "profile",
   ] as const
@@ -241,6 +244,13 @@ const areaRoutes = (
     component: () => <AreaScreen id={id} />,
   }),
 );
+
+/** The one Area this cycle built for real. See `appointments.tsx`. */
+const appointmentsRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "appointments",
+  component: AppointmentsRoute,
+});
 
 /**
  * Where a Quest card's primary action lands when the work is not the gate's.
@@ -258,7 +268,13 @@ const routeTree = rootRoute.addChildren([
   entryRoute,
   styleGuideRoute,
   completionRoute,
-  portalRoute.addChildren([portalIndexRoute, dashboardRoute, requirementRoute, ...areaRoutes]),
+  portalRoute.addChildren([
+    portalIndexRoute,
+    dashboardRoute,
+    appointmentsRoute,
+    requirementRoute,
+    ...areaRoutes,
+  ]),
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,
