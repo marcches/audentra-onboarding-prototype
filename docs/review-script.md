@@ -41,6 +41,60 @@ não parágrafo, e trunca em vez de quebrar.
 
 ---
 
+## O que o ciclo "o portal, o shell e o Dashboard" mediu
+
+O portal fica em `/portal`. Cada defeito foi medido no `Audentra-portals/apps/web`
+em 17/08 **antes** de qualquer coisa ser desenhada; a tabela repete a medição no
+que foi entregue.
+
+| Defeito | Antes (portal em produção) | Depois (`/portal`, 1366x768) |
+|---|---|---|
+| Areas na sidebar | 9, lista plana, sem agrupamento | 9, em três grupos (dois sem rótulo, `ACADEMICS`, `ADMIN`) |
+| Areas alcançáveis fora da sidebar | `/appointments` existe e não tem entrada de navegação | 0 — `Appointments` está na sidebar, sem passar por Financials |
+| Edward | ocupa uma linha da sidebar (`Edward AI`) | não é linha, e nada ocupa o lugar dela |
+| Tela de entrada | snapshot financeiro, eventos do campus, brief do Edward; nenhuma lista de pendências | três Requirements acionáveis, em Smart order, como primeira coisa |
+| "O que está faltando" | só abrindo `/enrollment` e lendo | respondido no Dashboard, sem abrir uma segunda tela |
+| Valor por trabalho | nenhum; um saldo único na sidebar | valor em cada card, com decaimento literal (`100 pts today · 99 tomorrow`) |
+| Decaimento | não existe | −1/dia a partir da data de disponibilidade, piso em 50% |
+| Largura da sidebar | mais larga, linhas mais altas | 224px, linha de 29px |
+
+**A medida nova.** O primeiro card termina em **y=241** em 1366x768 (com a chrome
+do navegador descontada, contra os ~640px úteis da ADR 0008). Os três terminam em
+**y=573**: o Dashboard inteiro cabe sem rolagem (`scrollHeight` = 768).
+
+Em 390x844: sem overflow horizontal (`scrollWidth` 380), navegação inferior com
+alvos de 44px, os cinco campos de metadado quebrando em duas linhas — que é a
+linha `quest-metadata` da tabela de Presence do portal. Console limpo.
+
+**Os quatro julgamentos que nenhum teste faz**, com veredito:
+
+1. **O passo de metadado lê como metadado?** Sim. 11px contra os 14 do corpo, em
+   caixa baixa; o nome do Quest é sem dúvida a maior coisa do card (referência:
+   Linear).
+2. **A sidebar lê como densa ou como apertada?** Densa. Linha de 29px e 224px de
+   largura, com os grupos comprando a densidade — abaixo do teto do Salesforce,
+   não acima.
+3. **Os placeholders leem como honestos ou como quebrados?** Honestos: são a
+   folha do próprio sistema, com uma frase verdadeira sobre o que vai morar ali e
+   uma saída. Nenhum "em breve", nenhuma ilustração inventada.
+4. **O decaimento lê como razão para agir hoje ou como ameaça?** Como razão — o
+   par `100 pts today · 99 tomorrow` é uma comparação, não uma contagem
+   regressiva, e o que já foi perdido nunca aparece. **É o julgamento que mais
+   precisa de estudante na frente**: é o único componente do portal sem
+   precedente no catálogo de referência (36 telas pesquisadas).
+
+**Achados que este ciclo não corrige**, escritos aqui em vez de deixados:
+
+- Não há passagem do gate para o portal. `/done` não leva a `/portal` porque
+  qualquer mudança no gate estava fora de escopo; hoje se chega pelo endereço.
+- Na navegação inferior, a Area corrente não rola sozinha para dentro do campo de
+  visão quando está fora dele (ex.: `Appointments`). Compact é desenhado e
+  correto, não polido — ADR 0008.
+- `See how` está desabilitado, no tamanho final. Quando a gaveta chegar, nada se
+  move; até lá é um botão que não faz nada, e isso foi escolhido de propósito.
+
+---
+
 ## Antes de tudo — a fundação (`/style-guide`)
 
 - [ ] As quatro superfícies aparecem desenhadas: Ground, Panel, Well, cartão
