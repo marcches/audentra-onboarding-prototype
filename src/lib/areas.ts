@@ -59,6 +59,34 @@ export type Area = {
    * *"entregando pouco"* the client and the designer named on the call.
    */
   future: string;
+  /**
+   * Three or four things that will live here, named the way the student would
+   * name them.
+   *
+   * **Honest was right; empty is not the same as honest.** Seven screens that
+   * stopped three lines in, with 580px of Ground under them, is what made the
+   * whole portal read as unfinished in a walkthrough — and the fix is not an
+   * illustration or a progress bar, it is *saying what the thing is*. These are
+   * the things themselves, not a roadmap: no dates, no counts, nothing that
+   * could turn out to be a promise somebody has to keep.
+   */
+  willLive: readonly string[];
+  /**
+   * The one place the student can act on this subject **today**, when there is
+   * one.
+   *
+   * Every pointer here goes to a screen that exists and really does the work —
+   * mostly back into the gate, which is where the only finished versions of
+   * these things are. `My Classrooms` and `Messages` have none, and they say
+   * nothing rather than inventing a destination: a dead end dressed as a door is
+   * worse than an honest wall.
+   */
+  pointer?: {
+    /** One sentence: what is actually over there. Not "learn more". */
+    note: string;
+    label: string;
+    path: string;
+  };
   /** Built in this cycle. Everything else declares honestly that it is not. */
   built?: boolean;
 };
@@ -86,6 +114,7 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "Dashboard",
         icon: SquaresFourIcon,
         future: "",
+        willLive: [],
         built: true,
       },
       {
@@ -95,6 +124,17 @@ export const areaGroups: readonly AreaGroup[] = [
         icon: ListChecksIcon,
         future:
           "All twelve requirements in one list, in the order that serves you, with what you have already finished underneath.",
+        willLive: [
+          "All twelve requirements in one list",
+          "Ordering by what is smartest, what is due soonest, or what is quickest",
+          "What the university is holding, and which office is holding it",
+          "What you have already finished, summarised underneath",
+        ],
+        pointer: {
+          note: "The three you can act on now are on the Dashboard, with the rest of the list under them.",
+          label: "Go to the Dashboard",
+          path: "/portal/dashboard",
+        },
       },
     ],
   },
@@ -107,6 +147,15 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "My Classrooms",
         icon: GraduationCapIcon,
         future: "Your courses, your timetable and the work each one has set.",
+        willLive: [
+          "Your courses this term, and where each one meets",
+          "Your timetable for the week",
+          "The work each course has set, and when it is due",
+          "Your grades, once there are any",
+        ],
+        /* No pointer, and that is the finding rather than an omission: nothing
+           in this product registers a course yet, so every candidate
+           destination is another screen that is not built. */
       },
       {
         id: "campus-life",
@@ -114,6 +163,17 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "My Campus Life",
         icon: UsersThreeIcon,
         future: "The organisations you joined, what is on this week, and where.",
+        willLive: [
+          "The organisations you joined, and when they meet",
+          "What is on this week, and where",
+          "Your route round the Involvement Fair",
+          "Sign-ups and tickets you are holding",
+        ],
+        pointer: {
+          note: "The organisations you marked while accepting your offer are still there, with your route round the fair.",
+          label: "Open Campus life",
+          path: "/onboarding/campus-life",
+        },
       },
     ],
   },
@@ -126,6 +186,17 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "My Financials",
         icon: CreditCardIcon,
         future: "Your bill, your payment plan and your financial aid.",
+        willLive: [
+          "Your bill for the term, and what is on it",
+          "What you have paid, and what is left",
+          "Your financial aid award, and the documents behind it",
+          "A payment plan, if you need to spread it",
+        ],
+        pointer: {
+          note: "The enrollment deposit is the one payment you can make today, and it comes off your first-term bill.",
+          label: "Secure your place",
+          path: "/onboarding/deposit",
+        },
       },
       {
         id: "documents",
@@ -133,6 +204,17 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "My Documents",
         icon: FileTextIcon,
         future: "Everything you have sent us, and everything we hold about you.",
+        willLive: [
+          "Everything you have sent us, with the day it arrived",
+          "Everything we hold about you, and who may see it",
+          "What is still missing, and which office is waiting for it",
+          "The agreement you signed, to read again",
+        ],
+        pointer: {
+          note: "The enrollment agreement you signed, and the packet it came in, are on Review and sign.",
+          label: "Open Review and sign",
+          path: "/onboarding/review",
+        },
       },
       {
         id: "appointments",
@@ -141,6 +223,8 @@ export const areaGroups: readonly AreaGroup[] = [
         icon: CalendarCheckIcon,
         future:
           "Book a time with financial aid, your adviser or student support, without going through a topic first.",
+        willLive: [],
+        built: true,
       },
     ],
   },
@@ -152,6 +236,14 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "Messages",
         icon: ChatCircleDotsIcon,
         future: "What the university has sent you, and your replies to it.",
+        willLive: [
+          "What the university has sent you, newest first",
+          "Which office each message came from",
+          "Your replies, in the same thread",
+          "What still needs an answer from you",
+        ],
+        /* No pointer either. Nothing in this product sends or receives a
+           message, and "email Admissions" is a mailto dressed up as a feature. */
       },
       {
         id: "profile",
@@ -159,6 +251,17 @@ export const areaGroups: readonly AreaGroup[] = [
         label: "Profile",
         icon: UserCircleIcon,
         future: "Your name, your contact details and who may see your record.",
+        willLive: [
+          "Your legal name, and the name you go by",
+          "Your contact details, and which of them we use",
+          "Who may be told about your record, and what about it",
+          "Your student number and your ID photograph",
+        ],
+        pointer: {
+          note: "Your name, your pronouns and your contact details are on Who you are, where you entered them.",
+          label: "Open Who you are",
+          path: "/onboarding/who-you-are",
+        },
       },
     ],
   },
