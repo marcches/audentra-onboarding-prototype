@@ -1128,3 +1128,57 @@ movimento numa lista que o aluno vai varrer com os olhos é ruído — a régua 
 imobilidade da rodada de 14/08 se aplica inteira. O único movimento previsto é o
 que já existe: o confete quando uma Quest fecha, e o `CountUp` do Balance, ambos
 herdados sem alteração.
+
+---
+
+## Rodada de 2026-08-17 (tarde) — validação depois do código, e o que ela derrubou
+
+**Esta rodada foi feita depois de o ciclo estar entregue**, e o
+`docs/agents/design-references.md` diz o que isso significa: referência achada
+depois é justificativa. Está registrada assim, declaradamente, porque o achado
+principal é **negativo** — e um achado negativo perde todo o valor se não estiver
+escrito quando a discussão acontecer.
+
+### O decaimento continua sem precedente, e agora sabemos o que existe no lugar
+
+Buscas novas por *"card de tarefa mostrando o que vale hoje e menos amanhã"* (web)
+e *"bônus que diminui quanto mais você espera"* (iOS). Nenhuma tela com valor por
+tarefa caindo por dia. O que o catálogo faz no lugar, consistentemente, é
+**recompensa fixa com prazo**:
+
+- [One](https://mobbin.com/screens/59a71343-1ccf-494f-969f-216a85de98a6) — `Complete all the steps below within 15 days and receive $25`, com `3 of 4 steps complete · 15 days left`. É a estrutura mais próxima do que este portal faz, e resolve a urgência sem mexer no valor de nada.
+- [GoodRx](https://mobbin.com/screens/7937f146-7f4c-41ce-abae-43cb3b346ad1) — aviso datado de perda de benefício, em faixa âmbar, sem número descendo.
+- [eBay](https://mobbin.com/screens/616ba8e1-0340-4539-8bb0-03622773982a) e [QUITTR](https://mobbin.com/screens/09ef2499-dfce-4ec1-8d23-8841b966f54d) — contagem regressiva sobre um valor fixo.
+- [Shell](https://mobbin.com/screens/ed5c4f97-90c5-45f0-b514-d681e27d4e00) — progresso para um bônus, sem decaimento.
+
+**O decaimento fica.** É mandato explícito da cliente e foi construído literal —
+`100 pts today · 99 tomorrow`, nunca o que já se perdeu. O que muda é que a
+alternativa agora tem nome, evidência e um desenho concreto para levar à
+conversa: *termine as doze até 30 de agosto e ganhe um bônus fixo*. Trocar um
+mandato por evidência de catálogo sem a cliente na sala é a única mudança capaz
+de queimar a reunião; levar as duas com os links é o trabalho.
+
+### A anatomia da home: um expandido e o resto em linhas
+
+Cinco de seis referências de dashboard-com-checklist mostram **um item aberto com
+a sua ação e o resto como linhas**, não três cartões inteiros:
+[Bonsai](https://mobbin.com/screens/1956d6e4-3b1d-4a2b-ba5b-23c227ad87fd) (saudação
+`Good evening, Joe.`, lista numerada à esquerda, passo corrente expandido à
+direita com `Add Details` e `Next Step`),
+[Square](https://mobbin.com/screens/b58d212c-eaba-4487-a2b3-2aa6f4ed7cbf) (`Let's
+keep going · 5 of 7 completed`, itens colapsados, um aberto com o botão),
+[Wix](https://mobbin.com/screens/9751a188-074e-4bfe-8ba5-dd65cf6d31a2) (`1/5
+completed` com barra fina no cabeçalho do cartão),
+[Circle](https://mobbin.com/screens/509ed183-a8b9-4613-a2a4-0164192e5aba) e
+[Google Workspace](https://mobbin.com/screens/05a829a2-525b-4a6e-911a-f4d5e2e5b9ce)
+(`You're on your way, Alex` com barra fina, e o trabalho logo abaixo).
+
+Adotado **em parte**: os três cartões em peso cheio ficam, porque a home responde
+*qual é o próximo passo* e não *o que existe*; o resto das doze passa a aparecer
+como **linhas compactas sob eles**, que é o que fecha o vazio medido de 195px e
+mostra doze de doze em vez de três de doze.
+
+Adotado também: **a barra fina de progresso na mesma linha da saudação**. Quatro
+das seis pareiam o número com uma barra. O que o ciclo anterior cortou foi o
+*anel de 0/595* que empurra o primeiro cartão para baixo da dobra — não o
+instrumento, que numa linha custa zero altura.
