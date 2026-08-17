@@ -4,10 +4,19 @@ import { Link } from "@tanstack/react-router";
 import { RichBalance } from "@/components/balance";
 import { PortalShell } from "@/components/portal-shell";
 import { QuestCard } from "@/components/quest-card";
+import { QuestRow } from "@/components/quest-row";
 import { Prose, Section, Sections, Well } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { studentRecord } from "@/lib/fixtures";
-import { availableInOrder, carriedOver, portalProgress, requirementsInState } from "@/lib/portal";
+import {
+  availableInOrder,
+  carriedOver,
+  portalProgress,
+  type RequirementId,
+  requirementsInState,
+  stateOf,
+  waitingOn,
+} from "@/lib/portal";
 import { usePortal } from "@/lib/portal-store";
 import { useOnboarding } from "@/lib/store";
 
@@ -80,16 +89,7 @@ export function DashboardRoute() {
             )}
           </Well>
 
-          {/* The way to the rest of it. The list itself is My Enrollment's. */}
-          <p className="text-small">
-            <Link
-              to="/portal/enrollment"
-              className="inline-flex items-center gap-1 font-strong text-violet-600 hover:underline"
-            >
-              See all {progress.total} requirements
-              <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
-            </Link>
-          </p>
+          <TheRest shown={shown.map((one) => one.id)} />
         </div>
 
         {/* The secondary column. The rich Balance is Dashboard-only (ADR 0013):
@@ -101,6 +101,68 @@ export function DashboardRoute() {
         </div>
       </div>
     </PortalShell>
+  );
+}
+
+/**
+ * Everything the three cards do not show, as lines.
+ *
+ * This is what closes the 195px of Ground measured under the Dashboard's
+ * content, and it closes it with **information** rather than with air — the
+ * client asked to be denser, and a screen showing three of twelve and then
+ * stopping is the opposite of dense however tightly the three are set.
+ *
+ * The order is whose move it is: what the student can act on, then what the
+ * university is holding, then what has not opened yet. Complete Requirements are
+ * not here at all — a finished thing at the top of a list of things to do is
+ * information nobody can act on, occupying the position of highest value, which
+ * is the defect the portal was built to fix.
+ *
+ * It is deliberately **not** My Enrollment: no ordering tabs, no collapsible
+ * groups, no completed-work summary. Those are the next cycle's, and a link
+ * still goes there.
+ */
+function TheRest({ shown }: { shown: RequirementId[] }) {
+  const state = usePortal();
+  const seen = new Set(shown);
+
+  const rows = [
+    ...availableInOrder(state).filter((one) => !seen.has(one.id)),
+    ...requirementsInState("under-review", state),
+    ...requirementsInState("upcoming", state),
+  ];
+  if (rows.length === 0) return null;
+
+  return (
+    <Sections>
+      <Section
+        title={`The rest of your list · ${rows.length}`}
+        action={
+          <Link
+            to="/portal/enrollment"
+            className="inline-flex items-center gap-1 text-meta font-bold text-violet-600 hover:underline"
+          >
+            See all
+            <ArrowRightIcon weight="bold" aria-hidden className="size-3" />
+          </Link>
+        }
+        bodyClassName="py-1"
+      >
+        <ul className="flex flex-col">
+          {rows.map((requirement) => {
+            const rowState = stateOf(requirement, state);
+            return (
+              <QuestRow
+                key={requirement.id}
+                requirement={requirement}
+                state={rowState}
+                waiting={rowState === "upcoming" ? waitingOn(requirement, state) : undefined}
+              />
+            );
+          })}
+        </ul>
+      </Section>
+    </Sections>
   );
 }
 

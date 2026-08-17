@@ -116,6 +116,14 @@ export type Requirement = {
    */
   action: string;
   category: RequirementCategory;
+  /**
+   * The office that owns it — the Registrar, Student Accounts, Housing
+   * Services. Shown when a Requirement is Under review, because a state the
+   * student cannot act on still owes them the name of whoever is holding it.
+   * It is also the most institutional fact a Requirement carries: work in a
+   * university belongs to an office, not to a queue.
+   */
+  office: string;
   /** The day it becomes Available, and the day the Decay clock starts. */
   availableOn: string;
   /** The day the institution needs it by. */
@@ -162,6 +170,7 @@ export const requirementGroups: readonly {
            secured. It is worth 100 and became available today, which is what
            makes the card read `100 pts today · 99 tomorrow`. */
         id: "secure-your-place",
+        office: "Student Accounts",
         action: "Secure your place",
         path: "/onboarding/deposit",
         label: "Secure your place",
@@ -181,6 +190,7 @@ export const requirementGroups: readonly {
     requirements: [
       {
         id: "health-records",
+        office: "Health Services",
         action: "Share your records",
         path: "/onboarding/health",
         label: "Share your health records",
@@ -195,6 +205,7 @@ export const requirementGroups: readonly {
       },
       {
         id: "health-insurance",
+        office: "Health Services",
         action: "Choose your cover",
         path: "/portal/enrollment/health-insurance",
         label: "Health insurance",
@@ -213,6 +224,7 @@ export const requirementGroups: readonly {
     requirements: [
       {
         id: "find-your-people",
+        office: "Student Life",
         action: "Browse organisations",
         path: "/onboarding/campus-life",
         label: "Find your people",
@@ -227,6 +239,7 @@ export const requirementGroups: readonly {
       },
       {
         id: "meal-plan",
+        office: "Dining Services",
         action: "Choose a plan",
         path: "/portal/enrollment/meal-plan",
         label: "Choose your meal plan",
@@ -244,6 +257,7 @@ export const requirementGroups: readonly {
            names the second; the first is what makes `Secure your place` the
            Requirement that opens the most doors. */
         id: "move-in-window",
+        office: "Housing Services",
         action: "Choose a window",
         path: "/portal/enrollment/move-in-window",
         label: "Choose your move-in window",
@@ -263,6 +277,7 @@ export const requirementGroups: readonly {
     requirements: [
       {
         id: "final-transcript",
+        office: "the Registrar",
         action: "Check what we hold",
         path: "/portal/enrollment/final-transcript",
         label: "Final transcript",
@@ -276,6 +291,7 @@ export const requirementGroups: readonly {
       },
       {
         id: "register-orientation",
+        office: "Student Life",
         action: "Register",
         path: "/portal/enrollment/register-orientation",
         label: "Register for orientation",
@@ -289,6 +305,7 @@ export const requirementGroups: readonly {
       },
       {
         id: "register-courses",
+        office: "the Registrar",
         action: "Register for courses",
         path: "/portal/enrollment/register-courses",
         label: "Register for courses",
@@ -302,6 +319,7 @@ export const requirementGroups: readonly {
       },
       {
         id: "meet-adviser",
+        office: "Academic Advising",
         action: "Book a meeting",
         path: "/portal/enrollment/meet-adviser",
         label: "Meet your academic adviser",
@@ -321,6 +339,7 @@ export const requirementGroups: readonly {
     requirements: [
       {
         id: "financial-aid",
+        office: "Financial Aid",
         action: "Verify your aid",
         path: "/portal/enrollment/financial-aid",
         label: "Verify your financial aid",
@@ -342,6 +361,7 @@ export const requirementGroups: readonly {
            Decay has already taken it to its Floor — which is the state that
            proves Points at risk reaches zero rather than running to nothing. */
         id: "student-id-photo",
+        office: "Campus Card Office",
         action: "Upload a photo",
         path: "/portal/enrollment/student-id-photo",
         label: "Your student ID photo",

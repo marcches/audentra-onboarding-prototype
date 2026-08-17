@@ -141,6 +141,7 @@ function make(id: string, changes: Partial<Requirement> = {}): Requirement {
     label: id,
     blurb: "",
     action: "Start",
+    office: "the Registrar",
     category: "Academics",
     availableOn: TODAY,
     deadline: addDays(TODAY, 30),
