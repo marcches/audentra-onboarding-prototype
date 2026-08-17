@@ -7,10 +7,24 @@ import { useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /**
- * The Balance: where Points live, in one fixed position across the whole flow.
+ * The Balance: two roles, one source (ADR 0013).
  *
- * Four things make it a destination rather than a counter, and all four came
- * out of the research (Ulta, adiClub, IHG, Shopee, Mimo, Duolingo):
+ * `points.ts` is the only module that knows what a Point is worth, and neither
+ * component below computes anything of its own — the split is about how the
+ * answer is presented, never about who computes it. That is the invariant the
+ * retired "there is exactly one Balance in the shell" line was actually
+ * protecting: a second Balance with its own total is how two figures come to
+ * disagree on one screen.
+ *
+ * **`CompactBalance`** answers *how many do I have?* It is small enough to live
+ * permanently in a rail, a bar or a sidebar, in every Area, and it carries no
+ * explanation of its own (Wrike's `Quick start` figure).
+ *
+ * **`RichBalance`** answers *what is this turning into?* — the Bookstore ladder
+ * rung and the distance to it, in a column that has the room for it (OpenSea's
+ * `Total XP` block, Uxcel's reward column). Four things make it a destination
+ * rather than a counter, and all four came out of the research (Ulta, adiClub,
+ * IHG, Shopee, Mimo, Duolingo):
  *
  * 1. **Two numbers, always.** Points above, what they convert to below. A
  *    number with no translation beside it is the scoreboard ADR-0002 rejects.
@@ -20,72 +34,95 @@ import { cn } from "@/lib/utils";
  *    with a thin bar that ends in the object's icon rather than in the end of
  *    the bar.
  *
- * It also has to sit in the same place on every screen, because the award's
- * flight needs somewhere to land. The Rail pins it to its foot (Time2book); the
- * PhaseBar carries the compressed chip. Both register with the celebration
- * layer, which flies to whichever of the two is actually visible — third row of
- * the Presence table.
+ * `celebrates` is what separates the gate's Balance from a permanent shell
+ * element. In the gate both forms are where the award's flight lands, so they
+ * register with the celebration layer and play beat 4 — the scale, the glow and
+ * the rolling number. A Balance that persists across a whole portal does not:
+ * it must not animate on change while the student is reading something else,
+ * which is the shell's own rule and the reason the flag is opt-in rather than
+ * opt-out.
  */
-export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "full" }) {
-  const live = totalPoints(useOnboarding());
-  const award = useCelebration();
-  const reduceMotion = useReducedMotion();
 
-  /* Outside the provider — the style guide — nothing is in flight, so the live
-     total is the shown total. */
-  const points = award?.shownPoints ?? live;
-  const landings = award?.landings ?? 0;
-  const beat = award?.beat ?? 0;
+/** The live total, and the award's reaction to it — only where one is in flight. */
+function useBalance(celebrates: boolean) {
+  const live = totalPoints(useOnboarding());
+  const flight = useCelebration();
+  /* Read unconditionally — a hook cannot be called under an `if` — and then
+     ignored where the Balance is furniture rather than a landing site. */
+  const award = celebrates ? flight : null;
+
+  return {
+    /* Outside a flight the live total is the shown total. */
+    points: award?.shownPoints ?? live,
+    landings: award?.landings ?? 0,
+    beat: award?.beat ?? 0,
+    register: award?.registerBalance,
+  };
+}
+
+/**
+ * The figure alone, on one line. The compact role.
+ *
+ * It never reflows its neighbour: `shrink-0`, and every digit is tabular, so a
+ * total going from 99 to 100 does not widen the element that carries it.
+ */
+export function CompactBalance({ celebrates = false }: { celebrates?: boolean }) {
+  const { points, landings, beat, register } = useBalance(celebrates);
+  const reduceMotion = useReducedMotion();
+  const released = creditReleased(points);
+
+  return (
+    <span
+      ref={register}
+      className={cn(
+        "flex shrink-0 items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-0.5",
+        "text-micro font-bold tracking-[0.06em] text-violet-700 uppercase",
+        "transition-shadow duration-[var(--duration-quick)]",
+        beat === 4 && "ring-glow",
+      )}
+    >
+      <CoinVerticalIcon weight="fill" aria-hidden className="size-3" />
+      <span aria-hidden>
+        <Total points={points} landings={landings} still={!celebrates || !!reduceMotion} /> pts
+      </span>
+      {released > 0 ? (
+        <span aria-hidden className="text-violet-500 numeric">
+          · {formatCredit(released)}
+        </span>
+      ) : null}
+      <span className="sr-only">
+        {points} points to spend, {balanceSentence(points)}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * The figure, what it converts to, and what it is turning into. The rich role.
+ *
+ * Dashboard-only in the portal, and the foot of the Rail in the gate. It does
+ * not follow the student into an Area where the compact form already answers
+ * the question this one answers at length.
+ */
+export function RichBalance({
+  size = "rail",
+  celebrates = false,
+}: {
+  /** `full` is the Dashboard column, which has the room the rail does not. */
+  size?: "rail" | "full";
+  celebrates?: boolean;
+}) {
+  const { points, landings, beat, register } = useBalance(celebrates);
+  const reduceMotion = useReducedMotion();
 
   const released = creditReleased(points);
   const { target, pointsAway, reached } = nextTarget(points);
   const progress = reached ? 1 : Math.min(1, released / target.usd);
-
-  /* Beat 4: the Balance scales 1 → 1.12 → 1 with a brief glow while its number
-     rolls. Keyed on the landing count so it replays its own arrival — the token
-     is absorbed and then the total reacts, in that order. */
-  const Total = (
-    <motion.span
-      key={reduceMotion ? "static" : landings}
-      initial={landings > 0 && !reduceMotion ? { scale: 0.75, opacity: 0.4 } : false}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 420, damping: 18 }}
-      className="inline-block numeric"
-    >
-      {points}
-    </motion.span>
-  );
-
-  if (variant === "chip") {
-    return (
-      <span
-        ref={award?.registerBalance}
-        className={cn(
-          "flex shrink-0 items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-0.5",
-          "text-micro font-bold tracking-[0.06em] text-violet-700 uppercase",
-          "transition-shadow duration-[var(--duration-quick)]",
-          beat === 4 && "ring-glow",
-        )}
-      >
-        <CoinVerticalIcon weight="fill" aria-hidden className="size-3" />
-        <span aria-hidden>{Total} pts</span>
-        {released > 0 ? (
-          <span aria-hidden className="text-violet-500 numeric">
-            · {formatCredit(released)}
-          </span>
-        ) : null}
-        <span className="sr-only">
-          {points} points to spend, {balanceSentence(points)}
-        </span>
-      </span>
-    );
-  }
-
-  const full = variant === "full";
+  const full = size === "full";
 
   return (
     <motion.div
-      ref={award?.registerBalance}
+      ref={register}
       animate={beat === 4 && !reduceMotion ? { scale: [1, 1.12, 1] } : { scale: 1 }}
       transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
       className={cn(
@@ -106,7 +143,7 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
             full ? "text-[3rem] leading-none" : "text-h3",
           )}
         >
-          {Total}
+          <Total points={points} landings={landings} still={!celebrates || !!reduceMotion} />
         </span>
         <span className={cn("font-strong text-violet-700", full ? "text-lead" : "text-micro")}>
           points to spend
@@ -154,6 +191,28 @@ export function Balance({ variant = "rail" }: { variant?: "rail" | "chip" | "ful
         )}
       </p>
     </motion.div>
+  );
+}
+
+/**
+ * The number itself.
+ *
+ * Beat 4: it scales 1 → 1.12 → 1 with a brief glow while its number rolls,
+ * keyed on the landing count so it replays its own arrival — the token is
+ * absorbed and then the total reacts, in that order. `still` is a permanent
+ * shell element saying it will not do any of that.
+ */
+function Total({ points, landings, still }: { points: number; landings: number; still: boolean }) {
+  return (
+    <motion.span
+      key={still ? "static" : landings}
+      initial={!still && landings > 0 ? { scale: 0.75, opacity: 0.4 } : false}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 420, damping: 18 }}
+      className="inline-block numeric"
+    >
+      {points}
+    </motion.span>
   );
 }
 

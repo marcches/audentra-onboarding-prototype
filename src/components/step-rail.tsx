@@ -1,7 +1,7 @@
 import { CheckIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
-import { Balance } from "@/components/balance";
+import { CompactBalance, RichBalance } from "@/components/balance";
 import { InstitutionCrest } from "@/components/institution-badge";
 import { studentRecord } from "@/lib/fixtures";
 import { aboveCompact, inCompactFlex, RAIL_CONNECTOR_OFFSET, RAIL_WIDTH } from "@/lib/layout";
@@ -222,7 +222,7 @@ export function StepRail({ current }: { current: StepId }) {
         {/* Pinned to the foot, in the same pixel on every screen in the flow.
             Without a fixed destination the award's flight has nowhere to land. */}
         <div className="border-t border-ink-100 pt-2.5">
-          <Balance />
+          <RichBalance celebrates />
         </div>
       </div>
     </aside>
@@ -256,7 +256,7 @@ export function PhaseBar({ current }: { current: StepId }) {
         <span className="min-w-0 flex-1 truncate font-display text-small font-black tracking-[-0.015em] text-ink-900">
           Aster University
         </span>
-        <Balance variant="chip" />
+        <CompactBalance celebrates />
       </div>
 
       <div className="flex flex-col gap-1">

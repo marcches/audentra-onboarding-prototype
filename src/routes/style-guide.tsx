@@ -2,7 +2,7 @@ import { ArrowRightIcon, SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
-import { Balance } from "@/components/balance";
+import { RichBalance } from "@/components/balance";
 import { PricePill } from "@/components/celebration";
 import { Field, ReadOnlyField } from "@/components/field";
 import { ImageViewerProvider, useImageViewer } from "@/components/image-viewer";
@@ -226,7 +226,7 @@ export function StyleGuideRoute() {
             </div>
             <div className="w-52 space-y-1">
               <p className="field-label">The Balance</p>
-              <Balance />
+              <RichBalance celebrates />
             </div>
           </div>
         </Chapter>
