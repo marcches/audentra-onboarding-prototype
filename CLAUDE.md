@@ -6,7 +6,7 @@ Local markdown under `.scratch/`. See `docs/agents/issue-tracker.md`.
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` + `docs/adr/` at the repo root, created on demand. See `docs/agents/domain.md`.
+Two contexts since 2026-08-17. Start at `CONTEXT-MAP.md` at the repo root: it points at the shared glossary (`CONTEXT.md`) and at one file per context under `docs/context/`. ADRs stay in one numbered sequence at `docs/adr/`, covering both. See `docs/agents/domain.md`.
 
 ### Design references
 

@@ -12,16 +12,25 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 
 ## File structure
 
-Single-context repo (this repo):
+This repo, since 2026-08-17 — two contexts, one shared glossary, one ADR
+sequence:
 
 ```
 /
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
+├── CONTEXT-MAP.md          ← start here
+├── CONTEXT.md              ← the terms both contexts share
+├── docs/
+│   ├── context/
+│   │   ├── onboarding.md   ← the gate
+│   │   └── portal.md       ← the portal
+│   └── adr/                ← one numbered sequence, covering both
 └── src/
 ```
+
+The ADRs are **not** split per context, which departs from the layout the
+`/domain-modeling` skill sketches. A decision is dated rather than located, and
+moving ADR 0008 into a folder because the repo later grew a second surface would
+make its number lie about when it was taken.
 
 ## Use the glossary's vocabulary
 

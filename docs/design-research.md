@@ -931,3 +931,200 @@ Invisível — "cadê os confetis". A camada subiu para acima do Rail e do pill,
 abaixo do modal. A legibilidade do número vem do jorro ser pequeno e espalhar
 para fora, não de estar debaixo do móvel. O aceite da oferta ganhou três origens
 em vez de uma: 150 partículas de um ponto só lê como espirro.
+
+## Rodada de 2026-08-17 — o portal: a checklist, a casca e o Edward
+
+O repositório deixa de ser o protótipo do onboarding e passa a ser o protótipo
+completo do designer. Esta rodada é a **V0 do portal do estudante**: casca,
+Dashboard e My Enrollment. O onboarding não é tocado.
+
+### De onde vem o alvo
+
+Duas fontes, e elas não concordam em tudo.
+
+**A reunião de 15/08 com a cliente.** O portal que existe hoje abre e não dirige:
+*"eu não tenho direcionamento"*, *"tem muita informação"*. Appointments não está
+na sidebar e só se chega a ele por dentro de Financials. O Edward ocupa um item
+de menu quando deveria ser flutuante — *"muito parecido com os stickies do
+Google"*, *"do lado esquerdo eu vejo as conversas, do lado direito a conversa
+atual, mas ele é um FAB, ele tá sempre por aqui"*. E a densidade: *"a gente não
+precisa voltar pro design de 2004, mas a gente precisa ser mais denso"*, com
+Salesforce nomeado outra vez — o mesmo pedido que produziu o ADR 0010.
+
+**O protótipo de referência do cliente**, construído em ChatGPT sites e aprovado
+por ele. Não é um dashboard: é uma **checklist que ocupa a home**. Progresso
+`42% · 5 of 12 steps complete`, três abas de ordenação `Smart order · Due soon ·
+Quick wins`, e as tarefas agrupadas por **acionabilidade** e não por fase —
+`Ready when you are`, `Harvard is reviewing`, `Coming up later`. Cada cartão
+carrega categoria, urgência, `Due Nov 16 · 100 days`, `About 4 min`, `Verified
+automatically`, `100 pts today · 99 tomorrow`, um primário com verbo e um `See
+how` secundário. O melhor próximo passo ganha `Best next step · Unlocks 3 more
+steps`.
+
+As categorias dele — `Your offer`, `About you`, `Health & wellness`, `Campus
+life` — são quase exatamente as nossas Phases. Ele usa Phase como **etiqueta** e
+agrupa por **estado**. É uma reconciliação limpa e foi adotada.
+
+### O gate do Mobbin
+
+Seis buscas por momento de UI, antes de qualquer solução ser proposta.
+
+**A checklist inteira sai de duas referências.**
+[Langdock](https://mobbin.com/screens/065752db-06ad-4118-ad1c-8f95daa3f8a8) —
+anel `0 / 595`, grupos colapsáveis com `0 / 6` e `0 / 12`, tag `+10` por
+tarefa, e o par de CTAs exato: `Start chatting` primário, `Learn more` secundário.
+É a mesma referência que este arquivo já chamava de a mais forte do projeto, e
+ela volta porque a checklist do portal é a mesma peça uma escala acima.
+[Portrait](https://mobbin.com/screens/21e83614-0f58-429c-a84b-8e811abb64e8) —
+`+100` / `+1000` por linha, tarefa ativa expandida com dois botões, e dois
+cartões trancados abaixo: um nomeando o pré-requisito, outro com cadeado, `Stay
+alert—more tasks soon` e texto esborrado.
+
+**A coexistência da checklist com o FAB não é hipótese.**
+[Remote](https://mobbin.com/screens/1a5a8ac8-49f2-467c-ad4f-5e36c2e86936) põe
+`Things to do (4)` como espinha do dashboard com o balão de chat no canto
+inferior direito, na mesma tela. [Wrike](https://mobbin.com/screens/d750f820-568f-4a4f-8540-1692449871de)
+faz o mesmo com colunas por estado (`To do this week` / `To review` / `Tasks I
+completed`) e um `Quick start` de 80% na sidebar.
+[Fireflies](https://mobbin.com/screens/5704d08d-e9b2-45f7-a919-198dce0f7c27) e
+[Notion](https://mobbin.com/screens/9aed23d0-f039-4685-aeb1-8a0f81628796)
+repetem o FAB inferior direito.
+
+**O drawer.** [Vercel](https://mobbin.com/screens/c12cd01b-cd5c-4b48-91fd-fd5fff966e37)
+abre a Production Checklist pela direita, com estados `Done` e `Skipped`
+riscados — e é a contra-referência honesta ao `See how`: ali o drawer **resolve**
+as tarefas. Foi recusado porque nossas Quests não cabem nele: Housing é um
+catálogo de oito residências com visualizador, Review & sign tem documento legal
+e assinatura. O drawer explica; a tela resolve.
+
+**Os grupos de estado.** [Linear](https://mobbin.com/screens/610d34b6-6ad8-45ab-80fb-2107b31ed01e)
+(`In Progress 5` / `Todo 7` / `Backlog 4`, colapsáveis, com contagem no
+cabeçalho) e [ClickUp](https://mobbin.com/screens/6058497a-d55c-40ae-a31b-ae4143bffef9).
+Adotada a contagem em todo cabeçalho; recusada a colapsabilidade do primeiro
+grupo, porque *Available* é a resposta à pergunta que trouxe o aluno até ali.
+
+**A sidebar agrupada.** [Render](https://mobbin.com/screens/f4e5d3b4-195a-438d-aa0e-a422c91bc5fc)
+(`INTEGRATIONS` / `NETWORKING` / `WORKSPACE`),
+[Dovetail](https://mobbin.com/screens/661fe01b-36a7-4e61-8229-68b09cce1dae),
+[Remote](https://mobbin.com/screens/58e6b83b-831e-41ff-9422-a33c928b8b60)
+(`FAVORITES` / `RECRUITING` / `TEAM MANAGEMENT`) e
+[Salesforce](https://mobbin.com/screens/d984cf82-47ad-415e-a48f-f098d2bd6210),
+que vai a duas camadas. Nove itens planos é o ponto em que uma lista deixa de ser
+escaneável — e é literalmente por isso que a cliente *procurou* Appointments em
+vez de ver. Os rótulos em caixa alta são o que permite as linhas ficarem mais
+baixas: o agrupamento faz o trabalho que o espaço fazia.
+
+**O placeholder honesto.** [Render](https://mobbin.com/screens/f4e5d3b4-195a-438d-aa0e-a422c91bc5fc)
+e [Salesforce](https://mobbin.com/screens/d984cf82-47ad-415e-a48f-f098d2bd6210)
+(`Nothing to see here`) dão a anatomia: um cartão centrado, uma frase verdadeira,
+e no máximo duas ações.
+
+### O achado que não teve referência
+
+Procurei recompensa que decai e **não existe no catálogo**.
+[Codecademy](https://mobbin.com/screens/2bba3ef1-5192-4d4a-bf1c-8dda00b1903d)
+mostra `03d:23h:18m:51s`, [Uxcel](https://mobbin.com/screens/165ede79-21ff-4a81-adda-68a942c39c21)
+um timer de desconto, [Shop](https://mobbin.com/screens/6bf37a0e-818a-4cbd-926d-4597fd5b7b8b)
+"offer ends in 1:48", [OpenSea](https://mobbin.com/screens/516ee107-5c44-4af4-b299-df1bd30711cf)
+`ENDING IN 1D` com chip `+100 XP` e barra de progresso. Todos usam **prazo**;
+nenhum usa **valor decrescente**.
+
+O `100 today · 99 tomorrow` foi inventado pelo protótipo de referência. Isso não
+o invalida — o cliente pediu explicitamente e a exibição literal é a leitura mais
+direta do pedido —, mas significa que **este é o único componente do portal que
+não pode ser validado por referência**. É o candidato natural para a conversa com
+os dois especialistas em ensino superior americano que a cliente ofereceu na
+chamada. Registrado aqui para que a ausência não seja lida como descuido.
+
+Recusada a variante "e o que você já perdeu": mostrar o decaimento acumulado
+transforma gamificação em cobrança, e é exatamente o que o piso de 50% existe
+para evitar.
+
+### O Edward — três anatomias, uma escolhida
+
+O catálogo oferece três, e a fala da cliente decide entre elas.
+
+1. **Painel lateral fixo sobreposto** — [Asana](https://mobbin.com/screens/f2b651ef-bce1-464c-9c47-52f2fb187238),
+   [Zoom](https://mobbin.com/screens/dbb16d99-379c-4c87-a4ff-f56321dd3dd1),
+   [Fabric](https://mobbin.com/screens/584d470e-5926-4b98-9f8c-693e030fea85),
+   [Fireflies](https://mobbin.com/screens/2047129f-d283-45ef-81bb-09aa79a32ffe).
+2. **Janela flutuante com controles de janela** — [Linear](https://mobbin.com/screens/51c2bd60-f22d-4879-8c28-c5800ac1f4b6):
+   minimizar, maximizar e fechar num cartão solto sobre o conteúdo.
+3. **Painel com histórico em aba** — [X](https://mobbin.com/screens/e420c3d7-1aad-4c3e-920f-0d6679941450),
+   cujo topo alterna `Chats` / `Bookmarks` / `Images`.
+
+Escolhida a **2** para os estados fechado e de trabalho: "stickies do Google" e
+"ele é um FAB, ele tá sempre por aqui" descrevem uma janela flutuante, não um
+painel encostado — e o Linear entrega de graça os três controles que os três
+estados precisam. O maximizado usa as duas colunas do
+[ChatGPT](https://mobbin.com/screens/b045e2cd-4f54-424a-97f6-4c5954f0c1e1)
+(conversas à esquerda, conversa atual à direita), que é a descrição literal da
+cliente — e não a aba do X.
+
+**Uma recomendação minha foi revertida pelas referências.** Eu havia proposto que
+o painel *empurrasse* o conteúdo. Asana, Fabric, Zoom e Fireflies todos
+**sobrepõem**, e empurrar reflowa a checklist inteira a cada abertura — o layout
+shift que a régua deste repo proíbe. Sobrepõe.
+
+Os chips de sugestão agrupados do Asana (`For you` / `Insights` / `More`) são o
+mecanismo real de "estimular o uso da IA" que a cliente pediu: uma sugestão
+contextual à Quest atual no FAB fechado, não um badge de notificação falso.
+
+### As abas de ordenação — adotadas contra o catálogo
+
+O protótipo de referência apresenta `Smart order · Due soon · Quick wins` como
+abas. O catálogo separa filtro de ordenação:
+[Remote](https://mobbin.com/screens/58e6b83b-831e-41ff-9422-a33c928b8b60) tem
+abas de filtro com contagem (`All tasks (4)` / `New (1)` / `Overdue (0)`) **e** um
+botão `Urgency` à parte; [Motion](https://mobbin.com/screens/a009b794-dbfa-4eb1-9f68-11733e8a042c)
+separa `Sort Groups` / `Sort Tasks` de `Filters (1)`;
+[Relevance AI](https://mobbin.com/screens/c9df4ae4-6265-48ac-8e16-95220d542fce)
+e [GitLab](https://mobbin.com/screens/24eba772-b1c6-42f2-82b4-0a329fb5ba59)
+usam abas só para filtro.
+
+Abas que não filtram nada são tecnicamente erradas, e foram adotadas mesmo assim.
+O objetivo aqui é o aluno **descobrir** que existe uma ordem inteligente, e
+nenhum aluno perdido abre um dropdown chamado `Ordenar por`. Remote, Linear e
+Motion escolhem diferente porque são ferramentas de uso diário para
+profissionais; esta é uma tela de orientação para quem chegou hoje. O par
+filtro + ordenação é o que se constrói na V2, quando o aluno já souber onde está.
+
+### A densidade não é direção nova
+
+A régua já existe. O ADR 0008 fixa 1366×768 e ~640px úteis de altura; o ADR 0010
+já aposentou `Panel` por `Section` **citando Salesforce pelo nome**. A densidade
+pedida nesta rodada é a continuação daquilo, não um recomeço.
+
+O que ela obriga: o preâmbulo do protótipo de referência — saudação, barra de
+42%, frase de próximo passo, bloco de momentum, três abas — põe o primeiro cartão
+**abaixo da dobra** em HD. Cortado. Saudação e progresso numa linha, o Balance
+rico para a coluna secundária, abas coladas nos cartões. Uma tela que celebra o
+progresso antes de mostrar a próxima ação está fazendo o oposto do que a cliente
+pediu.
+
+A escala tipográfica ganha **um degrau novo, só para metadado** (12–13px). O que
+dá densidade a [Linear](https://mobbin.com/screens/610d34b6-6ad8-45ab-80fb-2107b31ed01e),
+[Mixpanel](https://mobbin.com/screens/67093964-7652-48ac-a86c-8257fc525f3c) e
+Salesforce não é texto pequeno — é a distância grande entre o nome da coisa e os
+fatos sobre a coisa. Cinco metadados por cartão no tamanho de corpo é a "muita
+informação" de que a cliente reclamou.
+
+### Divergência declarada: pontos não viram tier
+
+O protótipo de referência conta `Settling in · 422 to Trailblazer`. Este repo
+mantém **Points → Bookstore credit** e recusa tiers. Um tier é um nome para um
+número; um crédito é uma coisa que o aluno compra — o argumento inteiro do ADR
+0002, e `tier` está na lista de palavras proibidas do glossário desde então.
+
+Isto vai à revisão com a cliente **como divergência explícita**, com o argumento
+escrito. Se ela ou o cliente final mantiverem os tiers, o caminho é um ADR novo
+revogando o 0002, não um apagamento silencioso.
+
+### ReactBits
+
+Nada novo entra nesta rodada. `Grainient` continua sendo a única peça em uso e
+não toca o portal. A checklist é a superfície mais densa já construída aqui, e
+movimento numa lista que o aluno vai varrer com os olhos é ruído — a régua de
+imobilidade da rodada de 14/08 se aplica inteira. O único movimento previsto é o
+que já existe: o confete quando uma Quest fecha, e o `CountUp` do Balance, ambos
+herdados sem alteração.
