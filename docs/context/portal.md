@@ -80,9 +80,18 @@ _Avoid_: start date, unlock date
 
 **Deadline**:
 The day by which the institution needs the Requirement. Shown as a date and a
-distance together — `Due Nov 16 · 100 days` — because a date alone makes a
-student do arithmetic to feel urgency.
+distance together — `Due Aug 14 · 6 days` — because a date alone makes a student
+do arithmetic to feel urgency. Always **before teaching begins**: a deadline
+that falls after the first lecture is not a deadline, and `portal.test.ts` holds
+that against the Academic calendar so it cannot come back.
 _Avoid_: due date, expiry, cutoff
+
+**Academic calendar**:
+The five dates of the term the student was admitted to — move-in, orientation,
+teaching begins, add/drop closes, and the first term's bill. One fixture
+(`academicCalendar`), and the ruler every Deadline is measured against. `Key
+dates` is what the student sees it called on the Dashboard.
+_Avoid_: term dates, important dates, milestones
 
 **Decay**:
 The rule by which a Requirement is worth one Point less for each day it goes

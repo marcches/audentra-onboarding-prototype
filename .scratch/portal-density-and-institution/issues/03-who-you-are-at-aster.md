@@ -1,6 +1,6 @@
 # 03 — Who you are at Aster
 
-Status: ready-for-agent
+Status: done
 
 **What to build:** The screen says which university this is, what the student was
 admitted to, when it starts, and what their number is — which is the whole of the
@@ -32,11 +32,11 @@ while it happens: if one of them breaks, it was restating the fixture.
 - [Uxcel](https://mobbin.com/screens/165ede79-21ff-4a81-adda-68a942c39c21) — the right-hand column carrying identity and reward blocks stacked, each short, none of them competing with the work in the main column.
 - [Portrait](https://mobbin.com/screens/21e83614-0f58-429c-a84b-8e811abb64e8) — a profile block whose facts are set as label→value pairs at metadata size, which is the anatomy the academic block borrows rather than inventing a fourth one.
 
-- [ ] Programme, degree, term, campus, student number and `Class of` are on the Dashboard
-- [ ] Every fact comes from `fixtures.ts`; none is typed into a component
-- [ ] The key dates fixture exists and the block reads it
-- [ ] No Requirement is due after teaching begins
-- [ ] Every Requirement is available on or before its own deadline
-- [ ] `portal.test.ts` gains those two assertions and its existing ones pass unedited
-- [ ] The photograph is contained, and the first card still ends above the fold
-- [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+- [x] Programme, degree, term, campus, student number and `Class of` are on the Dashboard
+- [x] Every fact comes from `fixtures.ts`; none is typed into a component
+- [x] The key dates fixture exists and the block reads it
+- [x] No Requirement is due after teaching begins
+- [x] Every Requirement is available on or before its own deadline
+- [x] `portal.test.ts` gains those two assertions and its existing ones pass unedited
+- [x] The photograph is contained, and the first card still ends above the fold
+- [x] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass

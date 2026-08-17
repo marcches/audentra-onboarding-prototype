@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { academicCalendar } from "@/lib/fixtures";
 import {
   addDays,
   availableInOrder,
   carriedOver,
   compareSmart,
   completedRequirements,
+  daysBetween,
   floorValue,
   pointsAtRisk,
   type Requirement,
@@ -182,6 +184,32 @@ describe("the twelve", () => {
     expect(carried).toHaveLength(3);
     for (const requirement of carried) {
       expect(requirement.path, requirement.id).toMatch(/^\/onboarding\//);
+    }
+  });
+
+  it("wants nothing after teaching begins", () => {
+    // The defect this cycle found, written so it cannot come back. The twelve
+    // deadlines were set to make one card read `100 days` and were never
+    // checked against a term, which put `Secure your place` on Nov 16 — twelve
+    // weeks after the student would have started classes. A deadline after the
+    // first lecture is not a deadline.
+    for (const requirement of requirements) {
+      expect(
+        daysBetween(requirement.deadline, academicCalendar.teachingBegins),
+        requirement.id,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("opens every Requirement on or before the day it is wanted", () => {
+    // The weaker invariant that should always have been there: a Requirement
+    // the student cannot start until after it was due is a row that can only
+    // ever be shown overdue.
+    for (const requirement of requirements) {
+      expect(
+        daysBetween(requirement.availableOn, requirement.deadline),
+        requirement.id,
+      ).toBeGreaterThanOrEqual(0);
     }
   });
 

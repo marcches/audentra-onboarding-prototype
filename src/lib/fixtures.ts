@@ -86,12 +86,19 @@ export type Photo = {
 };
 
 /**
- * The Offer keeps its photograph. The completion screen does not: every
- * candidate put mid-tones behind the largest type on the screen, so it runs on
- * a dark field with `LightRays` over it instead.
+ * Keyed by **what is in the frame**, not by the screen that shows it. The Offer
+ * and the portal's academic block both draw the lawn, and they draw the same
+ * file deliberately: it is the same campus, and one photograph appearing on both
+ * sides of the login is a small part of what makes the two surfaces one product.
+ * A key named after a screen would have made the second use look like a
+ * borrowing.
+ *
+ * The completion screen keeps none of these: every candidate put mid-tones
+ * behind the largest type on the screen, so it runs on a dark field with
+ * `LightRays` over it instead.
  */
 export const campusPhotos = {
-  offer: {
+  lawn: {
     src: "/images/campus/offer-campus.webp",
     alt: "A broad green lawn shaded by a large spreading tree, with brick campus buildings behind it",
   },
@@ -685,3 +692,49 @@ export const depositTerms = {
   /** When the rest of the first term's bill falls due. */
   balanceDue: "2027-08-15",
 } as const;
+
+/**
+ * The Fall 2027 calendar: the five dates a university portal owes a student, and
+ * the ruler every Requirement deadline is measured against.
+ *
+ * It is new because nothing in this repo had one, and the absence was not
+ * neutral. The twelve Requirement deadlines were written to make one card read
+ * `100 days` and were never checked against a term, which put `Secure your
+ * place` on **Nov 16** — twelve weeks after the student would have started
+ * classes. A deadline that falls after teaching begins is not a deadline; it is
+ * a number that happened to look right on a card.
+ *
+ * `teachingBegins` is therefore load-bearing rather than decorative:
+ * `portal.test.ts` asserts that no Requirement is due after it, so the defect
+ * cannot come back by somebody adjusting a date to make a screenshot read well.
+ *
+ * The shape of the term is an ordinary U.S. Fall one, and the two dates it has
+ * to agree with were already in the repo: the first term's bill is
+ * `depositTerms.balanceDue`, quoted rather than retyped, and the Involvement
+ * Fair (`catalogue.ts`, Aug 27) falls after classes begin, which is where every
+ * real fair falls and why that fixture does not move.
+ */
+export const academicCalendar = {
+  moveIn: "2027-08-21",
+  /** Two days before term, which is what `register-orientation` promises. */
+  orientation: "2027-08-23",
+  teachingBegins: "2027-08-25",
+  /** After teaching begins, as it is everywhere. Not a Requirement deadline. */
+  addDropCloses: "2027-09-08",
+  firstBillDue: depositTerms.balanceDue,
+} as const;
+
+/**
+ * The same five, in the order they happen, for the block that draws them.
+ *
+ * Derived from the record above rather than written beside it: two lists of
+ * dates that have to agree is the bug every derived list in this repo exists to
+ * make impossible.
+ */
+export const keyDates = [
+  { id: "first-bill", label: "First term's bill", date: academicCalendar.firstBillDue },
+  { id: "move-in", label: "Move-in", date: academicCalendar.moveIn },
+  { id: "orientation", label: "Orientation", date: academicCalendar.orientation },
+  { id: "teaching", label: "Teaching begins", date: academicCalendar.teachingBegins },
+  { id: "add-drop", label: "Add/drop closes", date: academicCalendar.addDropCloses },
+] as const;

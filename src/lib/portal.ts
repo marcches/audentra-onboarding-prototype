@@ -34,9 +34,10 @@ import { completedSteps } from "@/lib/store";
  * in the file is written relative to it, and the whole spine takes `today` as a
  * parameter defaulting to it.
  *
- * Chosen so that the first Requirement reads `Due Nov 16 · 100 days`, which is
- * the line the tracer-bullet ticket names, and so that the fixture sits inside
- * the offer's own year (`Fall 2027`).
+ * Chosen so that the fixture sits inside the offer's own year (`Fall 2027`),
+ * seventeen days before teaching begins — which is where a student accepting a
+ * place in August actually stands, and which is the window every deadline below
+ * is written into.
  */
 export const TODAY = "2027-08-08";
 
@@ -156,6 +157,22 @@ export type Requirement = {
  * `financial-aid` and `register-orientation` are the client's own opening
  * sentences on the call — *verificação financeira* and *registro para
  * orientação* — rather than two rows invented to round the number up.
+ *
+ * **Every date here is measured against `academicCalendar`**, and that is a
+ * correction rather than a convention. The first pass wrote deadlines to make
+ * one card read `100 days`, which put `Secure your place` on Nov 16 — twelve
+ * weeks after the student would have started classes. So the twelve are
+ * re-based into the run-up to term: available now or soon, wanted before
+ * teaching begins on Aug 25, and ordered against the things they are actually
+ * for — aid and the transcript before the bill, the meal plan and the move-in
+ * window before move-in, the interest list before the Involvement Fair,
+ * registration before the first lecture. `portal.test.ts` holds both halves of
+ * that so a future date cannot be nudged to make a screenshot read well.
+ *
+ * One visible consequence, and it is the honest one: at seventeen days out
+ * nothing is `steady`, so every card carries an urgency chip. That is what the
+ * fortnight before term looks like. The band is not dead — `urgencyOf` takes
+ * the day as a parameter — it simply has nothing to say on this one.
  */
 export const requirementGroups: readonly {
   category: RequirementCategory;
@@ -168,7 +185,8 @@ export const requirementGroups: readonly {
         /* The top of Smart order at fixture time, and the one Requirement that
            opens another: a move-in window cannot be chosen before the place is
            secured. It is worth 100 and became available today, which is what
-           makes the card read `100 pts today · 99 tomorrow`. */
+           makes the card read `100 pts today · 99 tomorrow`. Due the day before
+           the first term's bill, because the deposit is credited against it. */
         id: "secure-your-place",
         office: "Student Accounts",
         action: "Secure your place",
@@ -177,7 +195,7 @@ export const requirementGroups: readonly {
         blurb: "Pay the deposit, arrange to pay it later, or ask for a waiver.",
         category: "Your offer",
         availableOn: TODAY,
-        deadline: "2027-11-16",
+        deadline: "2027-08-14",
         minutes: 4,
         points: 100,
         prerequisites: [],
@@ -197,7 +215,7 @@ export const requirementGroups: readonly {
         blurb: "Immunisations, and anything you want us to accommodate.",
         category: "Health & wellness",
         availableOn: TODAY,
-        deadline: "2027-09-15",
+        deadline: "2027-08-19",
         minutes: 6,
         points: 60,
         prerequisites: [],
@@ -212,7 +230,7 @@ export const requirementGroups: readonly {
         blurb: "Join the student plan, or show us the cover you already have.",
         category: "Health & wellness",
         availableOn: "2027-08-01",
-        deadline: "2027-09-05",
+        deadline: "2027-08-18",
         minutes: 7,
         points: 60,
         prerequisites: [],
@@ -231,7 +249,7 @@ export const requirementGroups: readonly {
         blurb: "Mark what you might join before the Involvement Fair.",
         category: "Campus life",
         availableOn: TODAY,
-        deadline: "2027-10-01",
+        deadline: "2027-08-24",
         minutes: 5,
         points: 40,
         prerequisites: [],
@@ -246,7 +264,7 @@ export const requirementGroups: readonly {
         blurb: "Three plans, and you can change once before term starts.",
         category: "Campus life",
         availableOn: TODAY,
-        deadline: "2027-09-30",
+        deadline: "2027-08-20",
         minutes: 6,
         points: 50,
         prerequisites: [],
@@ -263,8 +281,8 @@ export const requirementGroups: readonly {
         label: "Choose your move-in window",
         blurb: "Pick the half-day you arrive, once your room is assigned.",
         category: "Campus life",
-        availableOn: "2027-09-15",
-        deadline: "2027-11-01",
+        availableOn: "2027-08-12",
+        deadline: "2027-08-19",
         minutes: 4,
         points: 40,
         prerequisites: ["secure-your-place"],
@@ -284,7 +302,7 @@ export const requirementGroups: readonly {
         blurb: "Your school sends it; the Registrar checks it against your offer.",
         category: "Academics",
         availableOn: "2027-08-01",
-        deadline: "2027-09-01",
+        deadline: "2027-08-13",
         minutes: 3,
         points: 50,
         prerequisites: [],
@@ -298,7 +316,7 @@ export const requirementGroups: readonly {
         blurb: "Two days before term. Pick the session that suits you.",
         category: "Academics",
         availableOn: "2027-08-04",
-        deadline: "2027-08-18",
+        deadline: "2027-08-17",
         minutes: 4,
         points: 70,
         prerequisites: [],
@@ -312,7 +330,7 @@ export const requirementGroups: readonly {
         blurb: "Your first term's timetable, once your transcript clears.",
         category: "Academics",
         availableOn: TODAY,
-        deadline: "2027-10-15",
+        deadline: "2027-08-21",
         minutes: 15,
         points: 90,
         prerequisites: ["final-transcript"],
@@ -325,8 +343,8 @@ export const requirementGroups: readonly {
         label: "Meet your academic adviser",
         blurb: "Half an hour, once the department has assigned you one.",
         category: "Academics",
-        availableOn: "2027-09-20",
-        deadline: "2027-11-30",
+        availableOn: "2027-08-14",
+        deadline: "2027-08-24",
         minutes: 20,
         points: 50,
         prerequisites: [],
@@ -346,7 +364,7 @@ export const requirementGroups: readonly {
         blurb: "Confirm the award letter and the documents behind it.",
         category: "Financials",
         availableOn: "2027-08-01",
-        deadline: "2027-08-22",
+        deadline: "2027-08-12",
         minutes: 10,
         points: 80,
         prerequisites: [],
@@ -368,7 +386,7 @@ export const requirementGroups: readonly {
         blurb: "One photograph, to the same rules as a passport.",
         category: "About you",
         availableOn: "2027-07-20",
-        deadline: "2027-09-30",
+        deadline: "2027-08-22",
         minutes: 3,
         points: 30,
         prerequisites: [],
@@ -547,7 +565,7 @@ export function pointsAtRisk(requirement: Requirement, today: string = TODAY): n
    ---------------------------------------------------------------------- */
 
 /**
- * `Nov 16` — the deadline as a date, shown beside the distance to it.
+ * `Aug 14` — the deadline as a date, shown beside the distance to it.
  *
  * Both, always: a date alone makes a student do arithmetic to feel urgency, and
  * a distance alone gives them nothing to write in a diary. `UTC` because every

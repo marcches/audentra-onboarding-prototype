@@ -259,8 +259,8 @@ function ThePiece() {
   return (
     <div className="relative col-span-5 isolate min-h-[12rem] overflow-hidden rounded-[var(--radius-card)] narrow:col-span-1 narrow:h-28 narrow:min-h-0">
       <img
-        src={campusPhotos.offer.src}
-        alt={campusPhotos.offer.alt}
+        src={campusPhotos.lawn.src}
+        alt={campusPhotos.lawn.alt}
         className="absolute inset-0 z-[var(--z-behind)] size-full object-cover"
       />
       <span

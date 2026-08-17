@@ -5,12 +5,20 @@ import { RichBalance } from "@/components/balance";
 import { PortalShell } from "@/components/portal-shell";
 import { QuestCard } from "@/components/quest-card";
 import { QuestRow } from "@/components/quest-row";
-import { Prose, Section, Sections, Well } from "@/components/surfaces";
+import { Fact, Prose, Section, Sections, Well } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
-import { studentRecord } from "@/lib/fixtures";
+import {
+  campusPhotos,
+  enrollment,
+  institution,
+  keyDates,
+  offer,
+  studentRecord,
+} from "@/lib/fixtures";
 import {
   availableInOrder,
   carriedOver,
+  formatDeadlineShort,
   portalProgress,
   type RequirementId,
   requirementsInState,
@@ -97,6 +105,7 @@ export function DashboardRoute() {
             in the sidebar already answers the question it answers at length. */}
         <div className="flex flex-col gap-2.5">
           <RichBalance size="full" />
+          <WhoYouAreHere />
           <NothingWasLost />
         </div>
       </div>
@@ -204,6 +213,103 @@ function ProgressLine({ complete, total }: { complete: number; total: number }) 
         />
       </span>
     </span>
+  );
+}
+
+/**
+ * Which university this is, what the student was admitted to, when it starts,
+ * and what their number is.
+ *
+ * **This is the whole of the difference between a violet SaaS with a crest in
+ * the corner and a system a university runs.** Before it, the only institutional
+ * facts anywhere in the portal were the crest, the university's name and the
+ * student's first name — while `fixtures.ts` already held the programme, the
+ * degree, the term, the campus, the student number and the class year, and the
+ * most institutional artefact in the repo was the student card on the *gate's*
+ * arrival screen. The surface where the student actually lives inherited none of
+ * it.
+ *
+ * Every fact is read from the fixture and none is typed here: they are the same
+ * facts the offer letter and the enrolment record carry, and a third copy on a
+ * screen is how a portal comes to disagree with the letter that produced it.
+ *
+ * **The photograph is contained** — a band at the head of the block, in a 17rem
+ * column, not a hero across the top of the page. The fold budget is the
+ * constraint that survived the last cycle and the first Quest card ending above
+ * y≈300 is the number this must not break, which is also why the block is in the
+ * secondary column: it spends the 365px of Ground measured there rather than any
+ * of the primary column's height. It is the lawn from the Offer screen, the same
+ * file deliberately (`campusPhotos`).
+ *
+ * **Key dates sit under it**, from `academicCalendar`, and they are not
+ * decoration: they are the ruler every Requirement deadline is now measured
+ * against. A university portal that cannot say when term starts is not one — and
+ * the first thing the calendar exposed, once written down, was that `Secure your
+ * place` had been due twelve weeks after the first lecture.
+ *
+ * The anatomy is the system's own `Fact` row, at full width (Portrait's profile
+ * block: label→value pairs, short, none of them competing with the work in the
+ * main column). One sheet with two Sections rather than two sheets, so the
+ * column reads as one frame with a rule across it (Uxcel's stacked right-hand
+ * column).
+ */
+function WhoYouAreHere() {
+  return (
+    <Sections>
+      <Section title="Your place at Aster">
+        <figure className="relative isolate mb-2 h-24 overflow-hidden rounded-[var(--radius-field)]">
+          <img
+            src={campusPhotos.lawn.src}
+            alt={campusPhotos.lawn.alt}
+            className="absolute inset-0 z-[var(--z-behind)] size-full object-cover"
+          />
+          <span
+            aria-hidden
+            className="absolute inset-0 z-[var(--z-behind)] bg-[linear-gradient(180deg,rgb(6_18_42/0.05)_35%,rgb(6_18_42/0.82)_100%)]"
+          />
+          <figcaption className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 px-2 py-1.5 text-white">
+            <span className="min-w-0 truncate text-micro font-bold tracking-[0.06em] uppercase">
+              {institution.name}
+            </span>
+            {/* The year alone, not `Founded 1867`: the crest two feet up the
+                sidebar already carries the word, and at 17rem the label was
+                what truncated the university's own name. */}
+            <span className="shrink-0 text-micro opacity-80 numeric">{institution.founded}</span>
+          </figcaption>
+        </figure>
+
+        <dl className="flex flex-col">
+          <Fact label="Programme" className="col-span-full">
+            {offer.programme}
+          </Fact>
+          <Fact label="Degree" className="col-span-full">
+            {offer.degree}
+          </Fact>
+          <Fact label="Starting" className="col-span-full">
+            {offer.startingTerm}
+          </Fact>
+          <Fact label="Campus" className="col-span-full">
+            {offer.campus}
+          </Fact>
+          <Fact label="Student number" className="col-span-full">
+            <span className="numeric">{enrollment.id}</span>
+          </Fact>
+          <Fact label="Class of" className="col-span-full">
+            <span className="numeric">{enrollment.classOf}</span>
+          </Fact>
+        </dl>
+      </Section>
+
+      <Section title="Key dates">
+        <dl className="flex flex-col">
+          {keyDates.map((entry) => (
+            <Fact key={entry.id} label={entry.label} className="col-span-full">
+              <span className="numeric">{formatDeadlineShort(entry.date)}</span>
+            </Fact>
+          ))}
+        </dl>
+      </Section>
+    </Sections>
   );
 }
 
