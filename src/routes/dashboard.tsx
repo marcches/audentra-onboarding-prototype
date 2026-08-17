@@ -29,6 +29,7 @@ export function DashboardRoute() {
 
   return (
     <PortalShell
+      current="dashboard"
       title={`Hello, ${name}`}
       lead={
         <p className="text-small text-ink-500 numeric">

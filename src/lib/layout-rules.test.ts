@@ -9,6 +9,7 @@ import {
   RAIL_ROW_PAD,
   widthClasses,
 } from "@/lib/layout";
+import { portalPresence } from "@/lib/portal-layout";
 
 /**
  * The layout ruler, enforced.
@@ -49,6 +50,14 @@ import {
  *    is answered by the sheet rather than by nine routes.
  * 9. **The prose measure is declared once** and carried by one element, the
  *    pattern the archetype measures and the action bar height already follow.
+ * 10. **The portal's Presence table is closed too**, at the rows its first cycle
+ *    needed, and it does not redeclare the three width classes — ADR 0014 splits
+ *    the exception list and shares everything else.
+ * 11. **The metadata type step is declared once** and no component reassigns it.
+ *    It is one step for facts about a Quest; the body and the headings did not
+ *    move to make room for it.
+ * 12. **No Quest card floats.** ADR 0010 again, one surface across: a list of
+ *    twelve shadows is the stacking three rounds of review have objected to.
  *
  * What it deliberately does **not** assert: content above the fold, and the
  * ceiling of three surfaces. The repo has no DOM environment, and measuring a
@@ -220,6 +229,66 @@ describe("presence", () => {
       expect(row.compact.length, row.id).toBeGreaterThan(0);
       expect(row.desktop.length, row.id).toBeGreaterThan(0);
     }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   5b · The portal's Presence is a closed table of its own
+   ------------------------------------------------------------------------ */
+
+describe("the portal's presence", () => {
+  it("has exactly four rows, and the gate's still has eight", () => {
+    // ADR 0014: two tables, two counts. Growing the gate's to twelve would
+    // destroy the only thing it does — eight is a number a reviewer can hold,
+    // and nobody notices a thirteenth row going into a list.
+    expect(portalPresence).toHaveLength(4);
+    expect(presence).toHaveLength(8);
+  });
+
+  it("gives every row a distinct piece and both of its states", () => {
+    expect(new Set(portalPresence.map((row) => row.id)).size).toBe(portalPresence.length);
+    for (const row of portalPresence) {
+      expect(row.compact.length, row.id).toBeGreaterThan(0);
+      expect(row.desktop.length, row.id).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not redeclare the three width classes", () => {
+    // They are ADR 0008's, they are shared, and a second copy is how two
+    // surfaces come to disagree about what a phone is.
+    const portalLayout = files.find((file) => file.name === "lib/portal-layout.ts");
+    expect(portalLayout?.text).not.toMatch(/widthClasses|compact"|768|1280/);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   5c · The metadata type step, and what it is for
+   ------------------------------------------------------------------------ */
+
+describe("the metadata type step", () => {
+  it("is declared once, in the theme, beside the measures", () => {
+    expect(css.match(/--text-meta:/g)).toHaveLength(1);
+  });
+
+  it("lets no component reassign it", () => {
+    for (const file of files) {
+      expect(file.text, file.name).not.toMatch(/"--text-meta"/);
+    }
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   5d · No Quest card floats
+   ------------------------------------------------------------------------ */
+
+describe("the Quest card", () => {
+  it("carries no elevation", () => {
+    // ADR 0010 reserves shadow for what genuinely floats — a modal, a popover,
+    // the action pill. A list of twelve shadows is the stacking the client has
+    // objected to in three separate rounds.
+    const card = files.find((file) => file.name === "components/quest-card.tsx");
+    expect(card?.text).toMatch(/FlatCard/);
+    expect(card?.text).not.toMatch(/shadow-/);
   });
 });
 

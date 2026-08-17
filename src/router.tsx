@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { CelebrationProvider } from "@/components/celebration";
 import { ImageViewerProvider } from "@/components/image-viewer";
+import { AreaScreen, RequirementScreen } from "@/routes/area";
 import { CampusLifeRoute } from "@/routes/campus-life";
 import { CompletionRoute } from "@/routes/completion";
 import { DashboardRoute } from "@/routes/dashboard";
@@ -204,12 +205,51 @@ const dashboardRoute = createRoute({
   component: DashboardRoute,
 });
 
+/**
+ * The seven Areas this cycle did not build, plus My Enrollment, each on its own
+ * URL and each rendering the one shared placeholder.
+ *
+ * Declared from `areas.ts` by hand rather than generated from it, because
+ * `createRoute` wants a literal path to type against — but the labels and the
+ * sentences come from the data module, so a wrong string here is a 404 rather
+ * than a screen that quietly disagrees with the sidebar.
+ */
+const areaRoutes = (
+  [
+    "enrollment",
+    "classrooms",
+    "campus-life",
+    "financials",
+    "documents",
+    "appointments",
+    "messages",
+    "profile",
+  ] as const
+).map((id) =>
+  createRoute({
+    getParentRoute: () => portalRoute,
+    path: id,
+    component: () => <AreaScreen id={id} />,
+  }),
+);
+
+/**
+ * Where a Quest card's primary action lands when the work is not the gate's.
+ * A card with an action that goes nowhere is the dead item this cycle removed
+ * from the sidebar, one level in.
+ */
+const requirementRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "enrollment/$requirement",
+  component: RequirementScreen,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   entryRoute,
   styleGuideRoute,
   completionRoute,
-  portalRoute.addChildren([portalIndexRoute, dashboardRoute]),
+  portalRoute.addChildren([portalIndexRoute, dashboardRoute, requirementRoute, ...areaRoutes]),
   onboardingRoute.addChildren([
     onboardingIndexRoute,
     offerRoute,
