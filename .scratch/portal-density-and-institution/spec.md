@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: done
 
 # The portal, cycle one and a half: the voids closed, the two surfaces reconciled, and an institution on the screen
 
