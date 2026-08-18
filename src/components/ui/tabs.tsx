@@ -96,7 +96,7 @@ function TabsTrigger({
           transition={
             reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 36 }
           }
-          className="absolute inset-0 rounded-[var(--radius-pill)] bg-surface shadow-soft"
+          className="absolute inset-0 rounded-[var(--radius-pill)] bg-surface shadow-[var(--shadow-contains)]"
         />
       ) : null}
       <span className="relative">{children}</span>

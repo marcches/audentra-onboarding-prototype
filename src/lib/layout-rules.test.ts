@@ -14,57 +14,89 @@ import { portalPresence } from "@/lib/portal-layout";
 /**
  * The layout ruler, enforced.
  *
- * **Rewritten rather than extended**, for the third time and for the same
- * reason ADR 0006 gives: a test and a ruler that disagree are worse than either
- * alone. Everything the previous version asserted about `Panel`, about the
- * `decision` archetype filling one viewport, and about a component called
- * `points-award` is gone in the same change as the things themselves.
+ * ## What may enter this file
  *
- * What it asserts now, and why each line exists:
+ * **Assert a defect the client has reported more than once, never an
+ * aesthetic.**
  *
- * 1. The four **drift** invariants that survived ADR 0006. All four are about
- *    the same element landing on different pixels depending on how you arrived
- *    at it, which is the client's actual complaint word for word ("vc erra
- *    bastante tbm com layout, onde fica dando flick, de posição").
- * 2. **Presence has exactly eight rows.** Without this the closed table in
- *    `docs/design-research.md` is decoration, and "Presence" is `hidden
- *    lg:block` with a nicer name.
- * 3. **No breakpoint outside the three width classes**, in any `.tsx`. ADR 0008
- *    says a fourth class is a test failure rather than a review note.
- * 4. **No animation rule touches a layout property.** `height`, `top`, `width`
- *    and `left` reflow a subtree on every frame, and that is the first suspect
- *    for the stutter the client reported. `grid-template-rows` is the sanctioned
- *    replacement and is explicitly allowed.
- * 5. **One celebration layer**, `fixed` and non-interactive — the evolution of
- *    the assertion that used to aim at the Points flight, now that the same
- *    layer owns the confetti and the single `<canvas>`.
- * 6. **One z-index ladder.** Every overlapping thing reads a token and nothing
- *    writes a literal, so "the dialog went behind the bar" stops being a class
- *    of bug.
- * 7. **No sheet can stretch.** `fill` and `grow` are gone from the prop surface
- *    rather than from the call sites, and the dropzone that genuinely wanted the
- *    room carries its own height instead of borrowing the column's.
- * 8. **The signature lands twice and no more.** The brand gradient is confined
- *    to four files, each with a reason written beside it; a route signs each of
- *    its screens once; the guide never signs; and "which Section is in progress"
- *    is answered by the sheet rather than by nine routes.
- * 9. **The prose measure is declared once** and carried by one element, the
- *    pattern the archetype measures and the action bar height already follow.
- * 10. **The portal's Presence table is closed too**, at the rows its first cycle
- *    needed, and it does not redeclare the three width classes — ADR 0014 splits
- *    the exception list and shares everything else.
- * 11. **The metadata type step is declared once** and no component reassigns it.
- *    It is one step for facts about a Quest; the body and the headings did not
- *    move to make room for it.
- * 12. **No Quest card floats.** ADR 0010 again, one surface across: a list of
- *    twelve shadows is the stacking three rounds of review have objected to.
+ * That line is here in prose because this file has now been rewritten four
+ * times, and every rewrite was caused by the same thing: it was holding taste
+ * still rather than catching a fault, so the next round of design had to delete
+ * it before it could work. ADR 0015 deleted five invariants at once for exactly
+ * that reason, and one of them — the signature confined to four files — was
+ * failing the designer's own request in CI at the moment she made it. Without
+ * this criterion written down there will be a fifth rewrite.
  *
- * What it deliberately does **not** assert: content above the fold, and the
- * ceiling of three surfaces. The repo has no DOM environment, and measuring a
- * fold without one is pretending the test knows the height of a font. A test
- * that lies is worse than no test, so those two are human acceptance at
- * 1366×768 and 390×844 — the one point in this epic where "done" is not an
- * output of CI, and the client agreed to that explicitly.
+ * A line belongs here when all three are true:
+ *
+ * 1. Somebody outside this repo has complained about it, **twice**.
+ * 2. It is verifiable from the source, without a DOM.
+ * 3. Reversing it would be a decision, not a preference.
+ *
+ * ## The nine
+ *
+ * 1–4. The **four drift invariants**. All four are about the same element
+ *      landing on different pixels depending on how you arrived at it, which is
+ *      the client's complaint word for word ("vc erra bastante tbm com layout,
+ *      onde fica dando flick, de posição"): every Step anchors its title at the
+ *      same pixel, nothing is born above the title, the foot of the screen is a
+ *      constant declared once, and a primary action does not resize as you
+ *      work.
+ * 5.   **No animation rule touches a layout property.** `height`, `top`,
+ *      `width` and `left` reflow a subtree on every frame, and that is the
+ *      first suspect for the stutter the client reported twice.
+ *      `grid-template-rows` is the sanctioned replacement and is allowed by
+ *      name.
+ * 6.   **One celebration layer**, `fixed` and non-interactive, owning exactly
+ *      one `<canvas>`. It is how the four drift rules survive a 3.4-second
+ *      choreography running across the whole screen.
+ * 7.   **One z-index ladder.** Every overlapping thing reads a token and
+ *      nothing writes a literal, so "the dialog went behind the bar" stops
+ *      being a class of bug.
+ * 8.   **One icon weight for meaning and one for state** — new in ADR 0015.
+ *      Three Phosphor weights ran at once and read as three different icon
+ *      families, which is one of the four measured causes of "too flat".
+ * 9.   **No half-step in the spacing scale** — new in ADR 0015. Five gap values
+ *      lived inside eight pixels with half-steps, which is the same compression
+ *      as the type scale one axis over: grouping cannot be composed out of
+ *      intervals a reader cannot tell apart.
+ *
+ * ## The physical ruler, which is not taste and is not counted
+ *
+ * ADR 0008 (HD is the desktop), ADR 0009 (a decision scrolls) and ADR 0014 (the
+ * portal's Presence table) are untouched by ADR 0015 and are asserted below
+ * without being part of the nine: the three width classes and their boundaries,
+ * every measure declared exactly once with no call site, the metadata type
+ * step, the institution's colours staying inside its own SVG, and the rail's
+ * connector being computed rather than eyeballed. Each of them is a *count of
+ * declarations* rather than a judgement about how a screen should look, which
+ * is precisely why none of them has ever had to be deleted to let a design
+ * round proceed.
+ *
+ * ## What was deleted, and why
+ *
+ * ADR 0015 removed five, each of which policed a decision this cycle
+ * deliberately reversed:
+ *
+ * - **Presence has exactly eight rows**, and its portal twin at four. Closed
+ *   tables of a fixed size are an aesthetic about how much variation is
+ *   tasteful, and nobody outside the repo ever asked for either number.
+ * - **No sheet can stretch.** The prop surface it policed is still gone; the
+ *   assertion was guarding an implementation detail of a fix rather than the
+ *   defect.
+ * - **The signature lands in four files.** Superseded outright: the brand is a
+ *   property of the surface now — the room and the band — rather than an
+ *   exception granted to four call sites.
+ * - **No Quest card floats.** Elevation is back as containment; the lead card
+ *   is raised because it is the subject of the screen.
+ *
+ * ## What it deliberately does not assert
+ *
+ * Content above the fold, and whether the screen reads as flat. The repo has no
+ * DOM environment, and measuring a fold without one is pretending the test
+ * knows the height of a font. A test that lies is worse than no test, so those
+ * are human acceptance at 1366×768 and 390×844 — the one point in this cycle
+ * where "done" is not an output of CI, and the client agreed to that explicitly.
  *
  * Everything here asserts a source-level invariant rather than measuring a
  * rendered page: an escape hatch that does not exist cannot be used wrongly by
@@ -81,19 +113,11 @@ function code(text: string) {
   return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
-/**
- * Strings blanked, so a rule about *props* is not tripped by a sentence.
- *
- * "Selection is fill and a check" is a caption in the style guide and `fill` is
- * a prop that no longer exists; without this the two are the same eight
- * characters. Applied only where the assertion is about JSX attributes.
- */
-function attributes(text: string) {
-  return text
-    .replace(/"[^"]*"/g, '""')
-    .replace(/'[^']*'/g, "''")
-    .replace(/`[^`]*`/g, "``");
-}
+/* `attributes()` — which blanked string literals so a rule about props was not
+   tripped by a sentence — went with the sheet-stretch invariant that was its
+   only caller. It is named here rather than kept, because the next assertion
+   that needs to tell a prop from a caption should have to decide that for
+   itself rather than inherit a helper nobody remembers the reason for. */
 
 function sourceFiles() {
   return readdirSync(SRC, { recursive: true, encoding: "utf8" })
@@ -212,52 +236,33 @@ describe("a primary action does not resize as you work", () => {
 });
 
 /* ---------------------------------------------------------------------------
-   5 · Presence is a closed table of eight
+   deleted — "Presence has exactly eight rows", and its portal twin at four
+   ---------------------------------------------------------------------------
+   Both tables survive as tables; what goes is the assertion that each has a
+   fixed number of rows. A closed count is a claim about how much variation is
+   tasteful, and no client ever asked for eight or for four — which is the first
+   of the three tests a line has to pass to live in this file.
+
+   What replaces them is the rule they were standing in front of, and it is
+   still asserted below: `portal-layout.ts` does not redeclare the three width
+   classes. ADR 0014 splits the exception lists and shares everything else, and
+   a second copy of what a phone is remains a real defect rather than a taste.
    ------------------------------------------------------------------------ */
 
-describe("presence", () => {
-  it("has exactly eight rows", () => {
-    // Eight, argued for one by one in `docs/design-research.md`. A ninth needs
-    // a written reason in the same change, and the argument has to be that no
-    // container query can express it.
-    expect(presence).toHaveLength(8);
-  });
-
-  it("gives every row a distinct piece and both of its states", () => {
-    expect(new Set(presence.map((row) => row.id)).size).toBe(presence.length);
-    for (const row of presence) {
-      expect(row.compact.length, row.id).toBeGreaterThan(0);
-      expect(row.desktop.length, row.id).toBeGreaterThan(0);
-    }
-  });
-});
-
-/* ---------------------------------------------------------------------------
-   5b · The portal's Presence is a closed table of its own
-   ------------------------------------------------------------------------ */
-
-describe("the portal's presence", () => {
-  it("has exactly four rows, and the gate's still has eight", () => {
-    // ADR 0014: two tables, two counts. Growing the gate's to twelve would
-    // destroy the only thing it does — eight is a number a reviewer can hold,
-    // and nobody notices a thirteenth row going into a list.
-    expect(portalPresence).toHaveLength(4);
-    expect(presence).toHaveLength(8);
-  });
-
-  it("gives every row a distinct piece and both of its states", () => {
-    expect(new Set(portalPresence.map((row) => row.id)).size).toBe(portalPresence.length);
-    for (const row of portalPresence) {
-      expect(row.compact.length, row.id).toBeGreaterThan(0);
-      expect(row.desktop.length, row.id).toBeGreaterThan(0);
-    }
-  });
-
-  it("does not redeclare the three width classes", () => {
-    // They are ADR 0008's, they are shared, and a second copy is how two
-    // surfaces come to disagree about what a phone is.
+describe("the two Presence tables", () => {
+  it("share one definition of what a phone is", () => {
     const portalLayout = files.find((file) => file.name === "lib/portal-layout.ts");
     expect(portalLayout?.text).not.toMatch(/widthClasses|compact"|768|1280/);
+  });
+
+  it("gives every row a distinct piece and both of its states", () => {
+    for (const table of [presence, portalPresence]) {
+      expect(new Set(table.map((row) => row.id)).size).toBe(table.length);
+      for (const row of table) {
+        expect(row.compact.length, row.id).toBeGreaterThan(0);
+        expect(row.desktop.length, row.id).toBeGreaterThan(0);
+      }
+    }
   });
 });
 
@@ -410,138 +415,174 @@ describe("the stacking order", () => {
 });
 
 /* ---------------------------------------------------------------------------
-   10 · No sheet can stretch
+   deleted — "No sheet can stretch"
+   ---------------------------------------------------------------------------
+   `fill` and `grow` are still gone from `Sections`, and a prop that does not
+   exist still cannot be passed — which was always the guarantee. What this
+   asserted was the *shape of the fix* rather than the defect, and the defect
+   (a void inside a border, on a screen where nothing wanted the room) is one
+   nobody can measure without a DOM anyway. It goes with the other four.
    ------------------------------------------------------------------------ */
 
-describe("every sheet is the height of its content", () => {
-  it("has deleted `fill` and `grow` from the props, not only from the call sites", () => {
-    // A prop that does not exist cannot be passed, which is a stronger
-    // guarantee than a review note about not passing it. Both took the Step
-    // column's leftover height and spent it inside a border, which is the
-    // white space the client photographed on three sibling Steps.
-    expect(surfaces?.text).not.toMatch(/\bfill\?:/);
-    expect(surfaces?.text).not.toMatch(/\bgrow\?:/);
-    expect(surfaces?.text).not.toMatch(/\bfill\s*=\s*false/);
-    expect(surfaces?.text).not.toMatch(/\bgrow\s*=\s*false/);
-  });
+/* ---------------------------------------------------------------------------
+   deleted — "The signature lands twice, and no more"
+   ---------------------------------------------------------------------------
+   Superseded outright by ADR 0015. The brand is a property of the surface now —
+   the room every screen stands in and the band that opens it — rather than an
+   exception granted to four call sites, and the sheet's gradient hairline is
+   gone along with the rule that rationed it.
 
-  it("lets no `.tsx` pass either of them", () => {
+   This is the line that made the case for the criterion at the top of this
+   file: as written it required the gradient to appear in four files, and the
+   designer's request was for *more* of it. A ruler that fails a design request
+   in CI is a ruler holding taste still.
+   ------------------------------------------------------------------------ */
+
+/* ---------------------------------------------------------------------------
+   8 · One icon weight for meaning, and one for state
+   ---------------------------------------------------------------------------
+   New in ADR 0015, and it answers a measured defect: three Phosphor weights ran
+   at once — `regular`, `bold` and `duotone` — and read as three different icon
+   families on one screen. That is one of the four causes behind "too flat", and
+   it is the same disease as a nine-step type scale: variation with no meaning
+   attached to it.
+
+   Two weights, and each has a job. **`bold` names a thing** — the subject of a
+   Section, an action, a unit of metadata. **`fill` says a thing is in a state**
+   — done, selected, where you are. A student never has to work out which of
+   three weights they are looking at, because there are two and the difference
+   between them is the difference between a noun and a status.
+   ------------------------------------------------------------------------ */
+
+const ICON_WEIGHTS = new Set(["bold", "fill"]);
+
+describe("icon weight carries exactly two meanings", () => {
+  it("uses `bold` for meaning and `fill` for state, and no third weight", () => {
     for (const file of components) {
-      expect(attributes(file.text), file.name).not.toMatch(/(?:^|\s)(fill|grow)(?=\s|>|$)/m);
+      for (const attribute of file.text.match(/weight="[a-z]+"/g) ?? []) {
+        const weight = attribute.slice(8, -1);
+        expect(ICON_WEIGHTS.has(weight), `${file.name}: weight="${weight}"`).toBe(true);
+      }
     }
   });
 
-  it("gives the dropzone an intrinsic height rather than the column's slack", () => {
-    // The one part of a short Step that genuinely wanted to be large. It is
-    // large because a dropzone is large, not because Health had room to spare.
-    // `min-h-0` is the tell: it is what an element writes when it intends to be
-    // stretched by a flex parent. The remaining `flex-1` in the file is the
-    // horizontal one that lets the label take the row's width.
-    const upload = files.find((file) => file.name === "components/document-upload.tsx");
-    expect(upload?.text).toMatch(/h-\[9rem\]/);
-    expect(upload?.text).not.toMatch(/min-h-0|max-h-\[/);
+  it("keeps a weight chosen at runtime inside the same two", () => {
+    // `weight={here ? "fill" : "bold"}` is the state pair, written out. A
+    // ternary is where a third weight comes back in without being noticed.
+    for (const file of components) {
+      for (const expression of file.text.match(/weight=\{[^}]*\}/g) ?? []) {
+        for (const quoted of expression.match(/"[a-z]+"/g) ?? []) {
+          const weight = quoted.slice(1, -1);
+          expect(ICON_WEIGHTS.has(weight), `${file.name}: ${expression}`).toBe(true);
+        }
+      }
+    }
   });
 });
 
 /* ---------------------------------------------------------------------------
-   11 · The signature lands twice, and no more
+   9 · No half-step in the spacing scale
+   ---------------------------------------------------------------------------
+   New in ADR 0015, and the whitespace half of the same compression the type
+   scale had: five gap values living between 4px and 12px, half of them
+   half-steps, and exactly one spacing token declared in the entire system.
+
+   Grouping cannot be composed out of intervals a reader cannot tell apart. The
+   rhythm is five steps — 4 / 8 / 16 / 24 / 40 — declared once in the theme and
+   far enough apart to be seen (Midday). A `2.5` in a class name is a sixth step
+   nobody argued for, and 124 of them is a rhythm with nothing in it.
+
+   This is the *deletion* half of the expand–contract made permanent: the
+   utilities are gone from the source, and this is what stops the next screen
+   reintroducing them one at a time.
    ------------------------------------------------------------------------ */
 
-/**
- * The four files the brand gradient may appear in, each for a stated reason.
- *
- * - `surfaces.tsx` — the Section marker's "in progress" fill, and the sheet
- *   hairline. The two places ADR 0012 admits.
- * - `step-rail.tsx` — the group marker on the spine, which is the same grammar
- *   one level up and predates this round.
- * - `completion.tsx` — the student card. It is an object handed over on a
- *   celebration screen outside the Step shell, not a mark on a working screen.
- * - `style-guide.tsx` — the swatch that documents the rule. A system that
- *   cannot show its own gradient cannot be reviewed.
- *
- * Anything else — a field, a chip, the primary action, an eyebrow above an
- * `h1` — is what turns a signature into a stripe on every component, which is
- * the decision this list exists to stop being remade every fortnight.
- */
-const GRADIENT_ALLOWED = new Set([
-  "components/surfaces.tsx",
-  "components/step-rail.tsx",
-  "routes/completion.tsx",
-  "routes/style-guide.tsx",
-  /* The portal's shell — the fifth, argued for in the cycle that added it. The
-     gate signs a screen's *work sheet*; the portal has no single work sheet,
-     because its screens are a shell with a column in them. So the mark lands
-     once at the head of the content column, which is the same claim about
-     frequency the rule was always making: one per screen, and nothing else on
-     the screen carries it. Before this the portal was the only surface in the
-     product with no signature at all. */
-  "components/portal-shell.tsx",
-]);
+describe("the spacing scale has no half-step", () => {
+  it("declares five steps, in the theme, and no more", () => {
+    /* `--space-section` is not a sixth step: it is a *name* for one of the
+       five, so that "the gap between two Sections" is a decision recorded once
+       rather than a number typed into a component. It has to resolve to one of
+       them, which is what the second assertion checks. */
+    const steps = (css.match(/^\s*--space-[a-z]+:/gm) ?? []).map((step) => step.trim());
+    expect(steps).toEqual([
+      "--space-hair:",
+      "--space-tight:",
+      "--space-group:",
+      "--space-block:",
+      "--space-region:",
+      "--space-section:",
+    ]);
+    expect(css).toMatch(/--space-section:\s*var\(--space-(hair|tight|group|block|region)\)/);
+  });
 
-/** Every `<Sections …>` opening tag in a file. */
-function sheetTags(text: string) {
-  return text.match(/<Sections\b[^>]*?>/gs) ?? [];
-}
+  /**
+   * The utilities that read the spacing scale, named rather than matched by
+   * shape.
+   *
+   * A pattern of "any word, a dash, a number and a half" also catches an SVG
+   * path command and a line of GLSL, which is how a ruler comes to be switched
+   * off by whoever hits the false positive first. These are the prefixes that
+   * actually resolve against the spacing scale, and a sixth kind of half-step
+   * is a line added here.
+   */
+  const SPACED = [
+    "gap",
+    "gap-x",
+    "gap-y",
+    "p",
+    "px",
+    "py",
+    "pt",
+    "pb",
+    "pl",
+    "pr",
+    "m",
+    "mx",
+    "my",
+    "mt",
+    "mb",
+    "ml",
+    "mr",
+    "space-x",
+    "space-y",
+    "size",
+    "w",
+    "h",
+    "min-w",
+    "min-h",
+    "max-w",
+    "max-h",
+    "basis",
+    "inset",
+    "inset-x",
+    "inset-y",
+    "top",
+    "bottom",
+    "left",
+    "right",
+    "start",
+    "end",
+    "translate-x",
+    "translate-y",
+  ];
 
-describe("the Audentra signature", () => {
-  it("appears in four files, each of which had to argue for it", () => {
+  const HALF_STEP = new RegExp(
+    "(?:^|[\\s\"'`])-?(?:" + SPACED.join("|") + ")-\\d+\\.5(?![\\w.])",
+    "g",
+  );
+
+  it("lets no `.tsx` write a half-step utility", () => {
     for (const file of components) {
-      if (GRADIENT_ALLOWED.has(file.name)) continue;
-      expect(file.text, file.name).not.toMatch(/brand-gradient/);
+      const found = (file.text.match(HALF_STEP) ?? []).map((utility) => utility.trim());
+      expect(found, file.name).toEqual([]);
     }
   });
 
-  it("lands exactly once in the portal's shell, and once per portal screen", () => {
-    // One shell, one mark, every Area — the portal's version of "a route signs
-    // each of its screens once".
-    const portal = files.find((file) => file.name === "components/portal-shell.tsx");
-    expect(portal?.text.match(/brand-gradient/g)).toHaveLength(1);
-    // Every other file the portal is made of, so a second mark on a portal
-    // screen is a test failure rather than a review note.
-    const PORTAL = [
-      "components/quest-card.tsx",
-      "routes/dashboard.tsx",
-      "routes/area.tsx",
-      "routes/appointments.tsx",
-    ];
-    for (const file of files) {
-      if (!PORTAL.includes(file.name)) continue;
-      expect(file.text, file.name).not.toMatch(/brand-gradient/);
-    }
-  });
-
-  it("lands exactly twice in the surfaces module: the marker, and the hairline", () => {
-    expect(surfaces?.text.match(/brand-gradient/g)).toHaveLength(2);
-  });
-
-  it("signs each of a route's screens once and no more", () => {
-    // A source-level count cannot tell one screen from another inside a route —
-    // Deposit is three screens in one file — so the ceiling is the number of
-    // shells the route renders. Two hairlines on one screen would need a fourth
-    // `Sections`, and there is nowhere in this flow that has one.
-    for (const route of routes) {
-      const signed = sheetTags(route.text).filter((tag) => /\bsignature\b/.test(tag));
-      const shells = route.text.match(/<StepShell\b/g)?.length ?? 0;
-      expect(signed.length, route.name).toBeLessThanOrEqual(shells);
-    }
-  });
-
-  it("never signs the guide", () => {
-    // The guide is a second sheet on the same screen. Signing it would put the
-    // signature twice on every form Step in the flow, which is the definition
-    // of a stripe rather than a signature.
-    for (const tag of sheetTags(shell?.text ?? "")) {
-      expect(tag).not.toMatch(/\bsignature\b/);
-    }
-  });
-
-  it("decides `in progress` in the sheet, and lets no route pass it", () => {
-    // A Section cannot know it is first on the screen, and nine routes working
-    // it out is the answer living in nine places.
-    expect(surfaces?.text).toMatch(/useSheetProgress\(\)/);
-    expect(surfaces?.text).toMatch(/SheetProgress\.Provider/);
-    for (const route of routes) {
-      expect(route.text, route.name).not.toMatch(/SheetProgress|inProgress/);
+  it("lets no half-step into the stylesheet either", () => {
+    // The theme is where a sixth step would be cheapest to add and hardest to
+    // see, so the same rule applies to the declaration as to the call site.
+    for (const step of css.match(/^\s*--space-[a-z-]+:\s*([\d.]+)px/gm) ?? []) {
+      expect(step.trim()).not.toMatch(/\.\d/);
     }
   });
 });

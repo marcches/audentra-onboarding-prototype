@@ -205,7 +205,7 @@ export function WhoYouAreRoute() {
         </>
       }
     >
-      <Sections as="fieldset" signature>
+      <Sections as="fieldset">
         {/* Spans the sheet: a two-field strip beside a full-height section
             leaves a hole where the other half of the row would have been. */}
         <Section

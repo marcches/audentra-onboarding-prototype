@@ -166,7 +166,7 @@ export function WhoWeCallRoute() {
         </>
       }
     >
-      <Sections as="fieldset" signature>
+      <Sections as="fieldset">
         <Section
           step={1}
           done={missing === 0}

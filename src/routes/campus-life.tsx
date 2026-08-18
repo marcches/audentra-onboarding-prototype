@@ -417,7 +417,7 @@ function InterestToggle({
           : "border-ink-200 bg-panel text-ink-700 hover:border-ink-300",
       )}
     >
-      <BookmarkSimpleIcon weight={interested ? "fill" : "regular"} aria-hidden className="size-3" />
+      <BookmarkSimpleIcon weight={interested ? "fill" : "bold"} aria-hidden className="size-3" />
       Interested
       <span className="sr-only">{interested ? ` in ${name}, remove` : ` in ${name}`}</span>
     </button>

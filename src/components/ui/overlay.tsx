@@ -49,7 +49,7 @@ export function Overlay({
             data-slot="overlay-content"
             className={cn(
               "pointer-events-auto flex max-h-[85dvh] w-full max-w-[34rem] flex-col overflow-y-auto bg-surface text-ink-900 outline-none",
-              "rounded-[var(--radius-slab)] border border-ink-100 px-5 pt-4 pb-5 shadow-modal",
+              "rounded-[var(--radius-slab)] border border-ink-100 px-5 pt-4 pb-5 shadow-[var(--shadow-floats)]",
               "compact:max-h-[88dvh] compact:max-w-none compact:rounded-b-none compact:border-0 compact:px-4 compact:pt-2 compact:pb-5",
               "duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
               "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",

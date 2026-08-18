@@ -93,7 +93,7 @@ export function HealthRoute() {
         </>
       }
     >
-      <Sections as="fieldset" signature>
+      <Sections as="fieldset">
         {/* The sensitive question says why it is asked, once, before it asks
             (Remote). Flat register: this is the one screen in the flow where
             warmth would read as intrusive. */}

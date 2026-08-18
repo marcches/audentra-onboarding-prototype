@@ -116,7 +116,7 @@ export function OfferRoute() {
         <ThePiece />
 
         <div className="col-span-7 flex flex-col gap-[var(--space-section)] narrow:col-span-1">
-          <Sections signature>
+          <Sections>
             <Section title="The offer" collapsible={false}>
               <SectionFields>
                 {FACTS.map((fact) => (

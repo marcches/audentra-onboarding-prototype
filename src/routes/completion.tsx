@@ -205,7 +205,7 @@ export function CompletionRoute() {
  */
 function StudentCard({ residence }: { residence?: string }) {
   return (
-    <div className="brand-gradient relative isolate flex aspect-[1.586/1] w-[22rem] flex-col justify-between overflow-hidden rounded-[var(--radius-slab)] p-4 text-white shadow-lift compact:w-[19rem]">
+    <div className="brand-gradient relative isolate flex aspect-[1.586/1] w-[22rem] flex-col justify-between overflow-hidden rounded-[var(--radius-slab)] p-4 text-white shadow-[var(--shadow-contains)] compact:w-[19rem]">
       <span
         aria-hidden
         className="absolute inset-0 z-[var(--z-behind)] bg-[radial-gradient(70%_60%_at_85%_10%,rgb(255_255_255/0.26),transparent_70%)]"

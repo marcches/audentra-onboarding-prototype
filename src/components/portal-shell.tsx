@@ -152,17 +152,6 @@ export function PortalShell({
           <CompactBalance />
         </header>
 
-        {/* The Audentra signature, once per screen (ADR 0012).
-
-            The gate signs the screen's work sheet. The portal has no single work
-            sheet — its screens are a shell with a column in it — so the mark
-            lands at the head of the content column, which is the same claim
-            about frequency: one per screen, and nothing else on the screen
-            carries it. Without this the portal was the only surface in the
-            product with no signature at all, which is a fair part of why it read
-            as somebody else's work. */}
-        <span aria-hidden className="brand-gradient h-[2px] shrink-0" />
-
         <main className="flex flex-1 flex-col px-4 pt-4 pb-6 compact:px-2 compact:pb-[5.5rem]">
           <div className="mx-auto flex w-full max-w-[var(--catalogue-measure)] flex-1 flex-col gap-4">
             {/* The band, and it opens every screen in the portal (ADR 0015).

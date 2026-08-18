@@ -207,13 +207,6 @@
   --shadow-contains: 0 2px 6px rgb(42 20 96 / 0.05), 0 12px 32px -10px rgb(42 20 96 / 0.16);
   --shadow-floats: 0 8px 16px rgb(42 20 96 / 0.08), 0 40px 80px -24px rgb(42 20 96 / 0.34);
 
-  /* The four names the app was built on. Kept resolving through the migrate
-     batches and deleted in the contract, once nothing reads them. */
-  --shadow-soft: 0 1px 2px rgb(10 31 68 / 0.06), 0 1px 3px rgb(10 31 68 / 0.04);
-  --shadow-card: var(--shadow-contains);
-  --shadow-lift: var(--shadow-contains);
-  --shadow-modal: var(--shadow-floats);
-
   /* ---------------------------------------------------------------------
      The spacing rhythm — five steps, no half-step (ADR 0015).
 
@@ -310,14 +303,6 @@
   --text-display: 2.75rem;
   --text-display--line-height: 2.9rem;
   --text-display--letter-spacing: -0.03em;
-
-  /* The two deleted steps, still resolving. Nothing new may read them; the
-     contract removes them once the last call site is gone. */
-  --text-micro: 0.75rem;
-  --text-micro--line-height: 1.05rem;
-  --text-micro--letter-spacing: 0.05em;
-  --text-lead: 0.9375rem;
-  --text-lead--line-height: 1.5;
 
   /* The gap between two Sections — the one spacing token the system used to
      declare, now the middle step of a rhythm that has five. */
@@ -801,29 +786,17 @@
   }
 
   /* ---------------------------------------------------------------------
-     Three uses of the brand that are not signals.
+     Two uses of the brand that are not signals.
 
-     The two-stop gradient stays a signal — progress, the primary action, the
-     live marker. These three are admitted because each is a *container* or a
-     *ground*, never a mark competing with one.
+     ADR 0012's list of permitted files is superseded: the brand is a property
+     of the surface now — the room and the band — rather than an exception
+     granted to four call sites. What survives here is the pair that are a
+     *container* or a *fill* rather than a mark competing with one.
+
+     The wash that used to sit under a `decision` screen is gone with them. It
+     was solving "450px of white beneath one decision" a screen at a time, and
+     a tinted ground under every screen solves it once.
      ------------------------------------------------------------------ */
-
-  /* A very low gradient ground, under `decision` screens only. It is what
-     stops the space around a single decision from reading as unfinished
-     white: the piece rests on something instead of floating. */
-  .decision-ground {
-    background-image:
-      radial-gradient(
-        60% 50% at 12% 0%,
-        color-mix(in oklab, var(--color-violet-500) 9%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        55% 45% at 100% 30%,
-        color-mix(in oklab, var(--color-azure-500) 8%, transparent),
-        transparent 72%
-      );
-  }
 
   /* The icon tile: a brand-tinted container at ~12% alpha. It holds an icon
      and never touches text — brand ink under a word is the thing this exists

@@ -129,7 +129,7 @@ export function ReviewRoute() {
             ) : null}
           </Well>
 
-          <Sections signature>
+          <Sections>
             {sections.map((section) => (
               <AnswerSection key={section.id} section={section} />
             ))}

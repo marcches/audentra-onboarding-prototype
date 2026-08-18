@@ -63,7 +63,6 @@ import { cn } from "@/lib/utils";
 export function Sections({
   as: Tag = "div",
   columns = 1,
-  signature = false,
   footer,
   className,
   children,
@@ -77,21 +76,6 @@ export function Sections({
    * already inside a narrow half — Review's left-hand column asks for that.
    */
   columns?: 1 | 2;
-  /**
-   * The Audentra hairline: a 2px rule of the brand gradient across the top of
-   * this sheet, and one of the two places in the whole system the gradient is
-   * allowed to appear (ADR 0012).
-   *
-   * It is a signature rather than a stripe, which is a claim about *frequency*
-   * before it is a claim about anything else: the screen's work sheet takes it
-   * and nothing else on the screen does. The guide never carries it — a guide
-   * signed like the work would make the signature furniture.
-   *
-   * It costs no height. The strip is drawn over the sheet's own top border
-   * inside the existing `overflow-hidden`, so a signed sheet and an unsigned
-   * one put their first Section header on the same pixel.
-   */
-  signature?: boolean;
   /** The guidance strip at the foot of the sheet — what is left, and what is next. */
   footer?: React.ReactNode;
   className?: string;
@@ -124,10 +108,6 @@ export function Sections({
         className,
       )}
     >
-      {signature ? (
-        <span aria-hidden className="brand-gradient absolute inset-x-0 top-0 h-1" />
-      ) : null}
-
       {/* The rules between Sections, drawn as a grid rather than as a stack of
           frames. Every Section carries a top and a left hairline and the
           wrapper pulls itself one pixel up and left, so the outer edges land

@@ -21,7 +21,7 @@ const buttonVariants = cva(
         primary:
           "bg-violet-500 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(10_31_68/0.16)] hover:bg-violet-600",
         secondary:
-          "border border-ink-200 bg-surface text-ink-800 shadow-soft hover:border-ink-300 hover:bg-ink-50",
+          "border border-ink-200 bg-surface text-ink-800 shadow-[var(--shadow-contains)] hover:border-ink-300 hover:bg-ink-50",
         ghost: "text-ink-700 hover:bg-ink-50 hover:text-ink-900",
         danger:
           "border border-danger-100 bg-danger-50 text-danger-600 hover:border-danger-500/40 hover:bg-danger-100",

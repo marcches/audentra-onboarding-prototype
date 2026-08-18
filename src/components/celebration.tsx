@@ -414,7 +414,7 @@ export function PricePill({
         "transition-[background-color,color,box-shadow,opacity] duration-[var(--duration-quick)] ease-[var(--ease-out-soft)]",
         size === "rail" && "px-2 py-0 text-[0.625rem]",
         size === "header" && "px-2 py-1 text-small",
-        size === "flight" && "h-12 gap-2 px-4 text-h2 shadow-lift",
+        size === "flight" && "h-12 gap-2 px-4 text-h2 shadow-[var(--shadow-contains)]",
         earned || solid
           ? "bg-mint-600 text-white"
           : "bg-violet-50 text-violet-700 ring-1 ring-violet-100 ring-inset",
@@ -466,7 +466,7 @@ function FlyingToken({ award }: { award: Celebration }) {
       style={{ position: "absolute", top: 0, left: 0 }}
     >
       <span className="block -translate-x-1/2 -translate-y-1/2">
-        <span className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-pill)] bg-mint-600 px-4 text-h2 font-bold text-white shadow-lift numeric">
+        <span className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-pill)] bg-mint-600 px-4 text-h2 font-bold text-white shadow-[var(--shadow-contains)] numeric">
           <CoinVerticalIcon weight="fill" aria-hidden className="size-6" />
           {/* Sheds its label in the last third and arrives as a coin. */}
           <motion.span
