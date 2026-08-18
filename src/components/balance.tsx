@@ -126,11 +126,14 @@ export function RichBalance({
       animate={beat === 4 && !reduceMotion ? { scale: [1, 1.12, 1] } : { scale: 1 }}
       transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
       className={cn(
-        /* Its own surface, and it looks pressable — a raised tile rather than a
-           tinted strip of the rail it sits in. */
-        "rounded-[var(--radius-field)] border border-violet-100 bg-violet-50/50",
+        /* Its own surface, told apart from what is around it by **tint**
+           rather than by a hairline (ADR 0015): border delimits a control, and
+           this is a block. It is not raised either — the band and the lead card
+           are the screen's only elevation, because shadow marks the one object
+           a screen is about. */
+        "rounded-[var(--radius-card)] bg-violet-50",
         "transition-shadow duration-[var(--duration-quick)]",
-        full ? "px-6 py-5" : "px-2.5 py-2",
+        full ? "px-6 py-4" : "px-4 py-2",
         beat === 4 && "ring-glow",
       )}
     >

@@ -278,19 +278,20 @@ describe("the metadata type step", () => {
 });
 
 /* ---------------------------------------------------------------------------
-   5d · No Quest card floats
-   ------------------------------------------------------------------------ */
+   5d · deleted — "No Quest card floats"
+   ---------------------------------------------------------------------------
+   ADR 0015 supersedes ADR 0010 and brings elevation back with one condition:
+   it is containment, never reaction. The lead card is raised because it is the
+   subject of the screen, and every card under it is still flat on its Well —
+   which is what this invariant was actually protecting and is now a property of
+   `QuestCard` itself rather than of a test.
 
-describe("the Quest card", () => {
-  it("carries no elevation", () => {
-    // ADR 0010 reserves shadow for what genuinely floats — a modal, a popover,
-    // the action pill. A list of twelve shadows is the stacking the client has
-    // objected to in three separate rounds.
-    const card = files.find((file) => file.name === "components/quest-card.tsx");
-    expect(card?.text).toMatch(/FlatCard/);
-    expect(card?.text).not.toMatch(/shadow-/);
-  });
-});
+   It is deleted here rather than in the contract because it fails in CI on the
+   commit that reverses it, which is the same reason ADR 0015 gives for deleting
+   it at all: a ruler that holds taste still stops the work it was written to
+   protect. The remaining four deletions and the two additions are the
+   contract's.
+   ------------------------------------------------------------------------ */
 
 /* ---------------------------------------------------------------------------
    6 · Three width classes, and no fourth

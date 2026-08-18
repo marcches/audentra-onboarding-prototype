@@ -115,7 +115,12 @@ export function Sections({
   return (
     <Tag
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-ink-100 bg-panel",
+        /* No border. **Border delimits a control and nothing else** (ADR
+           0015): a sheet is told apart from the room by tone, and a white
+           panel on a violet-tinted ground needs no hairline to say where it
+           starts. What the border was doing — and doing badly, three rounds of
+           "stacking" complaints deep — is now the room's job. */
+        "relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-panel",
         className,
       )}
     >
@@ -295,7 +300,7 @@ export function Section({
         className,
       )}
     >
-      <div className="flex items-center gap-2 border-b border-ink-100 bg-well px-3 py-1.5">
+      <div className="flex items-center gap-2 bg-well px-4 py-2">
         {collapsible ? (
           <button
             type="button"
@@ -323,7 +328,7 @@ export function Section({
       </div>
 
       <Reveal open={shown}>
-        <div className={cn("flex flex-col px-3 py-2.5", bodyClassName)}>{children}</div>
+        <div className={cn("flex flex-col px-4 py-4", bodyClassName)}>{children}</div>
       </Reveal>
     </section>
   );
@@ -525,13 +530,13 @@ export function Well({
   return (
     <Tag
       className={cn(
-        "rounded-[var(--radius-field)]",
+        "rounded-[var(--radius-card)]",
         dashed
           ? "border border-ink-200 border-dashed bg-transparent"
           : strong
             ? "bg-well-strong"
             : "bg-well",
-        !flush && "p-2.5",
+        !flush && "p-4",
         className,
       )}
     >
@@ -550,12 +555,20 @@ export function Well({
    ---------------------------------------------------------------------- */
 
 /**
- * A collection item on a Well. Hairline border, no shadow, image bleeding to
- * the edge (Jira "Select a template", Bloom).
+ * A collection item on a Well. No border, no shadow, image bleeding to the edge
+ * (Jira "Select a template", Bloom, mymind).
  *
  * It is deliberately not a `Card` with elevation: the Well under it is already
  * the local ground for the collection, and raising every item off it would put
- * a shadow inside a recess.
+ * a shadow inside a recess. **And it is deliberately not bordered** — under
+ * ADR 0015's material rule, tint groups and border delimits a control. A white
+ * card on a tinted Well is already told apart from it; the hairline was a
+ * second delimiter doing the same job, which is the stacking three rounds of
+ * review have objected to, one size down.
+ *
+ * Selection is fill and a check, and the ring glow is light rather than
+ * geometry: nothing lifts, grows or thickens, so a card is the same size and in
+ * the same place selected as unselected.
  */
 export function FlatCard({
   as: Tag = "div",
@@ -575,10 +588,10 @@ export function FlatCard({
   return (
     <Tag
       className={cn(
-        "relative overflow-hidden rounded-[var(--radius-field)] border bg-panel text-left",
-        "transition-[background-color,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
-        selected ? "border-violet-400 bg-violet-50/60 ring-glow" : "border-ink-100",
-        interactive && !selected && "hover:border-ink-200 hover:bg-ink-50/50",
+        "relative overflow-hidden rounded-[var(--radius-card)] bg-panel text-left",
+        "transition-[background-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
+        selected ? "bg-violet-50 ring-glow" : null,
+        interactive && !selected && "hover:bg-violet-50/50",
         className,
       )}
       {...(rest as Record<string, unknown>)}

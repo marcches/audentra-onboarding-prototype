@@ -63,39 +63,53 @@ export function DashboardRoute() {
   const shown = available.slice(0, SHOWN);
   const waiting = requirementsInState("under-review", state).length;
 
+  const [first, ...rest] = shown;
+
   return (
     <PortalShell
       current="dashboard"
       title={`Hello, ${name}`}
       lead={<ProgressLine complete={progress.complete} total={progress.total} />}
-    >
-      <div className="grid grid-cols-[minmax(0,1fr)_17rem] items-start gap-3 compact:grid-cols-1">
-        <div className="flex min-w-0 flex-col gap-2">
-          {/* The one orientation line, and nothing else between the header and
-              the work. It says what the order is doing for the student, which
-              is what makes the first card's badge a claim rather than magic. */}
-          <p className="text-small text-ink-600">
-            {shown.length > 0
-              ? "What you can do now, best first. The top one opens the most."
-              : "Nothing is waiting on you at the moment."}
+      /* The band contains the lead Quest card (ADR 0015). It is the screen's
+         first unit and it is inside the colour rather than under it, which is
+         what makes the band cost its own padding instead of 140–180px of the
+         fold. It is also the only raised thing on the screen besides the band
+         itself: shadow contains the subject, and there is one subject. */
+      opens={
+        first ? (
+          <QuestCard requirement={first} lead />
+        ) : (
+          <p className="rounded-[var(--radius-card)] bg-panel px-4 py-4 text-body text-ink-600 shadow-[var(--shadow-contains)]">
+            {waiting > 0
+              ? `Everything you can act on is done. ${waiting} ${waiting === 1 ? "requirement is" : "requirements are"} with the university.`
+              : "Everything is finished. There is nothing left before term starts."}
           </p>
+        )
+      }
+    >
+      <div className="grid grid-cols-[minmax(0,1fr)_17rem] items-start gap-4 compact:grid-cols-1">
+        <div className="flex min-w-0 flex-col gap-2">
+          {/* The one orientation line, and nothing else between the band and
+              the work. It says what the order is doing for the student, which
+              is what makes the lead card's badge a claim rather than magic. */}
+          {rest.length > 0 ? (
+            <p className="text-small text-ink-600">
+              What else you can do now, best first. The one above opens the most.
+            </p>
+          ) : null}
 
           {/* The Well is the local ground for the collection, which is what
               lets the cards be flat. Twelve shadows in a column is the
-              stacking ADR 0010 reserves shadow against. */}
-          <Well flush strong className="flex flex-col gap-2 p-2.5">
-            {shown.length > 0 ? (
-              shown.map((requirement, index) => (
-                <QuestCard key={requirement.id} requirement={requirement} lead={index === 0} />
-              ))
-            ) : (
-              <p className="px-1 py-6 text-center text-small text-ink-500">
-                {waiting > 0
-                  ? `Everything you can act on is done. ${waiting} ${waiting === 1 ? "requirement is" : "requirements are"} with the university.`
-                  : "Everything is finished. There is nothing left before term starts."}
-              </p>
-            )}
-          </Well>
+              stacking shadow is reserved against — under ADR 0015 it marks
+              the one object a screen is about, and that object is in the
+              band. */}
+          {rest.length > 0 ? (
+            <Well flush strong className="flex flex-col gap-2 p-2">
+              {rest.map((requirement) => (
+                <QuestCard key={requirement.id} requirement={requirement} />
+              ))}
+            </Well>
+          ) : null}
 
           <TheRest shown={shown.map((one) => one.id)} />
         </div>
@@ -192,7 +206,10 @@ function ProgressLine({ complete, total }: { complete: number; total: number }) 
 
   return (
     <span className="flex items-center gap-2">
-      <span className="text-small text-ink-500 numeric">
+      {/* On the band, so the tones are the band's. White at 80% rather than a
+          second hue: colour on this screen is material, and a figure that
+          picked its own would be a signal the student has to decode. */}
+      <span className="text-small text-white/80 numeric">
         {complete === 0
           ? `${total} things to do before term starts`
           : `${complete} of ${total} done · ${percent}%`}
@@ -203,12 +220,12 @@ function ProgressLine({ complete, total }: { complete: number; total: number }) 
         aria-valuemin={0}
         aria-valuemax={total}
         aria-label={`${complete} of ${total} requirements complete`}
-        className="h-1 w-28 shrink-0 overflow-hidden rounded-full bg-ink-100"
+        className="h-1 w-28 shrink-0 overflow-hidden rounded-full bg-white/25"
       >
         {/* `scaleX`, not `width`: no animation rule in this system touches a
             layout property. */}
         <span
-          className="progress-fill block h-full origin-left rounded-full transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
+          className="block h-full origin-left rounded-full bg-white transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
           style={{ transform: `scaleX(${complete / total})` }}
         />
       </span>

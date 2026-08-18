@@ -235,13 +235,13 @@
   --space-region: 40px;
 
   /* The room's one texture, declared once and carried by the ground alone.
-     A 2px violet dot on a 22px grid at ~14% of the brand hue — visible as a
+     A 2px violet dot on a 22px grid at 20% of the brand hue — visible as a
      surface rather than as a pattern, which is the difference between a room
      and wallpaper (Asana). Texture inside a card is noise behind text, so the
      material rule gives this exactly one place to live and `body` is it. */
   --texture-room: radial-gradient(
     circle at 1px 1px,
-    color-mix(in oklab, var(--color-violet-500) 14%, transparent) 1px,
+    color-mix(in oklab, var(--color-violet-500) 20%, transparent) 1px,
     transparent 0
   );
   --texture-room-size: 22px 22px;

@@ -18,11 +18,16 @@ import { cn } from "@/lib/utils";
  * One Requirement, at full weight: what it is, when it is wanted, how long it
  * takes, and what it is worth today against what it will be worth tomorrow.
  *
- * **A flat card on a Well, never an elevated one** (ADR 0010). Shadow is
- * reserved for what genuinely floats, and a list of twelve shadows is the
- * stacking the client has objected to in three separate rounds. The Well under
- * the list is the local ground for the collection; raising every item off it
- * would put a shadow inside a recess.
+ * **Flat on its Well, except the one card the screen is about** (ADR 0015).
+ * Shadow contains the subject and nothing else: the lead card sits inside the
+ * band and is raised, every card under it is flat on the Well that groups them.
+ * A list of twelve shadows is the stacking the client has objected to in three
+ * separate rounds, and raising every item off a Well would put a shadow inside
+ * a recess.
+ *
+ * The elevation is **containment, never reaction**. The lead card is raised
+ * because it is the subject, not because a mouse is near it — nothing here
+ * lifts, grows or thickens on hover or on selection.
  *
  * The anatomy is Langdock's and Portrait's: a primary action carrying a verb,
  * a quiet secondary beside it, and the value carried as a tag on the row rather
@@ -48,8 +53,8 @@ export function QuestCard({
   const opens = unlockCount(requirement.id);
 
   return (
-    <FlatCard as="article" className="p-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+    <FlatCard as="article" className={cn("p-4", lead && "shadow-[var(--shadow-contains)]")}>
+      <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-[var(--radius-pill)] bg-ink-100 px-1.5 py-0.5 text-meta font-bold text-ink-600">
           {requirement.category}
         </span>

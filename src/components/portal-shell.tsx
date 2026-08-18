@@ -31,12 +31,27 @@ export function PortalShell({
   current,
   title,
   lead,
+  opens,
   children,
 }: {
   current: AreaId;
   title: string;
   /** The one line beside the title. Never a second row above the work. */
   lead?: React.ReactNode;
+  /**
+   * The screen's first unit, drawn **inside** the band rather than under it.
+   *
+   * This is the load-bearing composition of ADR 0015 and the only reason the
+   * colour is affordable. A gradient block stacked *before* the first card
+   * spends 140–180px of the ~640px ADR 0008 measures at 1366×768, which is how
+   * the previous cycle came to reject exactly that composition on the record.
+   * A band that holds the first unit inside it spends its own padding and
+   * nothing else — the unit was going to be there anyway (Mercor).
+   *
+   * A screen with nothing to contain gets a band the height of its greeting,
+   * which is the height the greeting cost before there was a band.
+   */
+  opens?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const state = useOnboarding();
@@ -47,7 +62,7 @@ export function PortalShell({
       {/* 14rem against the gate's 16 and the production portal's wider one. The
           grouping is what pays for it: the headings do the work the vertical
           space was doing, so the rows come down too (Remote). */}
-      <aside className={cn("w-56 shrink-0 border-r border-ink-100 bg-surface", aboveCompact)}>
+      <aside className={cn("w-56 shrink-0 bg-surface", aboveCompact)}>
         <div className="sticky top-0 flex h-dvh flex-col gap-2.5 px-2.5 py-3">
           <div className="flex items-center gap-2 px-1">
             <InstitutionCrest className="size-8 shrink-0" />
@@ -61,10 +76,7 @@ export function PortalShell({
             </span>
           </div>
 
-          <nav
-            aria-label="Areas"
-            className="min-h-0 overflow-y-auto border-t border-ink-100 pt-2.5"
-          >
+          <nav aria-label="Areas" className="min-h-0 overflow-y-auto pt-2">
             <ul className="flex flex-col gap-2.5">
               {areaGroups.map((group) => (
                 <li key={group.label ?? group.areas[0].id}>
@@ -113,7 +125,7 @@ export function PortalShell({
               Pinned to the foot it sat 334px below the thing above it, which is
               not "permanent", it is orphaned — and the flight that justified a
               fixed pixel in the gate does not happen here. */}
-          <div className="flex flex-col gap-1 border-t border-ink-100 pt-2.5">
+          <div className="flex flex-col gap-1 pt-2">
             <p className="px-1 text-meta font-bold tracking-[0.08em] text-ink-400 uppercase">
               Your balance
             </p>
@@ -124,10 +136,13 @@ export function PortalShell({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col bg-canvas">
+      {/* No ground of its own: the room is `body`, and a wrapper repainting it
+          would be the ground painted twice — once with the texture and once
+          without. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <header
           className={cn(
-            "sticky top-0 z-[var(--z-rail)] items-center gap-2 border-b border-ink-100 bg-surface/90 px-4 py-2 backdrop-blur",
+            "sticky top-0 z-[var(--z-rail)] items-center gap-2 bg-surface/90 px-4 py-2 backdrop-blur",
             inCompactFlex,
           )}
         >
@@ -149,17 +164,29 @@ export function PortalShell({
             as somebody else's work. */}
         <span aria-hidden className="brand-gradient h-0.5 shrink-0" />
 
-        <main className="flex flex-1 flex-col px-4 pt-3 pb-6 compact:px-3 compact:pb-[5.5rem]">
-          <div className="mx-auto flex w-full max-w-[var(--catalogue-measure)] flex-1 flex-col gap-2.5">
-            {/* Greeting and progress on one line. A section that celebrates
-                progress before showing the next action is doing the opposite of
-                what was asked for — and it is what puts the first card below the
-                fold at 1366×768. The `h1` is the gate's own token: the portal
-                setting its own title size was typed rather than decided. */}
-            <header className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-              <h1 className="text-h1 text-ink-900">{title}</h1>
-              {lead ? <div className="min-w-0 flex-1">{lead}</div> : null}
-            </header>
+        <main className="flex flex-1 flex-col px-4 pt-4 pb-6 compact:px-2 compact:pb-[5.5rem]">
+          <div className="mx-auto flex w-full max-w-[var(--catalogue-measure)] flex-1 flex-col gap-4">
+            {/* The band, and it opens every screen in the portal (ADR 0015).
+
+                Greeting and progress still share a line — a screen that
+                celebrates progress before showing the next action is doing the
+                opposite of what was asked for. What changed is that the line
+                and the screen's first unit are now inside one gradient block
+                instead of sitting on the grey ground above it, which is where
+                the brand went from a palette to a surface without costing the
+                fold a single pixel. */}
+            <div className="band flex flex-col gap-4 p-4 compact:p-3">
+              <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <h1 className="font-display text-display font-black text-white">{title}</h1>
+                {/* Its own line on a phone. Sharing one with a 44px display
+                    left it three words wide, and a progress bar in a 90px
+                    column is not a progress bar. */}
+                {lead ? (
+                  <div className="min-w-0 flex-1 text-white compact:basis-full">{lead}</div>
+                ) : null}
+              </header>
+              {opens}
+            </div>
             {children}
           </div>
         </main>
@@ -171,7 +198,7 @@ export function PortalShell({
         <nav
           aria-label="Areas"
           className={cn(
-            "fixed inset-x-0 bottom-0 z-[var(--z-actions)] border-t border-ink-100 bg-surface/95 backdrop-blur",
+            "fixed inset-x-0 bottom-0 z-[var(--z-actions)] bg-surface/95 backdrop-blur",
             inCompactFlex,
           )}
         >
