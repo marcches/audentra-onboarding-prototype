@@ -44,4 +44,6 @@ one definition of it.
 One numbered sequence at [`docs/adr/`](./docs/adr/), covering both contexts. A
 decision is dated and does not move house when the repo grows a second context —
 ADR 0001 through 0012 are the gate's, 0013 onward begin to be the portal's, and
-the numbering says when rather than where.
+the numbering says when rather than where. ADR 0015 is the first that is neither:
+it decides the visual system for both surfaces at once, which is the point of it
+— a rule that stopped at the boundary would be how the product grows two skins.

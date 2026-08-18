@@ -82,3 +82,56 @@ or waived — all three are ways of finishing, none is an exit. Named in both
 surfaces because a student who did not pay it in the gate meets it again in the
 portal.
 _Avoid_: fee, tuition, payment
+
+**Reward track**:
+The sequence of named amounts of Bookstore credit the Balance is travelling
+toward, shown as distance to the next one. It is what turns a running total into
+a journey without ranking anybody: the student is measured against the next
+amount, never against another student.
+_Avoid_: milestone, tier, level, ladder, league, leaderboard
+
+> `milestone` is avoided because it is already on the avoid list of **Key dates**
+> in the portal glossary, and one word meaning two things is how a glossary
+> starts to lie. `leaderboard` and `league` are avoided for the reason ADR 0002
+> gives about tiers, which is social rather than visual: it ranks a cohort
+> against each other before any of them has arrived on campus, on a screen the
+> student's family may be sitting next to them for. Reopening that is a
+> conversation with the designer and the client in the room, not a UI change.
+
+**Headroom**:
+How many Points are still available to earn today. A forward-looking figure —
+what is possible — never a tally of what was missed.
+_Avoid_: remaining, potential, lost
+
+> The counterpart to **Decay**, and deliberately its opposite in direction.
+> Decay says a Requirement is worth less tomorrow; Headroom says how much is
+> still on the table now. Decay has no reference in the catalogue and Headroom
+> has several, which is why Headroom carries the urgency on eleven of the twelve
+> cards and Decay carries it on one.
+
+**Streak**:
+Consecutive days on which the student finished at least one Requirement.
+Counted, shown, and never punished — a broken streak resets and says nothing
+else.
+_Avoid_: combo, chain, momentum
+
+**Melt**:
+An admitted student who stops before enrolling. The thing both surfaces exist to
+prevent, and the client's own framing: *"they melt even before they started any
+of the process."* It is a business outcome rather than a state in the model —
+nothing in the code sets it — and it is named here because it is the argument
+every design decision in this repo is ultimately measured against.
+_Avoid_: churn, drop-off, abandonment
+
+**Prefill**:
+A field already answered from what the institution knows about the student
+before they arrive — from the application or from the campus visit record. The
+student's job becomes confirming rather than typing, which is the direct answer
+to Melt.
+_Avoid_: autofill, import, sync
+
+> Named now and built later. The plumbing is a separate cycle; what this cycle
+> owes is the *grammar* — what a prefilled field looks like, so that it reads as
+> already done rather than as an empty field somebody typed into. Designing that
+> grammar twice is the cost of deferring it, which is why the term lands in the
+> glossary ahead of the feature.

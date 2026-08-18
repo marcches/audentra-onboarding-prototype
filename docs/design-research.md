@@ -1182,3 +1182,138 @@ Adotado também: **a barra fina de progresso na mesma linha da saudação**. Qua
 das seis pareiam o número com uma barra. O que o ciclo anterior cortou foi o
 *anel de 0/595* que empurra o primeiro cartão para baixo da dobra — não o
 instrumento, que numa linha custa zero altura.
+
+## Rodada de 2026-08-18 — a sala e a faixa: o segundo pedido de identidade, e a tipografia como a causa que ninguém tinha medido
+
+O feedback que abriu a rodada tem duas conversas. A da Laura é visual — *"the
+dashboard is too flat… can we have it more purple and more round?"*. A do Dr.
+Zaibis é de produto e vai para outro ciclo: escolas não conseguem que o admitido
+preencha o questionário e ele *derrete* antes de começar, e a resposta da Laura é
+puxar o que a universidade já tem no DB. O Ajlan põe gamificação junto, com
+embasamento fisiológico que a Laura vai buscar.
+
+**A ref que a Laura mandou não entra como fonte.** O cliente foi explícito: o
+print é *"apenas pra demonstrar o sentimento dela, não é pra copiar nem se
+enviesar de nada"*. A rodada anterior tratou aquele protótipo como vocabulário e
+esta não trata. Tudo abaixo vem do catálogo.
+
+### O diagnóstico: "flat" é três coisas
+
+Tonal (a ADR 0010 aposentou elevação e previu o "muro cinza" por escrito),
+cromática (violeta racionada a sinal) e — a que ninguém tinha medido —
+**tipográfica**. `--font-sans` e `--font-display` são a mesma string, então o
+sistema nomeia uma voz de display que não possui; e a escala tinha nove degraus
+com seis deles dentro de 5px (11/12/13/14/15/16), o que faz a hierarquia abaixo
+do `h2` deixar de existir. A mesma doença aparece no espaço em branco — cinco
+valores de `gap` entre 4 e 12px, com meios-passos, e **um** único token de espaço
+declarado no sistema inteiro — e nos ícones, onde três pesos de Phosphor rodam ao
+mesmo tempo (`bold` 49, `fill` 25, `duotone` 21) e leem como três famílias.
+
+### O conceito, e de onde ele vem
+
+- [Mercor](https://mobbin.com/screens/6ab63817-8b06-46a6-8fba-be87f0e05a6d) — a
+  faixa de gradiente **contém** os cartões brancos em vez de vir antes deles.
+  É a peça central: a cor deixa de custar altura, que é a objeção da ADR 0008 e
+  a razão pela qual o ciclo passado recusou a composição empilhada.
+- [Asana](https://mobbin.com/screens/5bef03d3-11e0-4925-bae1-52529effba86) — o
+  chão inteiro da página tintado, com padrão sutil, e todo cartão branco e plano.
+  De onde vem a "sala", e a prova de que roxo e ausência de elevação convivem.
+- [Fireflies](https://mobbin.com/screens/b18c746c-1c82-41ed-af38-1340addd869a) —
+  a faixa de gradiente só atrás do cumprimento, conteúdo plano abaixo. Confirma
+  a dosagem: uma faixa por tela, não uma por bloco.
+- [Duolingo](https://mobbin.com/screens/1467f205-3b47-4515-af63-823002effe6f) —
+  bloco gradiente dentro de uma coluna densa. Densidade e cor não se excluem.
+- [HoneyBook](https://mobbin.com/screens/7c915d6b-2a99-4eb0-956d-e7a3a97bb265) —
+  o contraexemplo, e aproximadamente o que temos hoje: checklist plana, uma
+  borda, nenhuma cor.
+
+### Tipografia: duas vozes, e nenhuma delas serifada
+
+A primeira recomendação desta rodada foi uma serifada de texto, com
+[Babbel](https://mobbin.com/screens/906d0d44-a4e4-4d54-800b-bba8a4dfe715) como
+referência — educação, título serifado sobre lista densa. **Foi recusada pelo
+cliente, com razão**: o produto é edtech para quem entra em 2031, e serifa ali é
+viés de quem desenhou, não leitura do público.
+
+A referência correta é outra:
+
+- [Preply](https://mobbin.com/screens/c6860362-5042-4aa5-9f18-77b731447f73) —
+  display grotesco de **terminais arredondados**, peso alto, sobre campo de cor
+  chapada. É a voz que o produto não tem.
+- [Duolingo](https://mobbin.com/screens/4956fc86-2691-44c5-a550-4070a1aa5fa3) —
+  a Feather Bold fazendo o mesmo trabalho dentro de uma UI densa.
+- [ClassDojo](https://mobbin.com/screens/2cdacbbd-9cef-4a54-9736-6f17a8e88f14) —
+  o guarda-corpo do outro lado. Aquilo é para criança do fundamental e para os
+  pais dela; um calouro de 18 anos não é o público daquela temperatura.
+
+O terminal arredondado responde o "more round" **na letra**, que é a metade do
+pedido que raio de canto nenhum entrega.
+
+### Espaço, calma e poucas bordas
+
+- [Midday](https://mobbin.com/screens/72304bea-11b7-48f7-a870-a2263f475090) e
+  [mymind](https://mobbin.com/screens/4ec3c082-db2b-409e-bc16-4457a53715f9) —
+  pouquíssimos valores de espaço, muito distantes entre si, e quase nenhuma
+  borda. O agrupamento vem do intervalo, não do traço.
+- [Supabase](https://mobbin.com/screens/17d890e2-62a2-4390-8435-ad12ac432d2b) —
+  denso e ainda assim agrupado, porque o salto entre "dentro do bloco" e "entre
+  blocos" é grande. Hoje esse salto no nosso sistema é de 2px, e por isso não
+  existe.
+
+### Fotografia e ilustração, cada uma no seu lugar
+
+[Brilliant](https://mobbin.com/screens/da4c4452-1b86-42b7-bab4-de610a9872ca),
+[Deputy](https://mobbin.com/screens/f94fb031-acc6-457e-9255-83bd21cf9939) e
+[Cloudflare](https://mobbin.com/screens/a7ccde8f-05f9-40cf-b7b8-29f4b7e76079)
+ilustram muito — e o que os três têm em comum é não ter nada real para mostrar.
+Nós temos: residências, campus, a carteira do estudante. Daí a divisão adotada:
+**foto para o que é real, ilustração para o que é abstrato** (estado vazio, os
+sete placeholders, o momento da recompensa).
+
+### Gamificação: vertical, e sem ranquear ninguém
+
+A ADR 0002 recusou tiers por argumento **social**, não estético: ranqueia uma
+coorte antes de qualquer um deles pisar no campus, numa tela que a família pode
+estar vendo junto. Isso se mantém, e a gamificação cresce para cima em vez de
+para os lados:
+
+- [sweetgreen](https://mobbin.com/screens/26c7cc12-dcf7-41e1-9832-1208c3bbe98c) —
+  *"A free drink is 200 pts away!"* sobre trilha de marcos nomeados. É a ADR 0002
+  desenhada.
+- [Upwork](https://mobbin.com/screens/707fa0fd-0ce5-4773-9487-d2bcb53e2f92) —
+  `102 Available to earn`: quanto ainda dá para ganhar, sem comparar com ninguém.
+- [Langdock](https://mobbin.com/screens/065752db-06ad-4118-ad1c-8f95daa3f8a8) —
+  o chip de `+10/+15` na própria linha, **antes** de agir, que continua sendo a
+  referência mais forte que este projeto encontrou.
+- [Langdock, progresso](https://mobbin.com/screens/c69db9e3-a938-4c5f-9c86-652c6efc28a7)
+  e [Uxcel](https://mobbin.com/screens/e364eaf2-50f2-4c3f-8a48-a83d31d0ab34) —
+  anel e fração dizendo o tamanho do processo.
+
+**O Decay continua sem referência.** Duas buscas novas nesta rodada, e o
+resultado é o mesmo que `portal.md` já registrava: todo mundo usa prazo ou
+contagem regressiva ([OpenSea](https://mobbin.com/screens/516ee107-5c44-4af4-b299-df1bd30711cf),
+[Midjourney](https://mobbin.com/screens/00a0f517-7d2d-4052-9f8a-3691990cbd2a)),
+ninguém encolhe a recompensa. Por isso ele fica **alto no cartão líder e ausente
+nos demais**: preserva a regra que o cliente mandou e concentra o risco
+não-validado em um cartão por tela, que é o que a aceitação humana a 1366×768
+consegue julgar.
+
+### A tabela de tokens
+
+| Dimensão | Antes | Depois |
+| --- | --- | --- |
+| Tipo — escala | 11 / 12 / 13 / 14 / 15 / 16 / 20 / 28 / 36 | **11 / 13 / 15 / 18 / 24 / 32 / 44** |
+| Tipo — degraus | 9 (`micro` e `lead` inclusos) | 7 (`micro` e `lead` deletados) |
+| Tipo — corpo | 14px | **15px** |
+| Tipo — faces | `sans` e `display` apontando para Satoshi | Satoshi na interface; **display grotesca de terminais arredondados** na faixa e nos `h1` |
+| Tipo — caixa alta | rótulo `micro` tracked em caixa alta | **não existe mais em lugar nenhum** |
+| Espaço | 1 token; `gap-1/1.5/2/2.5/3` na prática | **4 / 8 / 16 / 24 / 40**, sem meios-passos |
+| Raio | field 10 · card 16 · slab 20 | field **10** · card **20** · slab **28** |
+| Ícone | `bold` + `fill` + `duotone` misturados | **`bold` = significado, `fill` = feito/selecionado**; `duotone` retirado |
+| Borda | uma cor para tudo | **só em controle** (input, select, campo) |
+| Sombra | proibida como sinal (ADR 0010) | **contém**: faixa e cartão líder, estática, nunca em hover ou seleção |
+| Tinta | quatro superfícies | **agrupa**: o Well é o que diz "isto é um conjunto" |
+| Textura | nenhuma | **uma**, sutil, só no chão |
+| Violeta | sinal, com parcimônia | **material no chão e na faixa; sinal segue o que era** |
+| Dark mode | `@custom-variant dark` declarado, não implementado | **fora de escopo, declarado fora** |
+| Grid | três medidas de arquétipo | as mesmas + **uma calha declarada** e um conjunto fechado de composições de duas colunas |

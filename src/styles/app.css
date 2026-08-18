@@ -44,7 +44,27 @@
 
 @theme {
   --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* ---------------------------------------------------------------------
+     The second voice (ADR 0015).
+
+     `--font-sans` and `--font-display` were the same string until this round:
+     the system named a display voice it did not own, which is the third of the
+     three causes behind "too flat" and the one nobody had measured.
+
+     **`--font-display-face` is the sign-off, and it is one line.** A display
+     grotesk with rounded terminals takes the band's display and the headings,
+     at 700–800; the rounded terminal is where the designer's "more round"
+     lands in the letterform, which corner radius alone cannot deliver. If the
+     face is refused, this line becomes `var(--font-sans)` and the whole system
+     falls back to Satoshi across its full weight range — a real improvement on
+     its own, and nothing else in the cycle moves.
+     ------------------------------------------------------------------ */
+  --font-display-face: "Nunito";
+  --font-display:
+    var(--font-display-face), "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
   /* Signatures only. Not a third voice in the type system. */
   --font-script: "Caveat", "Segoe Script", cursive;
   /* Identifiers — reference numbers, and nothing else. Named rather than left
@@ -65,28 +85,37 @@
   --color-ink-100: #e3e8f1;
   --color-ink-50: #f1f4fa;
 
-  /* The four surface levels.
+  /* The four surface levels, and the one job each material has (ADR 0015).
 
-     One step of luminance apart, and at most one border between any two of
-     them. Shadow is not a level: it is reserved for what genuinely floats — a
-     modal, a popover, the fixed bar — so a Panel resting on the Ground is told
-     apart from it by tone, not by a drop shadow.
+     **Tint groups** — a Well is what says "these belong together". **Shadow
+     contains** — it marks the one object a screen is about, never a list of
+     twelve. **Border delimits a control**, and nothing else. **Texture appears
+     once, on the ground.** Three things can delimit an area now that elevation
+     is back, and they fight unless each is given one job and refused the
+     others; a unit delimited by two of them at once is the stacking three
+     rounds of review have objected to, rebuilt in new material.
 
-     Ground is the recessed page and holds no content. Panel is the elevated
-     frame around one subject. Well is inset *within* a Panel: darker than the
-     Panel, never darker than the Ground, which is what keeps an inset from
-     reading as a hole punched through to the page. A flat card exists only on
-     a Well, where the Well is the local ground for a collection. */
-  --color-ground: #f4f6fb;
+     Ground is the recessed page and holds no content. Panel is the frame around
+     one subject. Well is inset *within* a Panel: darker than the Panel, never
+     darker than the Ground, which is what keeps an inset from reading as a hole
+     punched through to the page. A flat card exists only on a Well, where the
+     Well is the local ground for a collection.
+
+     **The room** (ADR 0015). The ground of the whole application is tinted
+     violet, so the brand is ambient rather than rationed to four files. It is a
+     wash rather than a colour — 4% violet against the old neutral #f4f6fb —
+     because the thing standing on it is black text on white cards, and a ground
+     you can read a form on is the only ground worth having. */
+  --color-ground: #f4f2fb;
   --color-panel: #ffffff;
-  --color-well: #f6f8fc;
-  --color-well-strong: #eef2f9;
+  --color-well: #f7f5fd;
+  --color-well-strong: #efebfa;
 
   /* The names the app was built on, kept pointing at the same values so the
      rename is not a repaint. `canvas` is the Ground, `surface` is the Panel. */
   --color-canvas: var(--color-ground);
   --color-surface: var(--color-panel);
-  --color-sunken: #eaeef7;
+  --color-sunken: #e9e4f6;
 
   /* Violet — the primary signal. Used sparingly: progress, primary action. */
   --color-violet-50: #f2edff;
@@ -146,90 +175,153 @@
   --color-amber-50: #fff6e6;
   --color-amber-500: #e08c00;
 
-  /* Radii — deliberately larger than the shadcn default 8px. */
+  /* ---------------------------------------------------------------------
+     Radii — containers rise, controls freeze (ADR 0015).
+
+     "More round" is a request about the *surface*, and a surface is made of
+     containers. A field taken to container radius reads as a pill and destroys
+     form density, which is why `--radius-field` is the one number in this block
+     that did not move. Card 16 → 20, slab 20 → 28, field stays 10: the ratio
+     between a round container and a markedly less round control inside it is
+     what keeps a form dense while the screen reads soft (Brilliant).
+     ------------------------------------------------------------------ */
   --radius-field: 10px;
-  --radius-card: 16px;
-  --radius-slab: 20px;
+  --radius-card: 20px;
+  --radius-slab: 28px;
   --radius-pill: 999px;
 
-  /* Elevation — navy-tinted, never neutral black. */
+  /* ---------------------------------------------------------------------
+     Elevation — two roles, and two only (ADR 0015).
+
+     ADR 0010 retired elevation to reach density and named the outcome it was
+     accepting in writing: "a screen that reads as a grey wall". The wall
+     appeared. Elevation comes back with the single condition that makes it
+     safe: **it is containment, never reaction.** Nothing rises on hover,
+     nothing rises on selection — an element that grows when you point at it
+     moves its neighbours, and the neighbours are the layout.
+
+     `contains` marks the one object a screen is about: the band, the lead card.
+     Never a list of twelve. `floats` is what genuinely leaves the page — a
+     modal, a popover, the fixed action pill.
+     ------------------------------------------------------------------ */
+  --shadow-contains: 0 2px 6px rgb(42 20 96 / 0.05), 0 12px 32px -10px rgb(42 20 96 / 0.16);
+  --shadow-floats: 0 8px 16px rgb(42 20 96 / 0.08), 0 40px 80px -24px rgb(42 20 96 / 0.34);
+
+  /* The four names the app was built on. Kept resolving through the migrate
+     batches and deleted in the contract, once nothing reads them. */
   --shadow-soft: 0 1px 2px rgb(10 31 68 / 0.06), 0 1px 3px rgb(10 31 68 / 0.04);
-  --shadow-card: 0 2px 4px rgb(10 31 68 / 0.04), 0 8px 24px -8px rgb(10 31 68 / 0.12);
-  --shadow-lift: 0 4px 8px rgb(10 31 68 / 0.06), 0 20px 40px -12px rgb(10 31 68 / 0.2);
-  --shadow-modal: 0 8px 16px rgb(10 31 68 / 0.08), 0 40px 80px -24px rgb(10 31 68 / 0.4);
+  --shadow-card: var(--shadow-contains);
+  --shadow-lift: var(--shadow-contains);
+  --shadow-modal: var(--shadow-floats);
 
   /* ---------------------------------------------------------------------
-     The type scale, densified.
+     The spacing rhythm — five steps, no half-step (ADR 0015).
 
-     Body 14/1.5 against the old 15/1.6, and the Step `h1` 28 against 32.
+     The same compression the type scale had, in whitespace: five gap values
+     living between 4px and 12px, half of them half-steps, and exactly one
+     spacing token declared in the entire system. Grouping cannot be composed
+     out of intervals a reader cannot tell apart, which is the other half of why
+     a dense screen reads as a wall.
 
-     The first pass of this round went to 13/1.45 and a 24px title, straight
-     off the Salesforce reference, and the client's read of it in the browser
-     was that the type had been shrunk rather than the information densified.
-     That is the correct diagnosis: **density is a property of how much is on
-     the screen, not of how small it is set.** The gain has to come from
-     collapsed Sections showing their values, two-column section layout and
-     tighter vertical rhythm — all of which survive — rather than from taking a
-     point off the body size.
-
-     So the scale sits one step down from where it was, not four. Everything
-     the density ruler actually asked for still holds: all of a Step's fields
-     visible at once on a 1366×768 machine.
-
-     It holds at both widths. The one declared exception is the tap target —
-     type and vertical rhythm densify on a phone, control height does not, and
-     `--tap-target` below is what carries that.
-
-     This is the second setting of the same declaration in one round, and that
-     is exactly why the scale has no call sites: moving it is one edit.
+     Five values, far enough apart to be seen (Midday). 4 inside a control, 8
+     between siblings, 16 between groups, 24 between blocks, 40 between regions.
+     `layout-rules.test.ts` fails the build on a half-step utility in any
+     `.tsx`: a rhythm with a `2.5` in it is a rhythm with nine steps.
      ------------------------------------------------------------------ */
-  /* The step the portal added, and the only thing it is for: **metadata**.
+  --space-hair: 4px;
+  --space-tight: 8px;
+  --space-group: 16px;
+  --space-block: 24px;
+  --space-region: 40px;
 
-     A deadline, a time estimate, a value, a category, an urgency, a group
-     label in the sidebar. Not body copy, not a caption, and never a heading —
-     the test in `layout-rules.test.ts` counts this declaration and forbids a
-     component reassigning it, the same shape the archetype measures and the
-     action bar height already follow.
+  /* The room's one texture, declared once and carried by the ground alone.
+     A 2px violet dot on a 22px grid at ~14% of the brand hue — visible as a
+     surface rather than as a pattern, which is the difference between a room
+     and wallpaper (Asana). Texture inside a card is noise behind text, so the
+     material rule gives this exactly one place to live and `body` is it. */
+  --texture-room: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklab, var(--color-violet-500) 14%, transparent) 1px,
+    transparent 0
+  );
+  --texture-room-size: 22px 22px;
 
-     11px against the body's 14. `micro` was the nearest thing to hand and is
-     not it: `micro` is a *label* — uppercase, tracked to 0.05em, and set at
-     the size of small body text — so a card whose facts were set in it read as
-     a row of five little headings. Linear is the reference: the item's name
-     and the facts about it are unmistakably different sizes, and the facts are
-     lower case. This is not a rescale; body and headings do not move. */
+  /* ---------------------------------------------------------------------
+     The type scale — seven steps, with real distance (ADR 0015).
+
+     This is the cause of "too flat" that nobody had measured. The scale had
+     **nine steps with six of them inside five pixels** — 11, 12, 13, 14, 15,
+     16 — so below `h2` nothing on the screen could say what mattered more than
+     what. A hierarchy whose steps are one pixel apart is flat in the most
+     literal sense available, and no amount of violet fixes it.
+
+     Seven steps: **11 / 13 / 15 / 18 / 24 / 32 / 44**. Body moves 14 → 15,
+     which the client already asked for once by reading a shrunk scale in the
+     browser and calling it what it was. The height that costs is bought back
+     from the deleted steps, from the new spacing rhythm, and — where a screen
+     still does not fit — by deleting a Section, which is what ADR 0010
+     prescribed for exactly this situation. It is never bought back by
+     shrinking the type.
+
+     `micro` and `lead` are **deleted**, not deprecated: they are the two steps
+     that made six live inside five pixels. They keep resolving at their old
+     values through the migrate batches and go in the contract, because a
+     deprecated token is a token someone uses again.
+
+     The one declared exception to the rhythm is the tap target — type and
+     vertical rhythm densify on a phone, control height does not.
+
+     The scale has no call sites, which is what makes moving it one edit.
+     ------------------------------------------------------------------ */
+
+  /* Facts about a thing: a deadline, an estimate, a value, a category. Never
+     body copy and never a heading — and never uppercase, which is the half of
+     this argument the file already carried against itself. Facts set in the
+     tracked capital label read as a row of five little headings; Linear sets
+     them in lower case at a distinct size, and so does this. */
   --text-meta: 0.6875rem;
   --text-meta--line-height: 1rem;
   --text-meta--letter-spacing: 0.01em;
 
+  /* The quiet line: a caption, a note under a control, a secondary row. */
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.25rem;
+
+  /* Body. Everything a student actually reads. */
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+
+  /* Section header, and the smallest thing that is a heading rather than text. */
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.5rem;
+  --text-h3--letter-spacing: -0.01em;
+
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.9rem;
+  --text-h2--letter-spacing: -0.015em;
+
+  /* Step title, and the portal's screen title. */
+  --text-h1: 2rem;
+  --text-h1--line-height: 2.375rem;
+  --text-h1--letter-spacing: -0.02em;
+
+  /* The band's display, and the celebration. The one step whose job is to be
+     the subject of a screen before it is read. */
+  --text-display: 2.75rem;
+  --text-display--line-height: 2.9rem;
+  --text-display--letter-spacing: -0.03em;
+
+  /* The two deleted steps, still resolving. Nothing new may read them; the
+     contract removes them once the last call site is gone. */
   --text-micro: 0.75rem;
   --text-micro--line-height: 1.05rem;
   --text-micro--letter-spacing: 0.05em;
-  --text-small: 0.8125rem;
-  --text-small--line-height: 1.2rem;
-  --text-body: 0.875rem;
-  --text-body--line-height: 1.5;
   --text-lead: 0.9375rem;
   --text-lead--line-height: 1.5;
-  /* Section header. */
-  --text-h3: 1rem;
-  --text-h3--line-height: 1.4rem;
-  --text-h3--letter-spacing: -0.01em;
-  --text-h2: 1.25rem;
-  --text-h2--line-height: 1.6rem;
-  --text-h2--letter-spacing: -0.015em;
-  /* Step title. */
-  --text-h1: 1.75rem;
-  --text-h1--line-height: 2.125rem;
-  --text-h1--letter-spacing: -0.02em;
-  /* Celebration only. No working screen sets type at this size. */
-  --text-display: 2.25rem;
-  --text-display--line-height: 2.5rem;
-  --text-display--letter-spacing: -0.03em;
 
-  /* The gap between two Sections. 16px, against the 24–32px this replaces —
-     and it is the number that keeps the Salesforce density from becoming the
-     Salesforce grey wall (Advanced User Details is the counter-example). */
-  --space-section: 1rem;
+  /* The gap between two Sections — the one spacing token the system used to
+     declare, now the middle step of a rhythm that has five. */
+  --space-section: var(--space-group);
 
   /* The declared exception to the density ruler. Below 44px the finger misses,
      and density turns into a filling-in error — which costs more than the
@@ -327,12 +419,24 @@
      "cortado"). */
   --action-bar-height: 4rem;
 
-  /* The weight between body and bold, absorbed from the marketing site.
+  /* ---------------------------------------------------------------------
+     Weight, across the range the interface face actually has.
 
-     700 beside 400 is a two-step jump, so anything that wanted emphasis short
-     of a heading — a value in a fact row, a total, a selected label — had to
-     pick one and be wrong. 650 is that missing step. */
+     The system declared exactly **one** weight above body, which is the same
+     compression as the type scale one axis over: a value in a fact row, a
+     total and a screen title all had to reach for the same 700. Satoshi ships
+     300–900 and the document now loads all of it, so weight is a dimension
+     hierarchy can be composed along rather than a switch.
+
+     `strong` is the step between body and bold — 700 beside 400 is a two-step
+     jump, and 650 is the one that was missing.
+     ------------------------------------------------------------------ */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
   --font-weight-strong: 650;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
 
   /* ---------------------------------------------------------------------
      The motion scale.
@@ -480,8 +584,15 @@
     scrollbar-gutter: stable;
   }
 
+  /* The room, and it is the application's ground rather than a class a screen
+     remembers to wear (ADR 0015). Every screen sits in it, so the brand is
+     ambient instead of rationed — and because it is `body`, the texture cannot
+     appear a second time by a component reaching for it. */
   body {
     background-color: var(--color-canvas);
+    background-image: var(--texture-room);
+    background-size: var(--texture-room-size);
+    background-attachment: fixed;
     color: var(--color-ink-900);
     font-family: var(--font-sans);
     font-size: var(--text-body);
@@ -570,12 +681,16 @@
     transition: background-color 5000s ease-in-out 0s;
   }
 
+  /* The second voice takes the headings, at heavy weight (ADR 0015). Until
+     this round `--font-display` resolved to the interface face, so a heading
+     and the sentence under it were the same letterform two pixels apart. */
   h1,
   h2,
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.015em;
     text-wrap: balance;
   }
 
@@ -609,6 +724,55 @@
   .step-column {
     container-type: inline-size;
     container-name: step;
+  }
+
+  /* ---------------------------------------------------------------------
+     The room (ADR 0015).
+
+     The ground of the whole application, carrying its tint and **one very
+     quiet texture**. Applied once, at the application root, and nowhere else —
+     texture inside a card is noise behind text, which is the whole of why the
+     material rule gives it exactly one place to live.
+
+     The texture is a 2px violet dot on a 22px grid at 3.5% — visible as a
+     surface rather than as a pattern, which is the difference between a room
+     and wallpaper (Asana). It is drawn in `background-image` on the ground
+     itself rather than as a pseudo-element, so it cannot be inherited by a
+     child that happens to be transparent.
+     ------------------------------------------------------------------ */
+  .room {
+    background-color: var(--color-ground);
+    background-image: var(--texture-room);
+    background-size: var(--texture-room-size);
+  }
+
+  /* ---------------------------------------------------------------------
+     The band (ADR 0015).
+
+     The gradient block that opens a screen and **contains** its first unit
+     rather than sitting above it. That containment is the load-bearing
+     composition decision of this cycle and the reason the colour is affordable
+     at all: a colour block stacked *before* the first card spends 140–180px of
+     the ~640px ADR 0008 measures at 1366×768, which is how the previous cycle
+     came to reject exactly that composition on the record. A band that holds
+     the first card inside it spends nothing — the card was going to be there
+     anyway (Mercor).
+
+     One per screen, behind the greeting only, with the content below left
+     plain (Fireflies). It is raised, and it is **static**: elevation here is
+     containment, never reaction.
+     ------------------------------------------------------------------ */
+  .band {
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius-slab);
+    background-image: linear-gradient(
+      135deg,
+      var(--color-violet-600) 0%,
+      var(--color-violet-500) 42%,
+      var(--color-azure-500) 100%
+    );
+    box-shadow: var(--shadow-contains);
   }
 
   /* The brand gradient. Reserved for the two moments that earn it: the live

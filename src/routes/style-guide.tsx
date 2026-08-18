@@ -111,26 +111,24 @@ export function StyleGuideRoute() {
         </Chapter>
 
         <Chapter
-          title="Type"
-          caption="Densified this round to body 14/1.5 and a 28px Step title. It went to 13 and 24 first, and that was too far: density is how much is on the screen, not how small it is set."
+          title="The room and the band"
+          caption="ADR 0015. The ground of the whole application is tinted violet and carries one very quiet texture; each screen opens with a gradient band that contains its first unit rather than sitting above it. A band stacked before the first card spends 140–180px of the fold; a band that holds the card inside it spends nothing."
         >
-          <Sections>
-            <Section title="The scale">
-              <div className="space-y-1.5">
-                <p className="text-display">Display 36 · celebration only</p>
-                <p className="text-h1">Heading 1 · 28 · the Step title</p>
-                <p className="text-h2">Heading 2 · 20 · an overlay title</p>
-                <p className="text-h3">Heading 3 · 16 · a Section header</p>
-                <p className="text-lead text-ink-600">
-                  Lead 15 · one question, and at most one more
-                </p>
-                <p className="text-body text-ink-700">Body 14/1.5 · the working size everywhere</p>
-                <p className="text-small text-ink-500">Small 13 · values, secondary rows</p>
-                <p className="text-micro text-ink-500">Micro 12 · hints, counters, receipts</p>
-                <p className="field-label">Field label 12 · mobile number</p>
-              </div>
-            </Section>
-          </Sections>
+          <RoomAndBand />
+        </Chapter>
+
+        <Chapter
+          title="Type"
+          caption="Seven steps at 11/13/15/18/24/32/44, and two voices. The scale had nine steps with six of them inside five pixels, and `--font-display` resolved to the same face as body — which is why nothing below h2 could say what mattered more than what."
+        >
+          <TypeScale />
+        </Chapter>
+
+        <Chapter
+          title="Spacing, radius, elevation"
+          caption="Five spacing steps with no half-step. Containers rise and controls freeze. Elevation has two roles — contains, and floats — and neither of them is a reaction to a mouse."
+        >
+          <SpaceAndMaterial />
         </Chapter>
 
         <Chapter
@@ -387,6 +385,125 @@ function Chapter({
       </div>
       {children}
     </section>
+  );
+}
+
+/**
+ * The room, and a band containing its first unit — the whole composition
+ * decision of ADR 0015, at a size a reviewer can look at.
+ *
+ * The band is drawn at its real radius and its real elevation, and the card
+ * inside it is flat, which is the material rule in one picture: shadow contains
+ * the subject, tint groups the collection, and nothing under the band's lower
+ * edge is raised at all.
+ */
+function RoomAndBand() {
+  return (
+    <div className="room rounded-[var(--radius-slab)] border border-ink-100 p-4">
+      <div className="band p-4">
+        <p className="text-meta text-white/70">The band carries the display step</p>
+        <p className="font-display text-display font-black text-white">Hello, Alex</p>
+        <div className="mt-4 rounded-[var(--radius-card)] bg-panel p-4 shadow-[var(--shadow-contains)]">
+          <h3 className="text-h3 text-ink-900">The first unit, contained</h3>
+          <p className="text-small text-ink-600">
+            It sits inside the band's lower edge rather than under it, so the colour costs no
+            vertical budget at all.
+          </p>
+        </div>
+      </div>
+      <p className="mt-4 text-small text-ink-600">
+        Everything below the band is flat on the room. The texture is the ground's and appears
+        nowhere else — a texture inside a card is noise behind text.
+      </p>
+    </div>
+  );
+}
+
+/** The seven steps, and the two voices, side by side. */
+function TypeScale() {
+  return (
+    <Sections columns={2}>
+      <Section title="The seven steps">
+        <div className="flex flex-col gap-2">
+          <p className="font-display text-display font-black">Display 44 · the band</p>
+          <p className="font-display text-h1 font-extrabold">Heading 1 · 32 · a screen title</p>
+          <p className="font-display text-h2 font-extrabold">Heading 2 · 24 · an overlay title</p>
+          <p className="font-display text-h3 font-extrabold">Heading 3 · 18 · a Section header</p>
+          <p className="text-body text-ink-700">Body 15/1.55 · the working size everywhere</p>
+          <p className="text-small text-ink-500">Small 13 · notes, secondary rows</p>
+          <p className="text-meta text-ink-500">Meta 11 · a deadline, a value, an estimate</p>
+        </div>
+      </Section>
+
+      <Section title="The two voices, and the weights">
+        <div className="flex flex-col gap-2">
+          <div>
+            <p className="text-meta text-ink-500">Display — rounded terminals, pending sign-off</p>
+            <p className="font-display text-h2 font-black">Finish enrolling at Aster</p>
+          </div>
+          <div>
+            <p className="text-meta text-ink-500">Interface — Satoshi, 300 to 900</p>
+            <p className="text-h3 font-light">Light 300 · a quiet figure</p>
+            <p className="text-h3 font-normal">Regular 400 · body</p>
+            <p className="text-h3 font-strong">Strong 650 · a value in a fact row</p>
+            <p className="text-h3 font-bold">Bold 700 · a label</p>
+            <p className="text-h3 font-black">Black 900 · a total</p>
+          </div>
+        </div>
+      </Section>
+    </Sections>
+  );
+}
+
+/** Five spacing steps, three radii, two elevation roles. */
+function SpaceAndMaterial() {
+  const steps = [
+    { name: "hair", px: 4, note: "inside a control" },
+    { name: "tight", px: 8, note: "between siblings" },
+    { name: "group", px: 16, note: "between groups" },
+    { name: "block", px: 24, note: "between blocks" },
+    { name: "region", px: 40, note: "between regions" },
+  ];
+
+  return (
+    <Sections columns={2}>
+      <Section title="The rhythm">
+        <ul className="flex flex-col gap-2">
+          {steps.map((step) => (
+            <li key={step.name} className="flex items-center gap-4">
+              <span
+                aria-hidden
+                className="h-4 shrink-0 rounded-[var(--radius-pill)] bg-violet-400"
+                style={{ width: `var(--space-${step.name})` }}
+              />
+              <span className="text-small text-ink-700">
+                <span className="font-strong numeric">{step.px}</span> · {step.note}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-meta text-ink-500">
+          No half-step exists. A rhythm with a 2.5 in it is a rhythm with nine steps.
+        </p>
+      </Section>
+
+      <Section title="Containers rise, controls freeze">
+        <div className="flex flex-col gap-4">
+          <div className="rounded-[var(--radius-slab)] bg-well p-4">
+            <p className="text-meta text-ink-500">slab 28 · a band, a sheet</p>
+            <div className="mt-2 rounded-[var(--radius-card)] bg-panel p-4 shadow-[var(--shadow-contains)]">
+              <p className="text-meta text-ink-500">card 20 · contains</p>
+              <div className="mt-2 rounded-[var(--radius-field)] border border-ink-200 bg-panel px-4 py-2">
+                <p className="text-small text-ink-600">field 10 · and it did not move</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-[var(--radius-card)] bg-panel p-4 shadow-[var(--shadow-floats)]">
+            <p className="text-meta text-ink-500">floats · a modal, a popover, the action pill</p>
+          </div>
+        </div>
+      </Section>
+    </Sections>
   );
 }
 
