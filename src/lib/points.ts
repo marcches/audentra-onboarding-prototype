@@ -70,6 +70,23 @@ export const BOOKSTORE_LADDER = [
 export type BookstoreTarget = (typeof BOOKSTORE_LADDER)[number];
 
 /**
+ * Points a student has to hold before `usd` of credit has actually been
+ * **released** to them.
+ *
+ * Not `usd / rate`, and that difference is a real defect the Reward track
+ * surfaced by drawing the two facts beside each other: credit is issued in
+ * whole blocks, so a rung is reached when enough *blocks* have landed, not when
+ * the raw arithmetic crosses it. At 145 Points the raw sum is $29 and the
+ * released credit is $20, and the old figure said "0 more for a course
+ * textbook" beside a $25 rung the student had visibly not reached. A distance
+ * of zero to something you have not got is the one number a reward system must
+ * never print.
+ */
+function pointsForCredit(usd: number): number {
+  return POINTS_PER_BLOCK * Math.ceil(usd / CREDIT_BLOCK_USD);
+}
+
+/**
  * The next thing on the ladder this student has not reached, with what it costs
  * in Points from where they are. The last rung repeats once passed: a Balance
  * with nothing left to point at is the scoreboard again.
@@ -87,7 +104,7 @@ export function nextTarget(points: number): {
   }
   return {
     target,
-    pointsAway: Math.max(0, Math.ceil(target.usd / CREDIT_PER_POINT_USD) - points),
+    pointsAway: Math.max(0, pointsForCredit(target.usd) - points),
     reached: false,
   };
 }
@@ -129,11 +146,16 @@ export function rewardTrack(points: number): RewardTrack {
 
   /* Where the run of named amounts starts from: the rung already passed, or
      zero. Measuring from zero every time is what makes a four-rung ladder feel
-     like one long bar with nothing happening on it. */
+     like one long bar with nothing happening on it.
+
+     Measured in **Points** rather than in released dollars, because credit is
+     released in whole blocks: a bar reading released credit sits perfectly
+     still for forty-nine Points and then jumps, which teaches the student it
+     does not respond to them. Points is what they earn, and it is what moves. */
   const passed = BOOKSTORE_LADDER.filter((rung) => rung.usd <= released);
-  const from = passed.length > 0 ? passed[passed.length - 1].usd : 0;
-  const span = target.usd - from;
-  const progress = reached || span <= 0 ? 1 : Math.min(1, Math.max(0, (released - from) / span));
+  const from = passed.length > 0 ? pointsForCredit(passed[passed.length - 1].usd) : 0;
+  const span = pointsForCredit(target.usd) - from;
+  const progress = reached || span <= 0 ? 1 : Math.min(1, Math.max(0, (points - from) / span));
 
   return {
     rungs: BOOKSTORE_LADDER.map((rung) => ({

@@ -70,6 +70,28 @@ describe("the Balance always has an object to point at", () => {
     expect(reached).toBe(true);
     expect(target).toBe(last);
   });
+
+  it("never says nothing is left to earn toward a rung not yet reached", () => {
+    /* The defect the Reward track surfaced by drawing the two facts side by
+       side. Credit is released in whole blocks, so the distance to a rung is
+       the Points before enough *blocks* have landed — not the raw arithmetic.
+       At 145 the raw sum is $29 and the released credit is $20, and the old
+       figure read "0 more" beside a $25 rung the student visibly did not have.
+       A distance of zero to something you have not got is the one number a
+       reward system must never print. */
+    for (let points = 0; points <= 600; points += 1) {
+      const { pointsAway, reached } = nextTarget(points);
+      if (!reached) expect(pointsAway, `at ${points}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("counts the distance in whole blocks of credit", () => {
+    const second = BOOKSTORE_LADDER[1];
+    const blocks = Math.ceil(second.usd / CREDIT_BLOCK_USD);
+    const needed = blocks * POINTS_PER_BLOCK;
+    expect(nextTarget(needed - 5).pointsAway).toBe(5);
+    expect(creditReleased(needed)).toBeGreaterThanOrEqual(second.usd);
+  });
 });
 
 describe("what the flow is worth", () => {
