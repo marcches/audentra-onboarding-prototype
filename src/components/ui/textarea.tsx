@@ -17,7 +17,7 @@ function Textarea({
       data-slot="textarea"
       aria-describedby={describedBy ?? field?.describedBy}
       aria-invalid={invalid ?? field?.invalid}
-      className={cn(fieldClassName, "field-sizing-content min-h-16 py-1.5 leading-5", className)}
+      className={cn(fieldClassName, "field-sizing-content min-h-16 py-2 leading-5", className)}
       {...props}
     />
   );

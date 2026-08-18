@@ -168,14 +168,14 @@ export function StyleGuideRoute() {
         <Chapter title="Colour" caption="Brand values first, then the ground they sit on.">
           <div className="grid grid-cols-4 gap-3 compact:grid-cols-2">
             {SWATCHES.map((swatch) => (
-              <div key={swatch.token} className="space-y-1.5">
+              <div key={swatch.token} className="space-y-2">
                 <div
                   className="h-14 rounded-[var(--radius-field)] border border-ink-100"
                   style={{ backgroundColor: `var(${swatch.token})` }}
                 />
                 <div>
                   <p className="text-small font-bold text-ink-900">{swatch.name}</p>
-                  <p className="text-micro text-ink-500">
+                  <p className="text-meta text-ink-500">
                     {swatch.hex} · {swatch.note}
                   </p>
                 </div>
@@ -319,7 +319,7 @@ export function StyleGuideRoute() {
               </RadioGroup>
               <label
                 htmlFor="sg-checkbox"
-                className="mt-2 flex max-w-md cursor-pointer items-center gap-2.5 rounded-[var(--radius-field)] border border-ink-200 bg-surface px-2.5 py-2"
+                className="mt-2 flex max-w-md cursor-pointer items-center gap-2 rounded-[var(--radius-field)] border border-ink-200 bg-surface px-2 py-2"
               >
                 <Checkbox id="sg-checkbox" defaultChecked />
                 <span className="text-small text-ink-800">Financial account and payments</span>
@@ -379,7 +379,7 @@ function Chapter({
 }) {
   return (
     <section className="space-y-3">
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         <h2 className="text-h2 text-ink-900">{title}</h2>
         <p className="text-small text-ink-500">{caption}</p>
       </div>
@@ -537,22 +537,22 @@ function PresenceTable() {
         <table className="w-full border-collapse text-small">
           <thead>
             <tr className="border-b border-ink-100">
-              <th className="px-3 py-1.5 text-left field-label">Piece</th>
-              <th className="px-3 py-1.5 text-left field-label">compact</th>
-              <th className="px-3 py-1.5 text-left field-label">desktop</th>
-              <th className="px-3 py-1.5 text-left field-label">How</th>
+              <th className="px-3 py-2 text-left field-label">Piece</th>
+              <th className="px-3 py-2 text-left field-label">compact</th>
+              <th className="px-3 py-2 text-left field-label">desktop</th>
+              <th className="px-3 py-2 text-left field-label">How</th>
             </tr>
           </thead>
           <tbody>
             {presence.map((row) => (
               <tr key={row.id} className="border-b border-ink-100/70 last:border-0">
-                <td className="px-3 py-1.5 font-strong text-ink-900">{row.piece}</td>
-                <td className="px-3 py-1.5 text-ink-600">{row.compact}</td>
-                <td className="px-3 py-1.5 text-ink-600">{row.desktop}</td>
-                <td className="px-3 py-1.5">
+                <td className="px-3 py-2 font-strong text-ink-900">{row.piece}</td>
+                <td className="px-3 py-2 text-ink-600">{row.compact}</td>
+                <td className="px-3 py-2 text-ink-600">{row.desktop}</td>
+                <td className="px-3 py-2">
                   <span
                     className={cn(
-                      "rounded-[var(--radius-pill)] px-1.5 py-0.5 text-micro font-bold tracking-[0.06em] uppercase",
+                      "rounded-[var(--radius-pill)] px-2 py-1 text-meta font-bold",
                       row.recomposes === "swap"
                         ? "bg-amber-50 text-amber-500"
                         : "bg-mint-50 text-mint-deep",
@@ -605,7 +605,7 @@ function SectionDemo() {
         <Section step={2} title="A revealed block">
           <label
             htmlFor="sg-reveal"
-            className="flex cursor-pointer items-center gap-2.5 text-small text-ink-700"
+            className="flex cursor-pointer items-center gap-2 text-small text-ink-700"
           >
             <Checkbox
               id="sg-reveal"
@@ -644,7 +644,7 @@ function MotionDemo() {
             <div key={token} className="text-small">
               <p className="font-mono text-ink-700">{token}</p>
               <p className="text-ink-900 numeric">{value}</p>
-              <p className="text-micro text-ink-400">{use}</p>
+              <p className="text-meta text-ink-400">{use}</p>
             </div>
           ))}
         </div>
@@ -680,7 +680,7 @@ function IdentitySheet() {
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-3 compact:grid-cols-1">
         {GROUNDS.map((ground) => (
-          <div key={ground.name} className="space-y-1.5">
+          <div key={ground.name} className="space-y-2">
             <div
               className={cn(
                 "flex flex-col items-start justify-center gap-3 rounded-[var(--radius-card)] border p-4",
@@ -688,9 +688,9 @@ function IdentitySheet() {
               )}
             >
               <Wordmark tone={ground.tone} tagline />
-              <Wordmark tone={ground.tone} className="h-3.5" />
+              <Wordmark tone={ground.tone} className="h-4" />
             </div>
-            <p className="text-micro text-ink-500">
+            <p className="text-meta text-ink-500">
               {ground.name} · <code>tone=&quot;{ground.tone}&quot;</code>
             </p>
           </div>
@@ -698,19 +698,19 @@ function IdentitySheet() {
       </div>
 
       <div className="flex flex-wrap items-end gap-5 rounded-[var(--radius-card)] border border-ink-100 bg-white p-4">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <AudentraMark className="h-8" />
-          <p className="text-micro text-ink-500">Symbol</p>
+          <p className="text-meta text-ink-500">Symbol</p>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <AudentraMark tone="mono" className="h-8 text-ink-900/25" />
-          <p className="text-micro text-ink-500">
+          <p className="text-meta text-ink-500">
             Symbol · <code>tone=&quot;mono&quot;</code>
           </p>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Wordmark tone="mono" className="h-4 text-violet-500" />
-          <p className="text-micro text-ink-500">
+          <p className="text-meta text-ink-500">
             Lockup · <code>tone=&quot;mono&quot;</code>
           </p>
         </div>
@@ -727,13 +727,13 @@ function GroundDemo() {
       </SectionLabel>
 
       <OnGround reason="catalogue" as="section">
-        <p className="mb-1.5 text-micro text-ink-500">
+        <p className="mb-2 text-meta text-ink-500">
           2. A catalogue that is the screen. Framing it puts a white box on a grey page containing
           white cards.
         </p>
-        <ul className="grid grid-cols-3 gap-1.5">
+        <ul className="grid grid-cols-3 gap-2">
           {[0, 1, 2].map((index) => (
-            <FlatCard as="li" key={index} className="p-2.5">
+            <FlatCard as="li" key={index} className="p-2">
               <p className="text-small text-ink-700">Catalogue item</p>
             </FlatCard>
           ))}
@@ -742,7 +742,7 @@ function GroundDemo() {
 
       <OnGround reason="checkout-asymmetry" as="section" className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
-          <p className="text-micro text-ink-500">
+          <p className="text-meta text-ink-500">
             3. The checkout, where only the summary is framed. Framing both halves would erase the
             emphasis that makes the summary the summary.
           </p>
@@ -763,14 +763,14 @@ function StateDemo() {
   return (
     <div className="space-y-3">
       <Well label="Selection is fill and a check, never elevation">
-        <ul className="grid grid-cols-3 gap-1.5">
+        <ul className="grid grid-cols-3 gap-2">
           {[0, 1, 2].map((index) => (
             <FlatCard
               as="li"
               key={index}
               selected={selected === index}
               interactive
-              className="cursor-pointer p-2.5"
+              className="cursor-pointer p-2"
               onClick={() => setSelected(index)}
             >
               <span className="flex items-center gap-2">
@@ -783,10 +783,10 @@ function StateDemo() {
       </Well>
 
       <div className="flex flex-wrap items-center gap-4">
-        <span className="rounded-[var(--radius-field)] bg-panel px-2.5 py-1.5 text-small ring-glow">
+        <span className="rounded-[var(--radius-field)] bg-panel px-2 py-2 text-small ring-glow">
           Ring glow
         </span>
-        <span className="rounded-[var(--radius-field)] bg-panel px-2.5 py-1.5 text-small ring-glow-mint">
+        <span className="rounded-[var(--radius-field)] bg-panel px-2 py-2 text-small ring-glow-mint">
           Ring glow, done
         </span>
         <IconTile size="lg">
@@ -800,7 +800,7 @@ function StateDemo() {
           {["First row", "Second row", "Third row"].map((label) => (
             <li
               key={label}
-              className="row-nudge rounded-[var(--radius-field)] px-2.5 py-1.5 hover:bg-ink-50"
+              className="row-nudge rounded-[var(--radius-field)] px-2 py-2 hover:bg-ink-50"
             >
               <span className="text-small text-ink-700">{label}</span>
             </li>
@@ -822,7 +822,7 @@ function ViewerDemo() {
   );
 
   return (
-    <ul className="grid grid-cols-6 gap-1.5 compact:grid-cols-3">
+    <ul className="grid grid-cols-6 gap-2 compact:grid-cols-3">
       {sample.map((photo, index) => (
         <li key={photo.src}>
           <button

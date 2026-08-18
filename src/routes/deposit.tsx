@@ -119,11 +119,11 @@ function SecureYourPlace() {
         >
           <div>
             <p className="field-label">How you want to pay</p>
-            <Prose size="note" className="mt-0.5">
+            <Prose size="note" className="mt-1">
               Three ways to finish this. None of them is giving up your place.
             </Prose>
             <RadioGroup
-              className="mt-2 grid gap-1.5"
+              className="mt-2 grid gap-2"
               value={deposit.choice}
               onValueChange={(value) =>
                 set({
@@ -158,7 +158,7 @@ function SecureYourPlace() {
           <Reveal open={payingNow}>
             <div>
               <p className="field-label">Payment method</p>
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-2 space-y-2">
                 <MethodRow
                   id="card"
                   icon={<CreditCardIcon weight="fill" aria-hidden className="size-4" />}
@@ -184,7 +184,7 @@ function SecureYourPlace() {
                       />
                     </Field>
                   </SectionFields>
-                  <p className="pt-1.5 text-micro text-ink-400">
+                  <p className="pt-2 text-meta text-ink-400">
                     No gateway is connected in this prototype. Nothing is charged.
                   </p>
                 </MethodRow>
@@ -253,7 +253,7 @@ function MethodRow({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-field)] border bg-panel px-2.5 py-2",
+        "rounded-[var(--radius-field)] border bg-panel px-2 py-2",
         "transition-[border-color,background-color] duration-[var(--duration-base)]",
         selected ? "border-violet-400 bg-violet-50/50" : "border-ink-200",
       )}
@@ -294,14 +294,14 @@ function DepositSummary({ waiver }: { waiver: boolean }) {
             </Fact>
           </dl>
 
-          <div className="mt-1.5 flex items-baseline justify-between gap-3 border-t border-ink-100 pt-1.5">
+          <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink-100 pt-2">
             <span className="text-small font-strong text-ink-900">Due today</span>
             <span className="text-h3 font-bold text-ink-900 numeric">
               {waiver ? "$0, pending review" : AMOUNT}
             </span>
           </div>
 
-          <Prose size="note" className="mt-1.5">
+          <Prose size="note" className="mt-2">
             {waiver
               ? `Student Accounts reviews waiver requests within ${depositTerms.waiverReviewDays} working days. Your place is held while they do.`
               : `Refundable in full until ${DEADLINE}.`}
@@ -363,7 +363,7 @@ function DoubleCheck() {
         <OnGround
           reason="checkout-asymmetry"
           as="section"
-          className="col-span-7 space-y-1.5 narrow:col-span-1"
+          className="col-span-7 space-y-2 narrow:col-span-1"
         >
           {/* Both prior steps collapsed to one line each with Change
               (lululemon). */}
@@ -387,7 +387,7 @@ function DoubleCheck() {
           ) : null}
 
           <Well label="The deposit policy, in short">
-            <ul className="space-y-1 text-micro leading-4 text-ink-700">
+            <ul className="space-y-1 text-meta leading-4 text-ink-700">
               <li>The deposit is {AMOUNT} and it is credited against your first term's bill.</li>
               <li>It is refundable in full until {DEADLINE}, and not after it.</li>
               <li>If you withdraw after that date you forfeit the deposit and nothing else.</li>
@@ -411,10 +411,10 @@ function CollapsedStep({
   onChange: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-2.5 py-1.5">
+    <div className="flex items-center gap-2 rounded-[var(--radius-field)] border border-ink-100 bg-panel px-2 py-2">
       <CheckCircleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-mint-600" />
       <span className="flex min-w-0 flex-1 items-baseline gap-2">
-        <span className="shrink-0 text-micro text-ink-500">{label}</span>
+        <span className="shrink-0 text-meta text-ink-500">{label}</span>
         <span className="truncate text-small text-ink-900">{value}</span>
       </span>
       <Button type="button" variant="ghost" size="sm" onClick={onChange}>
@@ -451,7 +451,7 @@ function Receipt() {
       <div className="grid grid-cols-12 items-start gap-3 narrow:grid-cols-1">
         <Sections signature className="col-span-7 narrow:col-span-1">
           <Section title="Your receipt" collapsible={false}>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {outcome.processing ? (
                 <HourglassMediumIcon weight="fill" aria-hidden className="size-6 text-amber-500" />
               ) : (
@@ -485,17 +485,17 @@ function Receipt() {
 
         <Sections className="col-span-5 narrow:col-span-1">
           <Section title="What happens next" collapsible={false}>
-            <ol className="space-y-1.5">
+            <ol className="space-y-2">
               {outcome.next.map((line, index) => (
                 <li key={line} className="flex items-start gap-2">
-                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-ink-100 text-[0.5625rem] font-bold text-ink-600 numeric">
+                  <span className="mt-1 flex size-4 shrink-0 items-center justify-center rounded-full bg-ink-100 text-[0.5625rem] font-bold text-ink-600 numeric">
                     {index + 1}
                   </span>
-                  <span className="text-micro leading-4 text-ink-700">{line}</span>
+                  <span className="text-meta leading-4 text-ink-700">{line}</span>
                 </li>
               ))}
             </ol>
-            <p className="mt-2 text-micro text-ink-400">
+            <p className="mt-2 text-meta text-ink-400">
               Questions about the money go to {institution.admissionsEmail}.
             </p>
           </Section>

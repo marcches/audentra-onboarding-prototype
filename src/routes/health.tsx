@@ -100,7 +100,7 @@ export function HealthRoute() {
         <Section
           step={1}
           done={health.accommodations !== ""}
-          icon={<WheelchairIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<WheelchairIcon weight="bold" aria-hidden className="size-4" />}
           title="Accommodations"
           value={
             health.accommodations === "yes"
@@ -114,12 +114,12 @@ export function HealthRoute() {
             <legend className="field-label">
               Do you need an accommodation for a disability or health condition?
             </legend>
-            <Prose size="note" className="mt-0.5">
+            <Prose size="note" className="mt-1">
               Accessibility Services uses this to reach you before term starts. Nobody teaching you
               sees it.
             </Prose>
             <RadioGroup
-              className="mt-2 grid grid-cols-2 gap-1.5 narrow:grid-cols-1"
+              className="mt-2 grid grid-cols-2 gap-2 narrow:grid-cols-1"
               value={health.accommodations}
               onValueChange={(value) => set({ accommodations: value as "yes" | "no" })}
             >
@@ -161,7 +161,7 @@ export function HealthRoute() {
         <Section
           step={2}
           done={health.immunizationDocuments.length > 0}
-          icon={<SyringeIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<SyringeIcon weight="bold" aria-hidden className="size-4" />}
           title="Immunization record"
           value={
             health.immunizationDocuments.length

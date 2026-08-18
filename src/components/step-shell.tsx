@@ -444,8 +444,16 @@ export function StepShell({
               className={cn(
                 /* Pulled into the band's lower edge. The gap above is 16 and
                    this is 40, so the sheet's top 24px are inside the colour —
-                   which is the whole reason the band costs the fold nothing. */
-                "-mt-10 flex flex-col gap-[var(--space-section)]",
+                   which is the whole reason the band costs the fold nothing.
+
+                   `relative` is load-bearing rather than decorative: the band
+                   is positioned, and once the entry beat finishes `motion`
+                   drops its transform, which would leave the work an ordinary
+                   in-flow block painted *under* the colour it is supposed to
+                   be sitting in. Found by walking Review & sign, where the
+                   summary strip disappeared behind the band a beat after the
+                   screen settled. */
+                "relative -mt-10 flex flex-col gap-[var(--space-section)]",
                 /* Two panes: the work, and the guide beside it. Neither
                    stretches — `items-start` is the whole rule, and it is why
                    the two panes end at different heights and that is fine. A

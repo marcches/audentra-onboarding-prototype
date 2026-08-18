@@ -170,7 +170,7 @@ export function WhoWeCallRoute() {
         <Section
           step={1}
           done={missing === 0}
-          icon={<PhoneCallIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<PhoneCallIcon weight="bold" aria-hidden className="size-4" />}
           title="Emergency contact"
           value={
             contact?.fullName
@@ -192,13 +192,13 @@ export function WhoWeCallRoute() {
                   })
                 }
               >
-                <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+                <PlusIcon weight="bold" aria-hidden className="size-4" />
                 Add a second
               </Button>
             )
           }
         >
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {call.emergencyContacts.map((entry, index) => (
               <SectionFields key={entry.id}>
                 {/* The optionality is said in the heading rather than in a
@@ -311,7 +311,7 @@ export function WhoWeCallRoute() {
         <Section
           step={2}
           done={call.familyAccess.length > 0}
-          icon={<EyeIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<EyeIcon weight="bold" aria-hidden className="size-4" />}
           title="Who can see your record"
           value={accessSummary}
           action={
@@ -330,7 +330,7 @@ export function WhoWeCallRoute() {
                   })
                 }
               >
-                <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+                <PlusIcon weight="bold" aria-hidden className="size-4" />
                 Give someone access
               </Button>
             )
@@ -345,7 +345,7 @@ export function WhoWeCallRoute() {
               }
             />
           ) : (
-            <div className="mt-2.5 space-y-2.5">
+            <div className="mt-2 space-y-2">
               {call.familyAccess.map((grant, index) => (
                 <FamilyAccessRow
                   key={grant.id}
@@ -435,11 +435,11 @@ function FerpaExplanation() {
       </button>
 
       <Reveal open={open}>
-        <Well label="Without your permission, Aster staff will not discuss" className="mt-1.5">
+        <Well label="Without your permission, Aster staff will not discuss" className="mt-2">
           <ul className="flex flex-wrap gap-x-4 gap-y-1">
             {WITHHELD.map((item) => (
-              <li key={item} className="flex items-center gap-1.5 text-small text-ink-700">
-                <ProhibitIcon weight="bold" aria-hidden className="size-3.5 text-ink-400" />
+              <li key={item} className="flex items-center gap-2 text-small text-ink-700">
+                <ProhibitIcon weight="bold" aria-hidden className="size-4 text-ink-400" />
                 {item}
               </li>
             ))}
@@ -469,18 +469,18 @@ function FerpaExplanation() {
  */
 function NobodyHasAccess({ onAdd }: { onAdd: () => void }) {
   return (
-    <Well className="mt-2.5 flex flex-col items-center gap-2 py-4 text-center">
+    <Well className="mt-2 flex flex-col items-center gap-2 py-4 text-center">
       <IconTile size="lg">
-        <EyeSlashIcon weight="duotone" aria-hidden className="size-6" />
+        <EyeSlashIcon weight="bold" aria-hidden className="size-6" />
       </IconTile>
       <div>
         <p className="text-small font-strong text-ink-900">Nobody has access to your record.</p>
-        <Prose size="note" className="mt-0.5">
+        <Prose size="note" className="mt-1">
           That is the default, and it is fine to leave it that way.
         </Prose>
       </div>
       <Button type="button" variant="secondary" size="sm" onClick={onAdd}>
-        <PlusIcon weight="bold" aria-hidden className="size-3.5" />
+        <PlusIcon weight="bold" aria-hidden className="size-4" />
         Give someone access
       </Button>
     </Well>
@@ -510,7 +510,7 @@ function FamilyAccessRow({
   };
 
   return (
-    <Well strong className="space-y-2.5">
+    <Well strong className="space-y-2">
       <SectionFields>
         <Field
           width="medium"
@@ -568,14 +568,14 @@ function FamilyAccessRow({
           the flat register. Selection is fill and a check, never elevation. */}
       <fieldset>
         <legend className="field-label">What they can see</legend>
-        <div className="mt-1.5 grid grid-cols-2 gap-1.5 narrow:grid-cols-1">
+        <div className="mt-2 grid grid-cols-2 gap-2 narrow:grid-cols-1">
           {disclosureScopeOptions.map((option) => {
             const checked = grant.scope.includes(option.value);
             return (
               <label
                 key={option.value}
                 className={cn(
-                  "flex cursor-pointer items-start gap-2 rounded-[var(--radius-field)] border bg-panel px-2 py-1.5",
+                  "flex cursor-pointer items-start gap-2 rounded-[var(--radius-field)] border bg-panel px-2 py-2",
                   "transition-[border-color,background-color] duration-[var(--duration-base)]",
                   "compact:min-h-[var(--tap-target)]",
                   checked
@@ -593,24 +593,24 @@ function FamilyAccessRow({
                   checked={checked}
                   onChange={() => toggleScope(option.value)}
                 />
-                <SelectionMark selected={checked} className="mt-0.5" />
+                <SelectionMark selected={checked} className="mt-1" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-small font-strong text-ink-900">{option.label}</span>
-                  <span className="block text-micro leading-4 text-ink-500">{option.hint}</span>
+                  <span className="block text-meta leading-4 text-ink-500">{option.hint}</span>
                 </span>
               </label>
             );
           })}
         </div>
         {errors[`familyAccess.${index}.scope`] ? (
-          <p className="mt-1.5 text-micro font-medium text-danger-600">
+          <p className="mt-2 text-meta font-medium text-danger-600">
             {errors[`familyAccess.${index}.scope`]}
           </p>
         ) : null}
       </fieldset>
 
       <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
-        <TrashIcon aria-hidden className="size-3.5" />
+        <TrashIcon aria-hidden className="size-4" />
         Remove access
       </Button>
     </Well>

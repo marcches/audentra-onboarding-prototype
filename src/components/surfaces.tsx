@@ -125,7 +125,7 @@ export function Sections({
       )}
     >
       {signature ? (
-        <span aria-hidden className="brand-gradient absolute inset-x-0 top-0 h-0.5" />
+        <span aria-hidden className="brand-gradient absolute inset-x-0 top-0 h-1" />
       ) : null}
 
       {/* The rules between Sections, drawn as a grid rather than as a stack of
@@ -275,7 +275,7 @@ export function Section({
           weight="bold"
           aria-hidden
           className={cn(
-            "size-3.5 shrink-0 text-ink-400",
+            "size-4 shrink-0 text-ink-400",
             "transition-transform duration-[var(--duration-quick)] ease-[var(--ease-out-soft)]",
             !shown && "-rotate-90",
           )}
@@ -328,7 +328,7 @@ export function Section({
       </div>
 
       <Reveal open={shown}>
-        <div className={cn("flex flex-col px-4 py-4", bodyClassName)}>{children}</div>
+        <div className={cn("flex flex-col px-4 pt-2 pb-4", bodyClassName)}>{children}</div>
       </Reveal>
     </section>
   );
@@ -402,7 +402,7 @@ export function SectionFields({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("grid grid-cols-12 gap-x-3 gap-y-2.5 narrow:grid-cols-1", className)}>
+    <div className={cn("grid grid-cols-12 gap-x-3 gap-y-2 narrow:grid-cols-1", className)}>
       {children}
     </div>
   );
@@ -699,7 +699,7 @@ export function SelectionMark({ selected, className }: { selected: boolean; clas
         <svg
           aria-hidden="true"
           viewBox="0 0 12 12"
-          className="size-2.5"
+          className="size-3"
           fill="none"
           stroke="currentColor"
         >

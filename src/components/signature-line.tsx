@@ -149,7 +149,7 @@ function Provenance({ reference }: { reference: string }) {
   }
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-ink-100 bg-ink-50/70 px-4 py-3.5">
+    <div className="rounded-[var(--radius-card)] border border-ink-100 bg-ink-50/70 px-4 py-4">
       {/* The reference and nothing else. The date is already under the
           signature line, with the time on it, and saying it twice on one page
           is the habit this flow has been pulling out everywhere else. */}
@@ -173,7 +173,7 @@ function Provenance({ reference }: { reference: string }) {
         </Button>
       </div>
 
-      <Prose className="mt-2.5 border-t border-ink-100 pt-2.5 text-ink-500">
+      <Prose className="mt-2 border-t border-ink-100 pt-2 text-ink-500">
         Quote this reference if you contact anyone about this agreement. A copy is in My Documents.
       </Prose>
     </div>

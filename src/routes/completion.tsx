@@ -67,11 +67,11 @@ export function CompletionRoute() {
       />
 
       <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 py-10">
-        <p className="text-micro font-bold tracking-[0.18em] text-violet-300 uppercase">Enrolled</p>
-        <h1 className="mt-1.5 text-center text-display text-white text-balance">
+        <p className="text-body font-strong text-violet-300">Enrolled</p>
+        <h1 className="mt-2 text-center text-display text-white text-balance">
           That is it. You are an {institution.short} student.
         </h1>
-        <p className="mt-1.5 max-w-sm text-center text-body text-white/70">
+        <p className="mt-2 max-w-sm text-center text-body text-white/70">
           We will write to you in July with your room and your move-in window.
         </p>
 
@@ -113,9 +113,9 @@ export function CompletionRoute() {
             className="inline-flex items-center gap-1 font-strong text-white underline-offset-4 hover:underline"
           >
             Go to your student portal
-            <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
           </Link>
-          <span className="ml-1.5">— what Aster needs from you next</span>
+          <span className="ml-2">— what Aster needs from you next</span>
         </p>
 
         {/* The journey as a receipt: Phases with checks and their Points. On the
@@ -123,9 +123,7 @@ export function CompletionRoute() {
             not the point. */}
         <div className="mt-8 w-full rounded-[var(--radius-card)] border border-white/10 bg-white/5 p-3">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-micro font-bold tracking-[0.06em] text-white/60 uppercase">
-              What you did
-            </p>
+            <p className="text-meta font-bold text-white/60">What you did</p>
             <p className="text-small text-white/80 numeric">
               {points} points = {formatCredit(credit)} in bookstore credit
             </p>
@@ -134,14 +132,12 @@ export function CompletionRoute() {
           <ol className="mt-2 grid grid-cols-3 gap-x-4 gap-y-2 compact:grid-cols-1">
             {groups.map((group) => (
               <li key={group.id}>
-                <p className="text-micro font-bold tracking-[0.06em] text-white/50 uppercase">
-                  {group.label}
-                </p>
-                <ul className="mt-1 space-y-0.5">
+                <p className="text-meta font-bold text-white/50">{group.label}</p>
+                <ul className="mt-1 space-y-1">
                   {group.steps.map((step) => {
                     const complete = done.has(step.id);
                     return (
-                      <li key={step.id} className="flex items-center gap-1.5">
+                      <li key={step.id} className="flex items-center gap-2">
                         <span
                           className={cn(
                             "flex size-3 shrink-0 items-center justify-center rounded-full",
@@ -264,7 +260,7 @@ function StudentCard({ residence }: { residence?: string }) {
           </dl>
         </div>
 
-        <Wordmark className="mb-0.5 h-3 shrink-0 opacity-70" tone="knockout" />
+        <Wordmark className="mb-1 h-3 shrink-0 opacity-70" tone="knockout" />
       </div>
     </div>
   );

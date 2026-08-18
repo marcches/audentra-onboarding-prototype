@@ -111,7 +111,7 @@ export function ReviewRoute() {
         {/* 1 · The answers. */}
         <div className="flex flex-col gap-2">
           <Well strong className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <p className="text-micro text-ink-600 numeric">
+            <p className="text-meta text-ink-600 numeric">
               {counts.answers} answers across {counts.sections} sections ·{" "}
               {counts.attention === 0 ? (
                 <span className="text-mint-deep">nothing outstanding</span>
@@ -122,8 +122,8 @@ export function ReviewRoute() {
               )}
             </p>
             {review.submitted ? (
-              <p className="flex items-center gap-1.5 text-micro font-strong text-mint-deep">
-                <CheckCircleIcon weight="fill" aria-hidden className="size-3.5" />
+              <p className="flex items-center gap-2 text-meta font-strong text-mint-deep">
+                <CheckCircleIcon weight="fill" aria-hidden className="size-4" />
                 Signed · {review.reference}
               </p>
             ) : null}
@@ -143,12 +143,12 @@ export function ReviewRoute() {
             collapsible={false}
             action={
               review.documentRead ? (
-                <span className="flex items-center gap-1 text-micro font-strong text-mint-deep">
-                  <CheckCircleIcon weight="fill" aria-hidden className="size-3.5" />
+                <span className="flex items-center gap-1 text-meta font-strong text-mint-deep">
+                  <CheckCircleIcon weight="fill" aria-hidden className="size-4" />
                   Read in full
                 </span>
               ) : (
-                <span className="text-micro text-ink-400">Read to the end to sign</span>
+                <span className="text-meta text-ink-400">Read to the end to sign</span>
               )
             }
             bodyClassName="p-0"
@@ -194,7 +194,7 @@ export function ReviewRoute() {
                   onChange={(event) => patch("review", { typedSignature: event.target.value })}
                 />
                 {review.typedSignature.trim() && !typedMatches ? (
-                  <p className="mt-1 flex items-center gap-1 text-micro text-danger-600">
+                  <p className="mt-1 flex items-center gap-1 text-meta text-danger-600">
                     <WarningCircleIcon weight="fill" aria-hidden className="size-3" />
                     Type it exactly as {LEGAL_NAME}.
                   </p>
@@ -217,7 +217,7 @@ export function ReviewRoute() {
               </TabsContent>
             </Tabs>
 
-            <label htmlFor="consent" className="mt-2.5 flex cursor-pointer items-start gap-2.5">
+            <label htmlFor="consent" className="mt-2 flex cursor-pointer items-start gap-2">
               <Checkbox
                 id="consent"
                 checked={review.consented}
@@ -260,7 +260,7 @@ function AnswerSection({ section }: { section: SummarySection }) {
       defaultOpen={opensByDefault(section)}
       value={section.digest}
       action={<StatusPill status={section.status} />}
-      bodyClassName="px-3 py-1.5"
+      bodyClassName="px-3 py-2"
     >
       <dl>
         {section.rows.map((row) =>
@@ -274,7 +274,7 @@ function AnswerSection({ section }: { section: SummarySection }) {
               </div>
               <dd
                 className={cn(
-                  "mt-0.5 rounded-[var(--radius-field)] bg-well px-2 py-1.5 text-small leading-5",
+                  "mt-1 rounded-[var(--radius-field)] bg-well px-2 py-2 text-small leading-5",
                   row.missing ? "text-danger-600" : "text-ink-800",
                 )}
               >
@@ -332,7 +332,7 @@ function StatusPill({ status }: { status: SummarySection["status"] }) {
   return (
     <span
       className={cn(
-        "rounded-[var(--radius-pill)] px-1.5 py-0.5 text-[0.625rem] font-bold tracking-[0.06em] uppercase",
+        "rounded-[var(--radius-pill)] px-2 py-1 text-meta font-bold",
         status === "complete" && "bg-mint-50 text-mint-deep",
         status === "attention" && "bg-danger-50 text-danger-600",
         status === "skipped" && "bg-ink-50 text-ink-500",
@@ -386,7 +386,7 @@ function Agreement({
     <div
       ref={scroller}
       onScroll={onScroll}
-      className="max-h-[18rem] overflow-y-auto px-3 py-2.5"
+      className="max-h-[18rem] overflow-y-auto px-3 py-2"
       // biome-ignore lint/a11y/noNoninteractiveTabindex: the read gate depends on this region being scrolled, so a keyboard user has to be able to reach and scroll it.
       tabIndex={0}
       aria-label="Enrollment agreement"
@@ -399,7 +399,7 @@ function Agreement({
               <span className="numeric">{clause.number}. </span>
               {clause.heading}
             </p>
-            <Prose className="mt-0.5 text-ink-700">
+            <Prose className="mt-1 text-ink-700">
               {clause.runs.map((run, index) => (
                 <React.Fragment key={`${clause.number}-${index}`}>
                   {run.emphasis ? (

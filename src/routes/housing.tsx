@@ -149,7 +149,7 @@ export function HousingRoute() {
         {/* `auto-fill` rather than a column count per breakpoint: the grid asks
             how much room it has instead of asking how wide the window is, so it
             gains a column on a big monitor without a fourth width class. */}
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2.5">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2">
           {residences.map((residence) => (
             <ResidenceCard
               key={residence.id}
@@ -229,7 +229,7 @@ function ResidenceCard({
 
         {/* The counter is textual rather than dots: dots stop scaling somewhere
             around six, and this catalogue carries twelve frames a building. */}
-        <span className="pointer-events-none absolute right-1.5 bottom-1.5 flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink-950/70 px-1.5 py-0.5 text-micro font-bold text-white">
+        <span className="pointer-events-none absolute right-2 bottom-2 flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink-950/70 px-2 py-1 text-meta font-bold text-white">
           <ImagesIcon weight="fill" aria-hidden className="size-3" />
           <span className="numeric">{residence.photos.length}</span>
         </span>
@@ -240,7 +240,7 @@ function ResidenceCard({
           onClick={onToggle}
           disabled={disabled}
           className={cn(
-            "absolute top-1.5 right-1.5 flex h-6 min-w-6 items-center gap-1 rounded-[var(--radius-pill)] px-1.5 text-micro font-bold",
+            "absolute top-2 right-2 flex h-6 min-w-6 items-center gap-1 rounded-[var(--radius-pill)] px-2 text-meta font-bold",
             "transition-colors duration-[var(--duration-base)] disabled:opacity-40",
             ranked ? "bg-violet-500 text-white" : "bg-panel/95 text-ink-800 hover:bg-panel",
           )}
@@ -259,12 +259,12 @@ function ResidenceCard({
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col p-2.5">
+      <div className="flex flex-1 flex-col p-2">
         <p className="text-body font-strong text-ink-900">{residence.name}</p>
-        <p className="mt-0.5 line-clamp-2 flex-1 text-micro leading-4 text-ink-500">
+        <p className="mt-1 line-clamp-2 flex-1 text-meta leading-4 text-ink-500">
           {residence.summary}
         </p>
-        <p className="mt-1.5 text-micro text-ink-600">
+        <p className="mt-2 text-meta text-ink-600">
           {bathroomShort[residence.bathroom]} ·{" "}
           <span className="numeric">{residence.walkMinutes} min walk</span> ·{" "}
           {residence.airConditioning ? "Air conditioned" : "No air con"}
@@ -291,17 +291,17 @@ function Shortlist({
       label={`Your shortlist · ${ranking.length} of ${housingAvailability.shortlistSize} ranked`}
     >
       {ranking.length === 0 ? (
-        <p className="text-micro text-ink-500">Pick three residences and rank them.</p>
+        <p className="text-meta text-ink-500">Pick three residences and rank them.</p>
       ) : (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <ol className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <ol className="flex min-w-0 flex-1 flex-wrap gap-2">
             {ranking.map((id, index) => {
               const residence = residenceById(id);
               if (!residence) return null;
               return (
                 <li
                   key={id}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-ink-100 bg-panel py-0.5 pr-0.5 pl-1.5"
+                  className="flex items-center gap-2 rounded-[var(--radius-pill)] border border-ink-100 bg-panel py-1 pr-1 pl-2"
                 >
                   <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-violet-500 text-[0.5625rem] font-bold text-white numeric">
                     {index + 1}
@@ -375,7 +375,7 @@ function Gallery({ residence }: { residence: Residence }) {
           a hard 1 + 4 would have a hole in it now and a lie in it later. */}
       <div
         className={cn(
-          "grid aspect-[3/1] grid-rows-2 gap-1.5",
+          "grid aspect-[3/1] grid-rows-2 gap-2",
           tiles.length >= 4 ? "grid-cols-4" : "grid-cols-3",
           aboveCompact,
         )}
@@ -400,7 +400,7 @@ function Gallery({ residence }: { residence: Residence }) {
             {/* The last cell carries the count and the invitation, which is
                 what stops the mosaic reading as "there are three photos". */}
             {position === tiles.length - 1 ? (
-              <span className="absolute inset-0 flex items-center justify-center gap-1.5 bg-ink-950/60 text-small font-bold text-white">
+              <span className="absolute inset-0 flex items-center justify-center gap-2 bg-ink-950/60 text-small font-bold text-white">
                 <ImagesIcon weight="fill" aria-hidden className="size-4" />
                 <span className="numeric">All {residence.photos.length}</span>
               </span>
@@ -414,7 +414,7 @@ function Gallery({ residence }: { residence: Residence }) {
           that is already full screen is not magnification. */}
       <ul
         className={cn(
-          "rail-scroll snap-x snap-mandatory gap-1.5 overflow-x-auto",
+          "rail-scroll snap-x snap-mandatory gap-2 overflow-x-auto",
           inCompact,
           "compact:flex",
         )}
@@ -427,7 +427,7 @@ function Gallery({ residence }: { residence: Residence }) {
                 alt={photo.alt}
                 className="aspect-[3/2] w-full rounded-[var(--radius-field)] object-cover"
               />
-              <figcaption className="mt-1 text-micro text-ink-500">
+              <figcaption className="mt-1 text-meta text-ink-500">
                 {photoKindLabels[photo.kind]}
               </figcaption>
             </figure>
@@ -525,7 +525,7 @@ function ResidenceDetail({ id, onClose }: { id: string | null; onClose: () => vo
                 </Fact>
               ))}
             </SectionFields>
-            <p className="mt-1.5 text-micro text-ink-500">
+            <p className="mt-2 text-meta text-ink-500">
               Room only. A meal plan is priced separately, from{" "}
               {formatMoney(housingAvailability.mealPlanFromUsd, "USD")} a year.
             </p>
@@ -604,13 +604,13 @@ function Comparison({
         <table className="w-full border-collapse text-small">
           <thead>
             <tr>
-              <th className="sticky left-0 z-[var(--z-sticky)] bg-panel py-1.5 pr-3 text-left font-strong text-ink-500">
+              <th className="sticky left-0 z-[var(--z-sticky)] bg-panel py-2 pr-3 text-left font-strong text-ink-500">
                 &nbsp;
               </th>
               {ranked.map((residence, index) => (
                 <th
                   key={residence.id}
-                  className="min-w-[8rem] py-1.5 pr-3 text-left font-strong text-ink-900"
+                  className="min-w-[8rem] py-2 pr-3 text-left font-strong text-ink-900"
                 >
                   <span className="numeric text-ink-400">{index + 1}. </span>
                   {residence.name}
@@ -630,11 +630,11 @@ function Comparison({
               </tr>
               {group.rows.map((row) => (
                 <tr key={row.label} className="border-t border-ink-100">
-                  <th className="sticky left-0 z-[var(--z-sticky)] bg-panel py-1.5 pr-3 text-left font-normal text-ink-500">
+                  <th className="sticky left-0 z-[var(--z-sticky)] bg-panel py-2 pr-3 text-left font-normal text-ink-500">
                     {row.label}
                   </th>
                   {ranked.map((residence) => (
-                    <td key={residence.id} className="py-1.5 pr-3 text-ink-800">
+                    <td key={residence.id} className="py-2 pr-3 text-ink-800">
                       {row.read(residence)}
                     </td>
                   ))}

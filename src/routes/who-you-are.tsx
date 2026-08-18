@@ -192,7 +192,7 @@ export function WhoYouAreRoute() {
             leaves a hole where the other half of the row would have been. */}
         <Section
           collapsible
-          icon={<LockSimpleIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<LockSimpleIcon weight="bold" aria-hidden className="size-4" />}
           title="Already on your record"
           value={`${studentRecord.legalFirstName} ${studentRecord.legalLastName} · ${studentRecord.personalEmail}`}
         >
@@ -212,7 +212,7 @@ export function WhoYouAreRoute() {
         <Section
           step={1}
           done={reachable}
-          icon={<UserIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<UserIcon weight="bold" aria-hidden className="size-4" />}
           title="Your name and number"
         >
           <SectionFields>
@@ -256,14 +256,14 @@ export function WhoYouAreRoute() {
         <Section
           step={2}
           done={status !== ""}
-          icon={<IdentificationCardIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<IdentificationCardIcon weight="bold" aria-hidden className="size-4" />}
           title="Your student status"
         >
           <Prose size="note">
             This decides which document we ask you for, and whether we need a U.S. address.
           </Prose>
           <RadioGroup
-            className="mt-2 grid grid-cols-3 gap-1.5 narrow:grid-cols-1"
+            className="mt-2 grid grid-cols-3 gap-2 narrow:grid-cols-1"
             value={status}
             onValueChange={(value) => set({ studentStatus: value as StudentStatus })}
           >
@@ -278,14 +278,14 @@ export function WhoYouAreRoute() {
             ))}
           </RadioGroup>
           {errors.studentStatus ? (
-            <p className="mt-1.5 text-micro font-medium text-danger-600">{errors.studentStatus}</p>
+            <p className="mt-2 text-meta font-medium text-danger-600">{errors.studentStatus}</p>
           ) : null}
         </Section>
 
         <Section
           step={3}
           done={documented}
-          icon={<IdentificationBadgeIcon weight="duotone" aria-hidden className="size-4" />}
+          icon={<IdentificationBadgeIcon weight="bold" aria-hidden className="size-4" />}
           title={status ? documentLabelFor(status as StudentStatus) : "Your identity document"}
           className={status ? undefined : "opacity-55"}
         >
@@ -298,9 +298,7 @@ export function WhoYouAreRoute() {
                 onChange={(files: UploadedFile[]) => set({ idDocuments: files })}
               />
               {errors.idDocuments ? (
-                <p className="mt-1.5 text-micro font-medium text-danger-600">
-                  {errors.idDocuments}
-                </p>
+                <p className="mt-2 text-meta font-medium text-danger-600">{errors.idDocuments}</p>
               ) : null}
             </>
           ) : (
@@ -316,7 +314,7 @@ export function WhoYouAreRoute() {
           <Section
             step={4}
             done={addressDone}
-            icon={<HouseLineIcon weight="duotone" aria-hidden className="size-4" />}
+            icon={<HouseLineIcon weight="bold" aria-hidden className="size-4" />}
             title="Your permanent address"
             count={[addressFilled, ADDRESS_FIELDS]}
             value={
@@ -427,7 +425,7 @@ export function WhoYouAreRoute() {
           <Section
             step={5}
             done={residencyDone}
-            icon={<SealCheckIcon weight="duotone" aria-hidden className="size-4" />}
+            icon={<SealCheckIcon weight="bold" aria-hidden className="size-4" />}
             title="Residency check"
             value={
               residencyVerificationOptions.find(
@@ -438,7 +436,7 @@ export function WhoYouAreRoute() {
             <fieldset>
               <legend className="field-label">How should we check your residency?</legend>
               <RadioGroup
-                className="mt-2 grid grid-cols-3 gap-1.5 narrow:grid-cols-1"
+                className="mt-2 grid grid-cols-3 gap-2 narrow:grid-cols-1"
                 value={live.residencyVerification}
                 onValueChange={(value) => setAddress({ residencyVerification: value })}
               >
@@ -453,7 +451,7 @@ export function WhoYouAreRoute() {
                 ))}
               </RadioGroup>
               {errors.residencyVerification ? (
-                <p className="mt-1.5 text-micro font-medium text-danger-600">
+                <p className="mt-2 text-meta font-medium text-danger-600">
                   {errors.residencyVerification}
                 </p>
               ) : null}

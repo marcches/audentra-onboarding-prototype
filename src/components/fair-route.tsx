@@ -79,7 +79,7 @@ export function FairRoute({
                   key={stop.organization.id}
                   className="flex items-start gap-3 rounded-[var(--radius-field)] bg-well px-3 py-2"
                 >
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-ink-900 text-[0.6875rem] font-bold text-white numeric">
+                  <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-ink-900 text-[0.6875rem] font-bold text-white numeric">
                     {stop.number}
                   </span>
                   <span className="min-w-0 flex-1">

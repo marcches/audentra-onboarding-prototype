@@ -66,7 +66,7 @@ export function Overlay({
             />
 
             <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1 space-y-0.5">
+              <div className="min-w-0 flex-1 space-y-1">
                 <DialogPrimitive.Title className="text-h2 text-ink-900">
                   {title}
                 </DialogPrimitive.Title>
@@ -84,7 +84,7 @@ export function Overlay({
                 )}
               </div>
 
-              <DialogPrimitive.Close className="-mr-1.5 flex size-8 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-50 hover:text-ink-700">
+              <DialogPrimitive.Close className="-mr-2 flex size-8 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-50 hover:text-ink-700">
                 <XIcon weight="bold" aria-hidden className="size-4" />
                 <span className="sr-only">Close</span>
               </DialogPrimitive.Close>

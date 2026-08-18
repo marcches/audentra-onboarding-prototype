@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  * error costs the student more than the three lines of height it bought.
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-field)] font-bold tracking-[-0.01em] transition-[background-color,border-color,color,box-shadow,transform] duration-150 compact:min-h-[var(--tap-target)] disabled:pointer-events-none disabled:opacity-45 active:translate-y-px [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-field)] font-bold tracking-[-0.01em] transition-[background-color,border-color,color,box-shadow,transform] duration-150 compact:min-h-[var(--tap-target)] disabled:pointer-events-none disabled:opacity-45 active:translate-y-px [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -28,7 +28,7 @@ const buttonVariants = cva(
         link: "text-violet-600 underline-offset-4 hover:underline",
       },
       size: {
-        sm: "h-7 px-2.5 text-small",
+        sm: "h-7 px-2 text-small",
         md: "h-9 px-4 text-body",
         lg: "h-10 px-5 text-body",
         icon: "size-9 compact:min-w-[var(--tap-target)]",

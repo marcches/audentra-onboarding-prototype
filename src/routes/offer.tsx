@@ -89,7 +89,7 @@ export function OfferRoute() {
           <BackButton current="offer" />
           {accepted ? (
             <>
-              <span className="flex items-center gap-1.5 text-small font-strong text-mint-deep">
+              <span className="flex items-center gap-2 text-small font-strong text-mint-deep">
                 <CheckCircleIcon weight="fill" aria-hidden className="size-4" />
                 Accepted
               </span>
@@ -128,7 +128,7 @@ export function OfferRoute() {
 
               {/* The deposit is its own block with the deadline beside it, not
                   a loose line in a footer (Kiwi.com). */}
-              <div className="mt-2 flex items-center gap-2.5 rounded-[var(--radius-field)] bg-well p-2.5">
+              <div className="mt-2 flex items-center gap-2 rounded-[var(--radius-field)] bg-well p-2">
                 <IconTile size="md">
                   <WalletIcon weight="fill" aria-hidden className="size-5" />
                 </IconTile>
@@ -151,11 +151,11 @@ export function OfferRoute() {
             </Section>
 
             <Section title="What accepting does">
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {CONSEQUENCES.map((line) => (
                   <li key={line.text} className="flex items-start gap-2">
                     <IconTile size="sm">
-                      <line.Icon weight="fill" aria-hidden className="size-3.5" />
+                      <line.Icon weight="fill" aria-hidden className="size-4" />
                     </IconTile>
                     <span className="pt-1 text-small leading-5 text-ink-700">{line.text}</span>
                   </li>
@@ -190,7 +190,7 @@ export function OfferRoute() {
             tuition. You may withdraw in writing at any time before term starts.
           </p>
 
-          <label htmlFor="accept-understood" className="flex cursor-pointer items-start gap-2.5">
+          <label htmlFor="accept-understood" className="flex cursor-pointer items-start gap-2">
             <Checkbox
               id="accept-understood"
               checked={understood}
@@ -269,9 +269,7 @@ function ThePiece() {
       />
 
       <div className="flex h-full flex-col justify-between p-3 text-white">
-        <p className="text-micro font-bold tracking-[0.14em] uppercase opacity-90">
-          {institution.name}
-        </p>
+        <p className="text-meta font-bold opacity-90">{institution.name}</p>
         <div>
           <p className="text-h2 font-bold">{offer.programme}</p>
           <p className="text-small opacity-90">

@@ -412,8 +412,8 @@ export function PricePill({
       className={cn(
         "inline-flex items-center gap-1 rounded-[var(--radius-pill)] font-bold numeric",
         "transition-[background-color,color,box-shadow,opacity] duration-[var(--duration-quick)] ease-[var(--ease-out-soft)]",
-        size === "rail" && "px-1.5 py-0 text-[0.625rem]",
-        size === "header" && "px-2 py-0.5 text-small",
+        size === "rail" && "px-2 py-0 text-[0.625rem]",
+        size === "header" && "px-2 py-1 text-small",
         size === "flight" && "h-12 gap-2 px-4 text-h2 shadow-lift",
         earned || solid
           ? "bg-mint-600 text-white"
@@ -426,7 +426,7 @@ export function PricePill({
       <CoinVerticalIcon
         weight="fill"
         aria-hidden
-        className={cn(size === "flight" ? "size-6" : size === "header" ? "size-3.5" : "size-3")}
+        className={cn(size === "flight" ? "size-6" : size === "header" ? "size-4" : "size-3")}
       />
       <span>+{points}</span>
       <span className="sr-only">{earned ? "points earned" : "points for this quest"}</span>

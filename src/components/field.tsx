@@ -89,22 +89,18 @@ export function Field({
     <div className={cn("flex min-w-0 flex-col gap-1", FIELD_WIDTH[width], className)}>
       <div className="flex items-baseline justify-between gap-2">
         <Label htmlFor={htmlFor}>{label}</Label>
-        {optional ? (
-          <span className="text-micro font-bold tracking-[0.05em] text-ink-400 uppercase">
-            Optional
-          </span>
-        ) : null}
+        {optional ? <span className="text-meta text-ink-400">Optional</span> : null}
       </div>
       <FieldContext.Provider value={context}>{children}</FieldContext.Provider>
       {hint ? (
-        <p id={hintId} className="text-micro leading-4 text-ink-500">
+        <p id={hintId} className="text-meta leading-4 text-ink-500">
           {hint}
         </p>
       ) : null}
       {error ? (
         <p
           id={errorId}
-          className="flex items-start gap-1 text-micro leading-4 font-medium text-danger-600"
+          className="flex items-start gap-1 text-meta leading-4 font-medium text-danger-600"
         >
           <WarningCircleIcon weight="fill" aria-hidden className="mt-px size-3 shrink-0" />
           <span>{error}</span>
@@ -133,11 +129,11 @@ export function ReadOnlyField({
   return (
     <div className={cn("flex min-w-0 flex-col gap-1", FIELD_WIDTH[width])}>
       <span className="field-label">{label}</span>
-      <div className="flex items-center gap-2 rounded-[var(--radius-field)] border border-dashed border-ink-200 bg-ink-50/70 px-2.5 py-1.5">
-        <LockSimpleIcon weight="fill" aria-hidden className="size-3.5 shrink-0 text-ink-400" />
+      <div className="flex items-center gap-2 rounded-[var(--radius-field)] border border-dashed border-ink-200 bg-ink-50/70 px-2 py-2">
+        <LockSimpleIcon weight="fill" aria-hidden className="size-4 shrink-0 text-ink-400" />
         <span className="truncate text-body font-medium text-ink-800">{value}</span>
       </div>
-      {note ? <p className="text-micro leading-4 text-ink-500">{note}</p> : null}
+      {note ? <p className="text-meta leading-4 text-ink-500">{note}</p> : null}
     </div>
   );
 }

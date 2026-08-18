@@ -60,7 +60,7 @@ function SelectContent({
         position={position}
         sideOffset={6}
         className={cn(
-          "relative z-[var(--z-popover)] max-h-(--radix-select-content-available-height) min-w-[10rem] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-[var(--radius-field)] border border-ink-100 bg-surface p-1.5 text-ink-900 shadow-lift data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "relative z-[var(--z-popover)] max-h-(--radix-select-content-available-height) min-w-[10rem] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-[var(--radius-card)] bg-surface p-2 text-ink-900 shadow-lift data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
         {...props}
@@ -79,7 +79,7 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn("field-label px-2.5 py-2", className)}
+      className={cn("field-label px-2 py-2", className)}
       {...props}
     />
   );
@@ -94,13 +94,13 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-[7px] py-1.5 pr-8 pl-2.5 text-body compact:min-h-[var(--tap-target)] outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-violet-50 data-[highlighted]:text-violet-700",
+        "relative flex w-full cursor-default items-center gap-2 rounded-[7px] py-2 pr-8 pl-2 text-body compact:min-h-[var(--tap-target)] outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-violet-50 data-[highlighted]:text-violet-700",
         className,
       )}
       {...props}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      <span className="absolute right-2.5 flex items-center justify-center text-violet-500">
+      <span className="absolute right-2 flex items-center justify-center text-violet-500">
         <SelectPrimitive.ItemIndicator>
           <CheckIcon weight="bold" aria-hidden className="size-4" />
         </SelectPrimitive.ItemIndicator>
@@ -116,7 +116,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn("pointer-events-none -mx-1.5 my-1.5 h-px bg-ink-100", className)}
+      className={cn("pointer-events-none -mx-2 my-2 h-px bg-ink-100", className)}
       {...props}
     />
   );

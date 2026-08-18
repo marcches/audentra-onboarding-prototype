@@ -950,14 +950,23 @@
     }
   }
 
-  /* Field label. Small, uppercase, tracked — reads as a form system rather
-     than as body copy that happens to sit above an input. */
+  /* Field label. **Lower case** (ADR 0015).
+
+     The tracked capital eyebrow is cut everywhere, and this was the last and
+     largest of them — every field in the gate carried one. `app.css` already
+     held half of this argument against itself: the note beside `--text-meta`
+     recorded that facts set in the capital label "read as a row of five little
+     headings", cited Linear for setting them in lower case, and then kept the
+     label anyway.
+
+     What separates it from the answer under it is size and weight rather than
+     case: 13 against the body's 15, at the weight between body and bold. That
+     is a step the reader can see, which the old scale could not offer because
+     six of its nine steps lived inside five pixels. */
   .field-label {
-    font-size: var(--text-micro);
-    line-height: 1rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 700;
+    font-size: var(--text-small);
+    line-height: 1.25rem;
+    font-weight: var(--font-weight-strong);
     color: var(--color-ink-600);
   }
 }

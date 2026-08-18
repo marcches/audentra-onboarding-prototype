@@ -79,7 +79,7 @@ function AccordionContent({
       {/* The clip that lets the track animate without the content spilling
           while it is between sizes. */}
       <div className="min-h-0 overflow-hidden">
-        <div className={cn("border-t border-ink-100 px-3 py-2.5", className)}>{children}</div>
+        <div className={cn("border-t border-ink-100 px-3 py-2", className)}>{children}</div>
       </div>
     </AccordionPrimitive.Content>
   );

@@ -232,7 +232,7 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
         </button>
 
         {categories.length ? (
-          <div className="rail-scroll flex min-w-0 gap-1.5 overflow-x-auto">
+          <div className="rail-scroll flex min-w-0 gap-2 overflow-x-auto">
             {categories.map((category) => {
               const active = photo?.category === category.name;
               return (
@@ -242,7 +242,7 @@ function Viewer({ request, onClose }: { request: ViewerRequest; onClose: () => v
                   onClick={() => setIndex(category.start)}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3 text-small font-strong transition-colors",
+                    "flex h-8 shrink-0 items-center gap-2 rounded-[var(--radius-pill)] px-3 text-small font-strong transition-colors",
                     active
                       ? "bg-white text-ink-900"
                       : "bg-white/10 text-white/80 hover:bg-white/20",

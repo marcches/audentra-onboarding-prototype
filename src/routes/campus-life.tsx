@@ -128,7 +128,7 @@ export function CampusLifeRoute() {
           <MagnifyingGlassIcon
             weight="bold"
             aria-hidden
-            className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-400"
+            className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 text-ink-400"
           />
           <Input
             className="pl-8"
@@ -141,7 +141,7 @@ export function CampusLifeRoute() {
 
         <div
           className={cn(
-            "rail-scroll min-w-0 flex-1 items-center gap-1.5 overflow-x-auto",
+            "rail-scroll min-w-0 flex-1 items-center gap-2 overflow-x-auto",
             aboveCompact,
             "flex",
           )}
@@ -155,7 +155,7 @@ export function CampusLifeRoute() {
                 onClick={() => setFilter(toggleFilterValue(filter, "categories", category.value))}
                 aria-pressed={on}
                 className={cn(
-                  "flex h-7 shrink-0 items-center rounded-[var(--radius-pill)] border px-2.5 text-small font-strong",
+                  "flex h-7 shrink-0 items-center rounded-[var(--radius-pill)] border px-2 text-small font-strong",
                   "transition-colors duration-[var(--duration-base)]",
                   /* Fill, never elevation and never a size change: a chip that
                      grows when it is picked moves every chip after it. */
@@ -177,13 +177,13 @@ export function CampusLifeRoute() {
           className="shrink-0"
           onClick={() => setSheet(true)}
         >
-          <SlidersHorizontalIcon weight="bold" aria-hidden className="size-3.5" />
+          <SlidersHorizontalIcon weight="bold" aria-hidden className="size-4" />
           <span className={aboveCompact}>More</span>
           <span className={inCompactFlex}>Filters</span>
           {active > 0 ? <span className="numeric">({active})</span> : null}
         </Button>
 
-        <p className="shrink-0 text-micro text-ink-500 numeric">{results.length}</p>
+        <p className="shrink-0 text-meta text-ink-500 numeric">{results.length}</p>
 
         {active > 0 || filter.search ? (
           <Button type="button" variant="ghost" size="sm" onClick={() => setFilter(emptyFilter)}>
@@ -310,14 +310,14 @@ function FilterSheet({
         {axes.map((axis) => (
           <fieldset key={axis.axis}>
             <legend className="field-label">{axis.label}</legend>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-2">
               {axis.options.map((option) => {
                 const on = (axis.selected as string[]).includes(option.value);
                 return (
                   <label
                     key={option.value}
                     className={cn(
-                      "flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-pill)] border px-2.5 py-1 text-small",
+                      "flex cursor-pointer items-center gap-2 rounded-[var(--radius-pill)] border px-2 py-1 text-small",
                       "transition-colors duration-[var(--duration-base)] compact:min-h-[var(--tap-target)]",
                       on ? "border-violet-400 bg-violet-50" : "border-ink-200 hover:border-ink-300",
                     )}
@@ -373,15 +373,15 @@ function OrganizationCard({
   onOpen: () => void;
 }) {
   return (
-    <FlatCard as="li" className="flex flex-col gap-1.5 p-2.5">
+    <FlatCard as="li" className="flex flex-col gap-2 p-2">
       <button type="button" onClick={onOpen} className="min-w-0 text-left">
         <span className="block text-body font-strong text-ink-900">{organization.name}</span>
-        <span className="block text-micro font-bold tracking-[0.06em] text-ink-400 uppercase">
+        <span className="block text-meta font-bold text-ink-400">
           {categoryLabel(organization.category)}
         </span>
       </button>
 
-      <p className="flex-1 text-micro text-ink-500">
+      <p className="flex-1 text-meta text-ink-500">
         <span className="numeric">{timeLabel(organization.time, true)}</span> ·{" "}
         <span className="numeric">{costLabel(organization.cost, true)}</span>
       </p>
@@ -410,7 +410,7 @@ function InterestToggle({
       onClick={onToggle}
       aria-pressed={interested}
       className={cn(
-        "flex h-6 w-full items-center justify-center gap-1.5 rounded-[var(--radius-pill)] border text-micro font-strong",
+        "flex h-6 w-full items-center justify-center gap-2 rounded-[var(--radius-pill)] border text-meta font-strong",
         "transition-colors duration-[var(--duration-base)] compact:min-h-[var(--tap-target)]",
         interested
           ? "border-transparent bg-ink-100 text-ink-600"
@@ -452,7 +452,7 @@ function OrganizationDetail({
       description={`${categoryLabel(org.category)} · around ${org.members} members`}
       className="max-w-[30rem]"
     >
-      <div className="mt-3 space-y-2.5">
+      <div className="mt-3 space-y-2">
         <p className="text-small leading-5 text-ink-700">{org.detail}</p>
 
         <Well>
@@ -470,13 +470,13 @@ function OrganizationDetail({
             </Fact>
           </SectionFields>
           {org.nextStep ? (
-            <p className="mt-1.5 text-micro leading-4 text-ink-600">{org.nextStep}</p>
+            <p className="mt-2 text-meta leading-4 text-ink-600">{org.nextStep}</p>
           ) : null}
         </Well>
 
         {/* Secondary, in the footer. A solid full-width button here would read
             as signing up, which is the one thing this screen must not say. */}
-        <div className="flex justify-end border-t border-ink-100 pt-2.5">
+        <div className="flex justify-end border-t border-ink-100 pt-2">
           <div className="w-32">
             <InterestToggle interested={interested} onToggle={onToggle} name={org.name} />
           </div>
