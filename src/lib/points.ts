@@ -1,3 +1,4 @@
+import { addDays } from "@/lib/day";
 import { formatMoney } from "@/lib/fixtures";
 import { steps, totalStepPoints } from "@/lib/steps";
 import { completedSteps, type OnboardingState } from "@/lib/store";
@@ -89,6 +90,122 @@ export function nextTarget(points: number): {
     pointsAway: Math.max(0, Math.ceil(target.usd / CREDIT_PER_POINT_USD) - points),
     reached: false,
   };
+}
+
+/* -------------------------------------------------------------------------
+   The Reward track
+   ---------------------------------------------------------------------- */
+
+/**
+ * The whole ladder at once, with where the student is standing on it.
+ *
+ * `nextTarget` above answers *what is next*; this answers *how far along the
+ * run of named amounts am I*, which is a different question and the one ADR
+ * 0002 described in prose and never drew: **distance to a named thing along a
+ * run of named things, never a bare score** (sweetgreen).
+ *
+ * `progress` is the fraction of the way from the previous rung to the next
+ * one, not the fraction of the whole ladder. A bar that measures the whole
+ * ladder barely moves for the first three rungs, which teaches the student the
+ * bar does not respond to them — and the rungs are far apart on purpose.
+ *
+ * Derived, like everything else here, from the one number a student has.
+ */
+export type RewardTrack = {
+  rungs: { target: BookstoreTarget; reached: boolean; next: boolean }[];
+  /** Bookstore credit already released, in USD. */
+  released: number;
+  /** The rung being aimed at. The last one repeats once the ladder is finished. */
+  target: BookstoreTarget;
+  pointsAway: number;
+  reached: boolean;
+  /** 0–1, from the previous rung to the next. */
+  progress: number;
+};
+
+export function rewardTrack(points: number): RewardTrack {
+  const released = creditReleased(points);
+  const { target, pointsAway, reached } = nextTarget(points);
+
+  /* Where the run of named amounts starts from: the rung already passed, or
+     zero. Measuring from zero every time is what makes a four-rung ladder feel
+     like one long bar with nothing happening on it. */
+  const passed = BOOKSTORE_LADDER.filter((rung) => rung.usd <= released);
+  const from = passed.length > 0 ? passed[passed.length - 1].usd : 0;
+  const span = target.usd - from;
+  const progress = reached || span <= 0 ? 1 : Math.min(1, Math.max(0, (released - from) / span));
+
+  return {
+    rungs: BOOKSTORE_LADDER.map((rung) => ({
+      target: rung,
+      reached: rung.usd <= released,
+      next: !reached && rung === target,
+    })),
+    released,
+    target,
+    pointsAway,
+    reached,
+    progress,
+  };
+}
+
+/* -------------------------------------------------------------------------
+   Headroom
+   ---------------------------------------------------------------------- */
+
+/**
+ * What is **still earnable today**, and it never says what was lost.
+ *
+ * Forward-looking by construction: it is a sum over what the student can act on
+ * right now, at what those things are worth today, so there is no arithmetic
+ * available to it that could produce a figure about the past. That is the
+ * whole social design of it — "180 still available today" is an invitation and
+ * "you have lost 40" is a bill, and the product has already decided which of
+ * those it is (Upwork's "Available to earn" at the head of a task list).
+ *
+ * The values come from the caller because *what a thing is worth today* is
+ * Requirement logic and lives in `portal.ts`. What a Point is remains this
+ * module's, and it stays without an opinion about time.
+ */
+export function headroom(values: readonly number[]): { points: number; count: number } {
+  return {
+    points: values.reduce((sum, value) => sum + value, 0),
+    count: values.length,
+  };
+}
+
+/* -------------------------------------------------------------------------
+   Streak
+   ---------------------------------------------------------------------- */
+
+/**
+ * Consecutive days, counting back, on which the student finished at least one
+ * Requirement.
+ *
+ * **Today not being in the list does not break the streak.** A student who
+ * finished something yesterday and has not opened the portal yet today is on a
+ * live streak of one; the day is not over. Counting from today would show them
+ * a zero every morning for something they have not failed to do yet, which is
+ * the reprimand this product does not make.
+ *
+ * **A broken streak resets, and says nothing else.** There is no "you lost a
+ * 6-day streak", no freeze to buy, no repair. The number is simply smaller the
+ * next time it is read. Missing a day while you are moving house is not
+ * something a university's enrolment portal should have an opinion about.
+ *
+ * Pure over a list of ISO days, which is what makes it testable here: the days
+ * themselves come from the portal, where finishing things happens.
+ */
+export function streakOf(days: readonly string[], today: string): number {
+  const seen = new Set(days);
+  /* The grace day above: start at today if it counts, otherwise at yesterday. */
+  let cursor = seen.has(today) ? today : addDays(today, -1);
+  let run = 0;
+  while (seen.has(cursor)) {
+    run += 1;
+    cursor = addDays(cursor, -1);
+  }
+  return run;
 }
 
 /**

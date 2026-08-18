@@ -1,3 +1,4 @@
+import { addDays, atMidnight, daysBetween } from "@/lib/day";
 import type { PortalContext } from "@/lib/portal-store";
 import { type StepId, stepById } from "@/lib/steps";
 import { completedSteps } from "@/lib/store";
@@ -41,22 +42,14 @@ import { completedSteps } from "@/lib/store";
  */
 export const TODAY = "2027-08-08";
 
-const DAY_MS = 86_400_000;
-
-/** Midnight UTC of an ISO date. Parsing a fixture is not reading a clock. */
-function atMidnight(iso: string): number {
-  return Date.parse(`${iso}T00:00:00Z`);
-}
-
-/** Whole days from one ISO date to another. Negative when `to` is earlier. */
-export function daysBetween(from: string, to: string): number {
-  return Math.round((atMidnight(to) - atMidnight(from)) / DAY_MS);
-}
-
-/** The same date, `days` later, as an ISO date. */
-export function addDays(iso: string, days: number): string {
-  return new Date(atMidnight(iso) + days * DAY_MS).toISOString().slice(0, 10);
-}
+/**
+ * The day arithmetic lives in `lib/day.ts` and is re-exported here, because
+ * every call site in the portal already reads it from this module and a rename
+ * is not a decision. It moved so that `points.ts` could ask whether two days
+ * are consecutive — which the Streak needs — without being handed the deadline
+ * clock, which is the separation the note at the top of this file protects.
+ */
+export { addDays, daysBetween };
 
 /* -------------------------------------------------------------------------
    The unit of work
@@ -558,6 +551,60 @@ export function valueTomorrow(requirement: Requirement, today: string = TODAY): 
  */
 export function pointsAtRisk(requirement: Requirement, today: string = TODAY): number {
   return valueToday(requirement, today) - valueTomorrow(requirement, today);
+}
+
+/* -------------------------------------------------------------------------
+   What is still earnable, and what the student has been doing
+   ---------------------------------------------------------------------- */
+
+/**
+ * Today's value of everything the student can act on right now — the input to
+ * **Headroom**.
+ *
+ * Available only. An Upcoming Requirement is not earnable today by definition,
+ * and counting it would make the figure a promise the product cannot keep;
+ * Complete and Under review are already spent or already out of the student's
+ * hands. What is left is exactly what "still available today" means.
+ *
+ * The sum is `points.ts`'s, because summing Points is what that module is for.
+ * This is the half that knows what a thing is worth on a Tuesday.
+ */
+export function earnableToday(state: PortalContext, today: string = TODAY): number[] {
+  return requirementsInState("available", state, today).map((requirement) =>
+    valueToday(requirement, today),
+  );
+}
+
+/**
+ * The days before today on which this student finished something.
+ *
+ * **FIXTURE**, and it has to be: the portal stores a list of finished
+ * Requirements and no timestamps, so there is nothing in the store to derive a
+ * date from. Inventing one — attributing the nth finished Requirement to the
+ * nth most recent day — would make the Streak a re-spelling of the completed
+ * count and would read as a mechanic while being arithmetic.
+ *
+ * So the history is declared, in the same spirit as `TODAY` and for the same
+ * reason: a prototype whose numbers move while nobody is looking is a prototype
+ * whose screenshots cannot be reviewed. Two consecutive days ending yesterday,
+ * which is a student who has been coming back — the state worth drawing.
+ *
+ * When the store grows timestamps this constant is what gets deleted, and
+ * `streakOf` does not move.
+ */
+const PRIOR_ACTIVE_DAYS = ["2027-08-06", "2027-08-07"] as const;
+
+/**
+ * Every day the student has finished something, the fixture's history plus
+ * today if anything is finished now — the input to **Streak**.
+ *
+ * Today is included the moment the student completes anything, which is what
+ * makes the number respond to them inside one session rather than only across
+ * a night nobody in a prototype ever spends.
+ */
+export function activeDays(state: PortalContext, today: string = TODAY): string[] {
+  const finished = completedRequirements(state).size > 0;
+  return finished ? [...PRIOR_ACTIVE_DAYS, today] : [...PRIOR_ACTIVE_DAYS];
 }
 
 /* -------------------------------------------------------------------------

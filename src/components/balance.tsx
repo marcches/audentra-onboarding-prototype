@@ -1,8 +1,15 @@
-import { BookOpenIcon, CoinVerticalIcon } from "@phosphor-icons/react";
+import { BookOpenIcon, CheckIcon, CoinVerticalIcon } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { useCelebration } from "@/components/celebration";
-import { creditReleased, formatCredit, nextTarget, totalPoints } from "@/lib/points";
+import {
+  creditReleased,
+  formatCredit,
+  nextTarget,
+  type RewardTrack,
+  rewardTrack,
+  totalPoints,
+} from "@/lib/points";
 import { useOnboarding } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -116,8 +123,8 @@ export function RichBalance({
   const reduceMotion = useReducedMotion();
 
   const released = creditReleased(points);
-  const { target, pointsAway, reached } = nextTarget(points);
-  const progress = reached ? 1 : Math.min(1, released / target.usd);
+  const track = rewardTrack(points);
+  const { target, pointsAway, reached, progress } = track;
   const full = size === "full";
 
   return (
@@ -166,35 +173,126 @@ export function RichBalance({
         = <span className="font-bold">{formatCredit(released)}</span> in bookstore credit
       </motion.p>
 
-      {/* The bar ends in the prize's icon, not in the end of the bar (Shopee).
-          What is missing is an object with a name (IHG). `scaleX`, not `width`:
-          no animation rule in this system touches a layout property. */}
-      <div className={cn("flex items-center gap-1.5", full ? "mt-4" : "mt-1.5")}>
-        <span className="h-1 flex-1 overflow-hidden rounded-full bg-violet-100">
-          <span
-            className="progress-fill block h-full origin-left rounded-full transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
-            style={{ transform: `scaleX(${progress})` }}
+      {full ? (
+        <RewardTrackRun track={track} />
+      ) : (
+        /* The rail's compact form keeps the single bar: it has 14rem and no
+           room for a run of four named amounts, and the Dashboard is where the
+           question this answers at length is actually asked. */
+        <div className="mt-2 flex items-center gap-2">
+          <span className="h-1 flex-1 overflow-hidden rounded-full bg-violet-100">
+            <span
+              className="progress-fill block h-full origin-left rounded-full transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
+              style={{ transform: `scaleX(${progress})` }}
+            />
+          </span>
+          <BookOpenIcon
+            weight={reached ? "fill" : "bold"}
+            aria-hidden
+            className={cn("size-4 shrink-0", reached ? "text-mint-600" : "text-violet-300")}
           />
-        </span>
-        <BookOpenIcon
-          weight={reached ? "fill" : "regular"}
-          aria-hidden
-          className={cn("size-3.5 shrink-0", reached ? "text-mint-600" : "text-violet-300")}
-        />
-      </div>
+        </div>
+      )}
 
-      <p className={cn("mt-1 text-ink-500", full ? "text-body" : "text-micro leading-4")}>
+      <p className={cn("mt-2 text-ink-600", full ? "text-small" : "text-micro leading-4")}>
         {reached ? (
           <>Enough for {target.label}</>
         ) : (
           <>
-            <span className="font-strong text-ink-700 numeric">{pointsAway} more</span> for{" "}
+            <span className="font-strong text-ink-800 numeric">{pointsAway} more</span> for{" "}
             {target.label}
           </>
         )}
       </p>
     </motion.div>
   );
+}
+
+/**
+ * **The Reward track**: the run of named amounts, with where the student is
+ * standing on it (ADR 0015, and ADR 0002's own prose finally drawn).
+ *
+ * The rule ADR 0002 stated and this is the first thing to honour: *distance to
+ * a named thing along a run of named things, never a bare score*. sweetgreen's
+ * rewards screen is the reference and the anatomy is its — the rungs are the
+ * objects, not the amounts, and the bar between them is only there to say how
+ * far along it you are.
+ *
+ * **The fill measures from the rung already passed, not from zero.** A bar
+ * across the whole ladder barely moves for the first three rungs, which teaches
+ * the student the bar does not respond to them, and the rungs are far apart on
+ * purpose.
+ *
+ * It ranks nothing. There is no position, no tier and no cohort in it — the
+ * only comparison available is between this student and a hoodie.
+ */
+function RewardTrackRun({ track }: { track: RewardTrack }) {
+  return (
+    <div className="mt-4">
+      <div className="relative flex items-center">
+        <span aria-hidden className="absolute inset-x-0 h-1 rounded-full bg-violet-100" />
+        {/* `scaleX`, not `width`: no animation rule in this system touches a
+            layout property. */}
+        <span
+          aria-hidden
+          className="absolute inset-x-0 h-1 origin-left rounded-full bg-violet-500 transition-transform duration-[var(--duration-stage)] ease-[var(--ease-out-expo)]"
+          style={{ transform: `scaleX(${trackFill(track)})` }}
+        />
+        {/* The run starts at the left edge and each rung owns one column, with
+            its marker at the column's right edge. The rungs are evenly spaced
+            rather than to scale — $10 and $100 drawn to scale put the first
+            three markers on top of each other. */}
+        <ul className="relative grid w-full grid-cols-4">
+          {track.rungs.map((rung) => (
+            <li key={rung.target.usd} className="flex justify-end">
+              <span
+                aria-hidden
+                className={cn(
+                  "flex size-4 items-center justify-center rounded-full",
+                  "transition-colors duration-[var(--duration-base)]",
+                  rung.reached
+                    ? "bg-mint-500 text-white"
+                    : rung.next
+                      ? "bg-violet-500 text-white ring-glow"
+                      : "bg-violet-200",
+                )}
+              >
+                {rung.reached ? <CheckIcon weight="bold" className="size-2.5" /> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <ul className="mt-2 grid w-full grid-cols-4">
+        {track.rungs.map((rung) => (
+          <li
+            key={rung.target.usd}
+            className={cn(
+              "text-right text-meta numeric",
+              rung.next ? "font-bold text-violet-700" : null,
+              rung.reached ? "font-bold text-mint-deep" : null,
+              !rung.next && !rung.reached ? "text-ink-500" : null,
+            )}
+          >
+            {formatCredit(rung.target.usd)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * How much of the run is filled, 0–1.
+ *
+ * Measured in **rungs** rather than in dollars, because the markers are evenly
+ * spaced: every rung passed, plus the fraction of the way from the last one
+ * passed to the one being aimed at.
+ */
+function trackFill(track: RewardTrack): number {
+  const passed = track.rungs.filter((rung) => rung.reached).length;
+  return Math.min(1, (passed + track.progress) / track.rungs.length);
 }
 
 /**

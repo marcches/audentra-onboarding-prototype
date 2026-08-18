@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, FlameIcon, LightningIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
 import { RichBalance } from "@/components/balance";
@@ -15,14 +15,18 @@ import {
   offer,
   studentRecord,
 } from "@/lib/fixtures";
+import { headroom, streakOf } from "@/lib/points";
 import {
+  activeDays,
   availableInOrder,
   carriedOver,
+  earnableToday,
   formatDeadlineShort,
   portalProgress,
   type RequirementId,
   requirementsInState,
   stateOf,
+  TODAY,
   waitingOn,
 } from "@/lib/portal";
 import { usePortal } from "@/lib/portal-store";
@@ -69,7 +73,12 @@ export function DashboardRoute() {
     <PortalShell
       current="dashboard"
       title={`Hello, ${name}`}
-      lead={<ProgressLine complete={progress.complete} total={progress.total} />}
+      lead={
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <ProgressLine complete={progress.complete} total={progress.total} />
+          <Momentum />
+        </div>
+      }
       /* The band contains the lead Quest card (ADR 0015). It is the screen's
          first unit and it is inside the colour rather than under it, which is
          what makes the band cost its own padding instead of 140–180px of the
@@ -186,6 +195,56 @@ function TheRest({ shown }: { shown: RequirementId[] }) {
         </ul>
       </Section>
     </Sections>
+  );
+}
+
+/**
+ * **Headroom** and **Streak**, on the line the greeting already occupies.
+ *
+ * Both are new mechanics and neither costs the screen a pixel, which is the
+ * condition ADR 0015 attaches to all of them: the band's greeting row existed
+ * before they did, and the first Quest card must still end above the fold.
+ *
+ * **Headroom is what is still earnable today** — a sum over what the student
+ * can act on right now, at what those things are worth today. It is
+ * forward-looking by construction and there is no arithmetic in it that could
+ * produce a figure about the past. "180 still available today" is an
+ * invitation; "you have lost 40" would be a bill, and the product has already
+ * decided which of those it is (Upwork's "Available to earn" at the head of a
+ * task list).
+ *
+ * **Streak is consecutive days with at least one Requirement finished**, and it
+ * says nothing when it breaks. No "you lost a 6-day streak", no freeze to buy,
+ * no repair — the number is simply smaller the next time it is read. It is also
+ * hidden at zero rather than drawn as a nought: a student who has not started
+ * has not failed at anything, and a 0 beside the word "streak" is a reprimand
+ * for a thing they have not done yet.
+ *
+ * Neither of them ranks this student against another one. There is no tier, no
+ * level, no league and no position anywhere in this cycle — ADR 0002 rejected
+ * those on the grounds that they rank a cohort before any of them has arrived
+ * on campus, on a screen the student's family may be sitting beside them for.
+ */
+function Momentum() {
+  const state = usePortal();
+  const { points, count } = headroom(earnableToday(state));
+  const streak = streakOf(activeDays(state), TODAY);
+
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      {count > 0 ? (
+        <span className="flex items-center gap-1 rounded-[var(--radius-pill)] bg-white/15 px-2 py-1 text-meta font-bold text-white">
+          <LightningIcon weight="fill" aria-hidden className="size-3" />
+          <span className="numeric">{points} pts</span> still available today
+        </span>
+      ) : null}
+      {streak > 0 ? (
+        <span className="flex items-center gap-1 rounded-[var(--radius-pill)] bg-white/15 px-2 py-1 text-meta font-bold text-white">
+          <FlameIcon weight="fill" aria-hidden className="size-3" />
+          <span className="numeric">{streak}</span> {streak === 1 ? "day" : "days"} in a row
+        </span>
+      ) : null}
+    </span>
   );
 }
 
