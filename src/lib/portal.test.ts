@@ -9,6 +9,7 @@ import {
   completedRequirements,
   daysBetween,
   floorValue,
+  leadRequirement,
   pointsAtRisk,
   type Requirement,
   type RequirementId,
@@ -334,6 +335,59 @@ describe("decay", () => {
     expect(valueToday(stale)).toBe(floorValue(stale));
     // Which is what stops a stale Requirement climbing Smart order forever.
     expect(pointsAtRisk(stale)).toBe(0);
+  });
+
+  it("is a pair the card can show literally, never a tally of what was lost", () => {
+    /* The client's one non-negotiable — *hoje é 100, amanhã 99* — expressed as
+       the shape of what a card is given. There are two figures available to a
+       screen and both are about the future; the Original value is held by the
+       Requirement and is never returned by anything a component calls, so
+       "you have lost 40" is not a sentence this module can be made to say. */
+    expect(valueToday(requirement)).toBe(100);
+    expect(valueTomorrow(requirement)).toBe(99);
+    const stale = make("stale", { points: 100, availableOn: addDays(TODAY, -30) });
+    expect(valueToday(stale)).toBe(70);
+    // Not 30. What was lost is not derivable from what a card is handed.
+    expect(valueToday(stale) - valueTomorrow(stale)).toBe(1);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   Where Decay is allowed to appear
+   ------------------------------------------------------------------------ */
+
+describe("the lead Requirement", () => {
+  /* Decay sits on the lead card and nowhere else (ADR 0015), and the reason is
+     risk rather than layout: it is the one component in the product with no
+     reference in the catalogue, so it is concentrated where one walkthrough can
+     judge it instead of becoming twelve simultaneous unvalidated bets. That
+     makes "how many lead cards are there" a rule worth holding. */
+
+  it("is the head of Smart order, so there is exactly one", () => {
+    expect(leadRequirement(fresh)).toBe(availableInOrder(fresh)[0]);
+    expect(leadRequirement(partway)).toBe(availableInOrder(partway)[0]);
+  });
+
+  it("is never a Requirement the student cannot act on", () => {
+    for (const [name, state] of Object.entries(stores)) {
+      const lead = leadRequirement(state);
+      expect(lead && stateOf(lead, state), name).toBe("available");
+    }
+  });
+
+  it("is absent rather than invented when there is nothing to do", () => {
+    /* Everything acted on, the rest with the university: a real state, and one
+       where a card carrying a shrinking value would be pressure about work the
+       student has already done. */
+    const done: PortalContext = {
+      ...fresh,
+      portal: {
+        completed: requirements.filter((one) => one.id !== "final-transcript").map((one) => one.id),
+        underReview: ["final-transcript"],
+        booking: null,
+      },
+    };
+    expect(leadRequirement(done)).toBeUndefined();
   });
 });
 

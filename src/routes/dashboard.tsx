@@ -22,6 +22,7 @@ import {
   carriedOver,
   earnableToday,
   formatDeadlineShort,
+  leadRequirement,
   portalProgress,
   type RequirementId,
   requirementsInState,
@@ -67,7 +68,11 @@ export function DashboardRoute() {
   const shown = available.slice(0, SHOWN);
   const waiting = requirementsInState("under-review", state).length;
 
-  const [first, ...rest] = shown;
+  /* Which card is the lead is a fact with one answer, and `portal.ts` owns it.
+     Two things hang off it and both are singular by design: the filled primary
+     action, and Decay. */
+  const first = leadRequirement(state);
+  const rest = shown.filter((one) => one.id !== first?.id);
 
   return (
     <PortalShell

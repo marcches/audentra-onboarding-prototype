@@ -745,6 +745,28 @@ export function availableInOrder(
   return ordered(requirementsInState("available", state, today), ordering, today);
 }
 
+/**
+ * The one Requirement the student is being pointed at, or none.
+ *
+ * The head of Smart order, named so that "which card is the lead" is a fact
+ * with one answer rather than an index a screen happens to compute. Two things
+ * hang off it and both are singular by design: the card that carries the filled
+ * primary action, and **the card that carries Decay**.
+ *
+ * Decay lives on this card and nowhere else (ADR 0015). It is the one component
+ * in the product with no reference in the catalogue, so it is concentrated where
+ * one walkthrough can judge it rather than spread across twelve rows as twelve
+ * simultaneous unvalidated bets. `undefined` when there is nothing available,
+ * which is a real state — everything acted on, the rest with the university.
+ */
+export function leadRequirement(
+  state: PortalContext,
+  ordering: Ordering = "smart",
+  today: string = TODAY,
+): Requirement | undefined {
+  return availableInOrder(state, ordering, today)[0];
+}
+
 /* -------------------------------------------------------------------------
    What the gate left behind
    ---------------------------------------------------------------------- */
