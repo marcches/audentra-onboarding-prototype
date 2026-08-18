@@ -20,7 +20,7 @@ nothing else.
 
 **Blocked by:** 02 — The room and the band, on the Dashboard.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [sweetgreen](https://mobbin.com/screens/26c7cc12-dcf7-41e1-9832-1208c3bbe98c) — the Reward track exactly as ADR 0002 described it in prose: distance to a *named* thing along a run of named amounts, never a bare score.
@@ -37,3 +37,7 @@ nothing else.
 - [ ] The three are tested where Points is already tested
 - [ ] Nothing pushes the first Quest card below the fold at 1366×768
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+Headroom, Streak and the Reward track are pure functions in `points.ts`, tested there. Nothing is stored. Headroom and Streak sit on the band's greeting row, which existed before them, so the lead card still ends at y=276. No tier, level, league, leaderboard or position anywhere, and the Reward track's shape is asserted to contain none.

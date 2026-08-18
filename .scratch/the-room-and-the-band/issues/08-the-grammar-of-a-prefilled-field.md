@@ -21,7 +21,7 @@ must be able to change it without hunting for how.
 
 **Blocked by:** 07 — The nine Steps recomposed.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Portrait](https://mobbin.com/screens/21e83614-0f58-429c-a84b-8e811abb64e8) — facts set as label→value pairs at metadata size, which is the anatomy a confirmed field borrows instead of inventing a fourth one.
@@ -36,3 +36,7 @@ must be able to change it without hunting for how.
 - [ ] Icon state follows the system rule: fill means done
 - [ ] `Prefill` is used as the term, matching the glossary
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+A Prefill is a comparison, not a flag: a field is one exactly while its value is still the institution's copy, so no stored marker can disagree with the value beside it. The whole address is one Prefill rather than five. `Who you are` goes 1464 -> 1323 at 1366x768 without shrinking any type. Values are fixtures; no CRM.

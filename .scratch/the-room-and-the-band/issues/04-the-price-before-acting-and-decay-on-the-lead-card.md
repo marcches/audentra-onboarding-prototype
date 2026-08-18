@@ -18,7 +18,7 @@ instead of it becoming twelve simultaneous unvalidated bets.
 
 **Blocked by:** 02 — The room and the band, on the Dashboard.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Langdock](https://mobbin.com/screens/065752db-06ad-4118-ad1c-8f95daa3f8a8) — the price chip sitting on the row *before* the student acts, which remains the strongest reference this project has found for pricing a task rather than receipting it.
@@ -34,3 +34,7 @@ instead of it becoming twelve simultaneous unvalidated bets.
 - [ ] Decay's rule is tested where Requirement logic is already tested
 - [ ] The first Quest card still ends above the fold at 1366×768
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+The Points price is a chip in the Quest card's existing chip row, so the card gains no line and no height. Decay is on the lead card only, literal, and never a tally. `leadRequirement` names the head of Smart order; `portal.test.ts` asserts there is exactly one, that it is always actionable, and that it is absent rather than invented when nothing is left.

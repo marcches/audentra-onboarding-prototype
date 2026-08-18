@@ -22,7 +22,7 @@ that is a finding for the client conversation, not a bug to patch quietly.
 
 **Blocked by:** all — 01 through 10.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Mercor](https://mobbin.com/screens/6ab63817-8b06-46a6-8fba-be87f0e05a6d) — the target the band is judged against: does the colour contain the work, or sit above it and cost height?
@@ -40,3 +40,7 @@ that is a finding for the client conversation, not a bug to patch quietly.
 - [ ] Whether the display face was approved, refused or still pending is recorded
 - [ ] Every measurement is written down, including the ones that failed
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+Both surfaces walked at 1366x768 and 390x844; every measurement is in `docs/review-script.md`, including the ones that failed. Two compact defects were found by walking and fixed. Decay is judged explicitly — urgency rather than pressure, and still the unvalidated bet. The display face is recorded as pending sign-off.

@@ -20,7 +20,7 @@ on the ground.
 
 **Blocked by:** 01 — The token layer, expanded.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Mercor](https://mobbin.com/screens/6ab63817-8b06-46a6-8fba-be87f0e05a6d) — the load-bearing composition: the gradient band holds the white cards inside its lower edge instead of preceding them, which is what makes the colour cost no vertical budget.
@@ -37,3 +37,7 @@ on the ground.
 - [ ] Border appears only on controls
 - [ ] The four drift invariants still hold
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+The Dashboard opens with a band containing the lead Quest card. Measured at 1366x768: band bottom y=292, lead card bottom y=276, against the ~640px usable. The band and the lead card are the only raised things; every card under them is flat on its Well. Border is left to controls in the shared surfaces, so the rule holds everywhere at once.

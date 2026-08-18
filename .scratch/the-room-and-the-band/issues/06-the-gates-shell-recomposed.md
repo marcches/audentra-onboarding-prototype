@@ -18,7 +18,7 @@ story, and that does not change because the system did.
 
 **Blocked by:** 01 — The token layer, expanded.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Duolingo](https://mobbin.com/screens/1467f205-3b47-4515-af63-823002effe6f) — a left rail whose active item is a filled rounded pill, sitting beside dense content without competing with it.
@@ -34,3 +34,7 @@ story, and that does not change because the system did.
 - [ ] Nothing is born above the title
 - [ ] The old tokens are untouched and still resolve
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+The band *is* the gate's header rather than a block above it, which is what keeps "nothing is born above the title" true. Every Step anchors its `h1` at y=28, arriving by Continue and by the Review summary's edit link alike. The action bar is still a constant 64px, declared once.

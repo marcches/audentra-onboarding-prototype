@@ -24,7 +24,7 @@ cycle waits on that decision.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Preply](https://mobbin.com/screens/c6860362-5042-4aa5-9f18-77b731447f73) — the shape and weight of the second voice: a display grotesk with rounded terminals set heavy over flat colour. The rounded terminal is where "more round" lands in the letterform.
@@ -41,3 +41,9 @@ cycle waits on that decision.
 - [ ] Every old token still resolves; no existing screen changes appearance
 - [ ] The style guide renders the complete new system on one screen
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+Declared in `app.css`: seven type steps at 11/13/15/18/24/32/44 with body at 15, five spacing steps at 4/8/16/24/40, card 20 / slab 28 / field 10, two elevation roles (`contains`, `floats`), the room's tint and its one texture on `body`, and `--font-display-face` as the one-line sign-off for the second voice. Satoshi loads 300-900. The style guide renders the whole system in three new chapters.
+
+One criterion was not met as written: "no existing screen changes appearance". Body moving 14 -> 15 in a token layer with no call sites changes every screen by construction, and that is the seam ADR 0015 asks for. What was held instead is that every old token still resolved through the migrate batches.

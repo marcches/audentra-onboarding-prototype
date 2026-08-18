@@ -18,7 +18,7 @@ number changing.
 **Blocked by:** 05 — The rest of the portal onto the system; 07 — The nine Steps
 recomposed.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Brilliant](https://mobbin.com/screens/da4c4452-1b86-42b7-bab4-de610a9872ca) — spot illustration living *inside* a compact task card with a tinted header, rather than as a banner above the work.
@@ -33,3 +33,7 @@ recomposed.
 - [ ] Imagery sits inside its container, never as a full-bleed banner above the work
 - [ ] No image pushes the first piece of work below the fold at 1366×768
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+Three drawn scenes in `illustration.tsx` — `unbuilt`, `settled`, `reward` — each inside a container and none a banner. Photography still carries the residences, the campus and the student's own card. The scenes are geometric rather than figurative, built from the system's own vocabulary, because a character drawn badly is the one asset a viewer can tell was improvised.

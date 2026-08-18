@@ -20,7 +20,7 @@ already read a shrunk scale in the browser and called it what it was.
 
 **Blocked by:** 06 — The gate's shell recomposed.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Brilliant](https://mobbin.com/screens/69ca0993-5784-44b6-b0c2-de41614a91fb) — round containers with markedly less round controls inside them, which is the ratio that keeps a form dense while the surface reads soft.
@@ -37,3 +37,7 @@ already read a shrunk scale in the browser and called it what it was.
 - [ ] The gate's existing domain tests pass unedited
 - [ ] The old tokens are untouched and still resolve
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+All nine Steps read the new tokens; no uppercase label survives in the gate. Heights measured before and after are in `docs/review-script.md`: `Who we call` was bought back to 668 and fits again, `Your offer` scrolls 21px as a `decision` may, and `Who you are` is left to ticket 08 by construction.

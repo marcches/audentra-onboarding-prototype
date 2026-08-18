@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: shipped
 
 # The room and the band: one visual system, across both surfaces
 

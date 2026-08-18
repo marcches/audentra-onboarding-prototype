@@ -14,7 +14,7 @@ is that an unbuilt area now looks finished-and-empty rather than broken.
 
 **Blocked by:** 02 — The room and the band, on the Dashboard.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Apollo](https://mobbin.com/screens/09da790a-fc80-4bd0-b0cf-0bc5fcedc394) — dense flat rows carrying a single high-chroma accent on the one next action, which is how a long list stays calm without going grey.
@@ -30,3 +30,7 @@ is that an unbuilt area now looks finished-and-empty rather than broken.
 - [ ] The portal's Presence table still holds
 - [ ] The old tokens are untouched and still resolve
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+Every portal screen opens with a band containing its own first unit, sits in the room, and reads none of the deleted steps. The Appointments service picker was extracted so it can be the contained unit when nothing is booked and drop below the booking when there is one.

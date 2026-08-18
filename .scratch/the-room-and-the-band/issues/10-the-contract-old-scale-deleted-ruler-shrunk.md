@@ -24,7 +24,7 @@ Without that line there will be a fifth rewrite.
 
 **Blocked by:** 03, 04, 05, 07, 08, 09 — every migrate batch.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Referências:**
 - [Midday](https://mobbin.com/screens/72304bea-11b7-48f7-a870-a2263f475090) — the end state the deletions are aiming at: few spacing values, far apart, and grouping that comes from interval rather than from rule.
@@ -40,3 +40,9 @@ Without that line there will be a fifth rewrite.
 - [ ] The four drift invariants, the z-index ladder, the animation rule and the single celebration layer all survive untouched
 - [ ] The criterion for what may enter the ruler is written in the file
 - [ ] `pnpm typecheck`, `pnpm test` and `pnpm lint` pass
+
+## Answer
+
+`micro` and `lead` deleted, the four elevation names folded into two, the decision wash and the sheet's hairline gone. The ruler is nine invariants with the criterion written at the top in prose. Both new invariants were checked by breaking them: each fails the build on the defect it names and passes once it is removed.
+
+One deletion was taken early: "No Quest card floats" went in ticket 02, because it fails in CI on the commit that reverses it.
