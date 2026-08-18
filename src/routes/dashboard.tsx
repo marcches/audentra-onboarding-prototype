@@ -2,6 +2,7 @@ import { ArrowRightIcon, FlameIcon, LightningIcon } from "@phosphor-icons/react"
 import { Link } from "@tanstack/react-router";
 
 import { RichBalance } from "@/components/balance";
+import { Illustration } from "@/components/illustration";
 import { PortalShell } from "@/components/portal-shell";
 import { QuestCard } from "@/components/quest-card";
 import { QuestRow } from "@/components/quest-row";
@@ -93,11 +94,19 @@ export function DashboardRoute() {
         first ? (
           <QuestCard requirement={first} lead />
         ) : (
-          <p className="rounded-[var(--radius-card)] bg-panel px-4 py-4 text-body text-ink-600 shadow-[var(--shadow-contains)]">
-            {waiting > 0
-              ? `Everything you can act on is done. ${waiting} ${waiting === 1 ? "requirement is" : "requirements are"} with the university.`
-              : "Everything is finished. There is nothing left before term starts."}
-          </p>
+          /* **Illustrated, because there is nothing real to show.** A student
+             with nothing waiting on them has no Quest card to look at, and an
+             empty state drawn as a sentence on a white rectangle reads as a
+             screen that failed rather than as work that finished. The drawing
+             is the system's own "done" (Deputy). */
+          <div className="flex items-center gap-4 rounded-[var(--radius-card)] bg-panel px-4 py-4 shadow-[var(--shadow-contains)]">
+            <Illustration scene="settled" size="md" className="compact:hidden" />
+            <p className="min-w-0 flex-1 text-body text-ink-600">
+              {waiting > 0
+                ? `Everything you can act on is done. ${waiting} ${waiting === 1 ? "requirement is" : "requirements are"} with the university.`
+                : "Everything is finished. There is nothing left before term starts."}
+            </p>
+          </div>
         )
       }
     >

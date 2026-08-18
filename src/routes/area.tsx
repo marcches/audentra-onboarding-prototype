@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { Link, useParams } from "@tanstack/react-router";
 
+import { Illustration } from "@/components/illustration";
 import { PortalShell } from "@/components/portal-shell";
 import { IconTile, Prose, Section, Sections, Well } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
@@ -103,13 +104,23 @@ function Placeholder({ area, title, sentence }: { area?: Area; title: string; se
   return (
     <Sections className="mx-auto w-full max-w-[36rem]">
       <Section title={title}>
-        <div className="flex items-start gap-3">
-          {Icon ? (
-            <IconTile size="lg">
-              <Icon weight="bold" aria-hidden className="size-5" />
-            </IconTile>
-          ) : null}
-          <Prose>{sentence}</Prose>
+        {/* **Illustration, because there is nothing real to show** (ADR 0015).
+            An Area that is not built yet has no photograph by definition, and
+            the drawing is what turns "not built" from a screen that looks
+            broken into a room somebody is still furnishing. It sits *inside*
+            the card, beside the sentence, rather than as a banner across the
+            top of the screen — a drawing that spans a screen spends the fold
+            budget on decoration (Brilliant, Cloaked). */}
+        <div className="flex items-start gap-4">
+          <Illustration scene="unbuilt" size="md" className="compact:hidden" />
+          <div className="min-w-0 flex-1">
+            {Icon ? (
+              <IconTile size="lg" className="mb-2 hidden compact:inline-flex">
+                <Icon weight="bold" aria-hidden className="size-5" />
+              </IconTile>
+            ) : null}
+            <Prose>{sentence}</Prose>
+          </div>
         </div>
 
         {area?.willLive.length ? (

@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { PricePill, useCelebration } from "@/components/celebration";
+import { Illustration } from "@/components/illustration";
 import { IconTile } from "@/components/surfaces";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/wordmark";
@@ -122,11 +123,20 @@ export function CompletionRoute() {
             stage it is quiet, at the foot, under the object — it is the proof,
             not the point. */}
         <div className="mt-8 w-full rounded-[var(--radius-card)] border border-white/10 bg-white/5 p-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-meta font-bold text-white/60">What you did</p>
-            <p className="text-small text-white/80 numeric">
-              {points} points = {formatCredit(credit)} in bookstore credit
-            </p>
+          {/* **The reward moment, illustrated** (ADR 0015). Illustration
+              carries what is abstract, and "your Points have become credit at
+              the bookstore" has no photograph — the parcel is the destination
+              ADR 0002 insists a Point must have, drawn rather than counted. It
+              sits inside the receipt block, never as a banner: the student card
+              above it is the thing this screen is about. */}
+          <div className="flex items-center gap-4">
+            <Illustration scene="reward" size="sm" className="compact:hidden" />
+            <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-3">
+              <p className="text-meta font-bold text-white/60">What you did</p>
+              <p className="text-small text-white/80 numeric">
+                {points} points = {formatCredit(credit)} in bookstore credit
+              </p>
+            </div>
           </div>
 
           <ol className="mt-2 grid grid-cols-3 gap-x-4 gap-y-2 compact:grid-cols-1">

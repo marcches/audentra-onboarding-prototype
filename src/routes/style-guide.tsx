@@ -5,6 +5,7 @@ import * as React from "react";
 import { RichBalance } from "@/components/balance";
 import { PricePill } from "@/components/celebration";
 import { Field, Prefilled, ReadOnlyField } from "@/components/field";
+import { Illustration } from "@/components/illustration";
 import { ImageViewerProvider, useImageViewer } from "@/components/image-viewer";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
@@ -36,6 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { AudentraMark, Wordmark } from "@/components/wordmark";
+import { campusPhotos } from "@/lib/fixtures";
 import { residences } from "@/lib/housing";
 import { presence, widthClasses } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -129,6 +131,13 @@ export function StyleGuideRoute() {
           caption="Five spacing steps with no half-step. Containers rise and controls freeze. Elevation has two roles — contains, and floats — and neither of them is a reaction to a mouse."
         >
           <SpaceAndMaterial />
+        </Chapter>
+
+        <Chapter
+          title="Photography and illustration"
+          caption="Photographs carry what is real — the residences a student is ranking, the campus, their own card. Illustration carries what is abstract — an empty state, an Area that is not built yet, the moment Points are awarded. A student choosing where to live cannot judge a drawing of a room."
+        >
+          <ImageryRule />
         </Chapter>
 
         <Chapter
@@ -509,6 +518,44 @@ function SpaceAndMaterial() {
             <p className="text-meta text-ink-500">floats · a modal, a popover, the action pill</p>
           </div>
         </div>
+      </Section>
+    </Sections>
+  );
+}
+
+/**
+ * The imagery rule, with one of each beside the other.
+ *
+ * The photograph is the same file the Offer screen and the portal's academic
+ * block both draw — one campus, one image, on both sides of the login.
+ */
+function ImageryRule() {
+  return (
+    <Sections columns={2}>
+      <Section title="Photography · what is real">
+        <figure className="overflow-hidden rounded-[var(--radius-card)]">
+          <img
+            src={campusPhotos.lawn.src}
+            alt={campusPhotos.lawn.alt}
+            className="h-32 w-full object-cover"
+          />
+        </figure>
+        <p className="mt-4 text-meta text-ink-500">
+          Residences, campus, the student's own card. A room has to be judged, and a drawing of a
+          room shows what somebody wanted it to look like.
+        </p>
+      </Section>
+
+      <Section title="Illustration · what is abstract">
+        <div className="flex items-center justify-around gap-4 rounded-[var(--radius-card)] bg-well px-4 py-4">
+          <Illustration scene="unbuilt" size="sm" />
+          <Illustration scene="settled" size="sm" />
+          <Illustration scene="reward" size="sm" />
+        </div>
+        <p className="mt-4 text-meta text-ink-500">
+          An unbuilt Area, a list with nothing waiting on it, the moment Points become credit. Each
+          sits inside a container — never as a banner above the work.
+        </p>
       </Section>
     </Sections>
   );
