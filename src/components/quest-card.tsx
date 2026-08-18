@@ -132,7 +132,7 @@ export function QuestCard({
         <Button asChild size="sm" variant={lead ? "primary" : "secondary"}>
           <Link to={requirement.path as never}>
             {requirement.action}
-            <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+            <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
           </Link>
         </Button>
         {/* Present and inert. Its drawer is the next cycle's, and a secondary
@@ -162,7 +162,7 @@ function Deadline({ requirement }: { requirement: Requirement }) {
   return (
     <span
       className={cn(
-        "rounded-[var(--radius-pill)] px-1.5 py-0.5 text-meta font-bold numeric",
+        "rounded-[var(--radius-pill)] px-2 py-1 text-meta font-bold numeric",
         urgency === "overdue" && "bg-danger-50 text-danger-600",
         urgency === "urgent" && "bg-danger-50 text-danger-600",
         urgency === "soon" && "bg-amber-50 text-amber-500",

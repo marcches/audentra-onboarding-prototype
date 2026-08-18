@@ -317,7 +317,7 @@ export function Section({
         {count && count[1] > 2 ? (
           <span
             className={cn(
-              "shrink-0 rounded-[var(--radius-pill)] px-1.5 py-0.5 text-micro font-bold tracking-[0.05em] uppercase numeric",
+              "shrink-0 rounded-[var(--radius-pill)] px-2 py-1 text-meta font-bold numeric",
               complete ? "bg-mint-50 text-mint-deep" : "bg-ink-100 text-ink-500",
             )}
           >
@@ -485,7 +485,7 @@ export function Prose({
     <Tag
       className={cn(
         "max-w-[var(--measure-prose)]",
-        size === "body" ? "text-small leading-5 text-ink-600" : "text-micro leading-4 text-ink-500",
+        size === "body" ? "text-body text-ink-600" : "text-small text-ink-500",
         className,
       )}
     >
@@ -540,11 +540,7 @@ export function Well({
         className,
       )}
     >
-      {label ? (
-        <p className="mb-1.5 text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
-          {label}
-        </p>
-      ) : null}
+      {label ? <p className="mb-2 text-meta font-bold text-ink-500">{label}</p> : null}
       {children}
     </Tag>
   );

@@ -44,7 +44,7 @@ export function QuestRow({
 
       <Link
         to={requirement.path as never}
-        className="row-nudge flex min-w-0 flex-[2] items-center gap-1.5"
+        className="row-nudge flex min-w-0 flex-[2] items-center gap-2"
       >
         <span
           className={cn(
@@ -106,16 +106,14 @@ function StateMark({ state }: { state: RequirementState }) {
   if (state === "under-review") {
     return (
       <ClockCounterClockwiseIcon
-        weight="duotone"
+        weight="bold"
         aria-label="With the university"
-        className="size-3.5 shrink-0 text-azure-500"
+        className="size-4 shrink-0 text-azure-500"
       />
     );
   }
   if (state === "complete") {
-    return (
-      <CheckIcon weight="bold" aria-label="Done" className="size-3.5 shrink-0 text-mint-600" />
-    );
+    return <CheckIcon weight="bold" aria-label="Done" className="size-4 shrink-0 text-mint-600" />;
   }
   return (
     <span

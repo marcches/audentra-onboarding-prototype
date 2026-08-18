@@ -131,7 +131,7 @@ export function DashboardRoute() {
         {/* The secondary column. The rich Balance is Dashboard-only (ADR 0013):
             it does not follow the student into an Area where the compact figure
             in the sidebar already answers the question it answers at length. */}
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           <RichBalance size="full" />
           <WhoYouAreHere />
           <NothingWasLost />
@@ -348,14 +348,12 @@ function WhoYouAreHere() {
             aria-hidden
             className="absolute inset-0 z-[var(--z-behind)] bg-[linear-gradient(180deg,rgb(6_18_42/0.05)_35%,rgb(6_18_42/0.82)_100%)]"
           />
-          <figcaption className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 px-2 py-1.5 text-white">
-            <span className="min-w-0 truncate text-micro font-bold tracking-[0.06em] uppercase">
-              {institution.name}
-            </span>
+          <figcaption className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 px-2 py-2 text-white">
+            <span className="min-w-0 truncate text-meta font-bold">{institution.name}</span>
             {/* The year alone, not `Founded 1867`: the crest two feet up the
                 sidebar already carries the word, and at 17rem the label was
                 what truncated the university's own name. */}
-            <span className="shrink-0 text-micro opacity-80 numeric">{institution.founded}</span>
+            <span className="shrink-0 text-meta opacity-80 numeric">{institution.founded}</span>
           </figcaption>
         </figure>
 
@@ -434,11 +432,11 @@ function NothingWasLost() {
           offer. We saved your place, so nothing you entered was lost — they are in your list, with
           everything else.
         </Prose>
-        <div className="mt-2.5">
+        <div className="mt-2">
           <Button asChild variant="secondary" size="sm">
             <Link to={first.path as never}>
               {first.action}
-              <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+              <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
             </Link>
           </Button>
         </div>

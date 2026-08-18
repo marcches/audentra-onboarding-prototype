@@ -82,8 +82,8 @@ export function CompactBalance({ celebrates = false }: { celebrates?: boolean })
     <span
       ref={register}
       className={cn(
-        "flex shrink-0 items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-0.5",
-        "text-micro font-bold tracking-[0.06em] text-violet-700 uppercase",
+        "flex shrink-0 items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-1",
+        "text-meta font-bold text-violet-700",
         "transition-shadow duration-[var(--duration-quick)]",
         beat === 4 && "ring-glow",
       )}
@@ -155,7 +155,7 @@ export function RichBalance({
         >
           <Total points={points} landings={landings} still={!celebrates || !!reduceMotion} />
         </span>
-        <span className={cn("font-strong text-violet-700", full ? "text-lead" : "text-micro")}>
+        <span className={cn("font-strong text-violet-700", full ? "text-body" : "text-meta")}>
           points to spend
         </span>
       </div>
@@ -168,7 +168,7 @@ export function RichBalance({
         initial={beat === 5 && !reduceMotion ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className={cn("text-mint-deep numeric", full ? "mt-1 text-h3" : "text-micro")}
+        className={cn("text-mint-deep numeric", full ? "mt-1 text-h3" : "text-meta")}
       >
         = <span className="font-bold">{formatCredit(released)}</span> in bookstore credit
       </motion.p>
@@ -194,7 +194,7 @@ export function RichBalance({
         </div>
       )}
 
-      <p className={cn("mt-2 text-ink-600", full ? "text-small" : "text-micro leading-4")}>
+      <p className={cn("mt-2 text-ink-600", full ? "text-small" : "text-meta")}>
         {reached ? (
           <>Enough for {target.label}</>
         ) : (
@@ -257,7 +257,7 @@ function RewardTrackRun({ track }: { track: RewardTrack }) {
                       : "bg-violet-200",
                 )}
               >
-                {rung.reached ? <CheckIcon weight="bold" className="size-2.5" /> : null}
+                {rung.reached ? <CheckIcon weight="bold" className="size-3" /> : null}
               </span>
             </li>
           ))}

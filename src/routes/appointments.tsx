@@ -53,51 +53,27 @@ export function AppointmentsRoute() {
   const [service, setService] = React.useState<ServiceId>(booking?.service ?? services[0].id);
   const chosen = serviceById(service);
   const days = daysFor(service);
+  const picker = { service, onChoose: setService };
 
   return (
     <PortalShell
       current="appointments"
       title="Appointments"
       lead={
-        <span className="text-small text-ink-500">
+        <span className="text-small text-white/80">
           Book a time directly. You do not have to go through a topic first.
         </span>
       }
+      /* The band contains this screen's first unit (ADR 0015): the time the
+         student already holds if there is one, and the choice of what they need
+         if there is not. "The booked time is reachable without hunting" is the
+         whole of what a student comes back to this Area for, so when it exists
+         it is what the colour is wrapped around. */
+      opens={booking ? <TheBooking booking={booking} /> : <ServicePicker {...picker} />}
     >
-      {/* First on the screen when it exists, because "the booked time is
-          reachable without hunting" is the whole of what a student comes back
-          to this Area for. */}
-      {booking ? <TheBooking booking={booking} /> : null}
+      {booking ? <ServicePicker {...picker} /> : null}
 
       <Sections>
-        <Section title="What do you need?">
-          <Well flush strong className="flex flex-col gap-1.5 p-2">
-            {services.map((entry) => (
-              <FlatCard
-                key={entry.id}
-                as="button"
-                interactive
-                selected={entry.id === service}
-                onClick={() => setService(entry.id)}
-                aria-pressed={entry.id === service}
-                className="flex w-full items-center gap-2.5 p-2.5"
-              >
-                <SelectionMark selected={entry.id === service} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-small font-strong text-ink-900">
-                    {entry.label}
-                  </span>
-                  <span className="block truncate text-meta text-ink-500">{entry.blurb}</span>
-                </span>
-                <span className="shrink-0 text-right text-meta text-ink-500">
-                  <span className="block">{entry.office}</span>
-                  <span className="block numeric">{entry.minutes} min</span>
-                </span>
-              </FlatCard>
-            ))}
-          </Well>
-        </Section>
-
         <Section title={`Pick a time with ${chosen.office}`}>
           <Prose size="note" className="mb-2">
             The soonest is tomorrow. Times already taken are shown so you can see how full a day is,
@@ -125,6 +101,57 @@ export function AppointmentsRoute() {
 }
 
 /**
+ * The three services, as a choice.
+ *
+ * Extracted so it can be the screen's first unit — inside the band — when the
+ * student holds no booking, and drop below the booking they do hold when they
+ * do. Same component either way: a screen that recomposes must not also change
+ * what it is showing.
+ *
+ * Selection is fill and a check, never elevation and never a size change, so
+ * choosing a service does not move the two rows under it.
+ */
+function ServicePicker({
+  service,
+  onChoose,
+}: {
+  service: ServiceId;
+  onChoose: (id: ServiceId) => void;
+}) {
+  return (
+    <Sections>
+      <Section title="What do you need?">
+        <Well flush strong className="flex flex-col gap-2 p-2">
+          {services.map((entry) => (
+            <FlatCard
+              key={entry.id}
+              as="button"
+              interactive
+              selected={entry.id === service}
+              onClick={() => onChoose(entry.id)}
+              aria-pressed={entry.id === service}
+              className="flex w-full items-center gap-2 p-2"
+            >
+              <SelectionMark selected={entry.id === service} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-body font-strong text-ink-900">
+                  {entry.label}
+                </span>
+                <span className="block truncate text-small text-ink-500">{entry.blurb}</span>
+              </span>
+              <span className="shrink-0 text-right text-meta text-ink-500">
+                <span className="block">{entry.office}</span>
+                <span className="block numeric">{entry.minutes} min</span>
+              </span>
+            </FlatCard>
+          ))}
+        </Well>
+      </Section>
+    </Sections>
+  );
+}
+
+/**
  * One day, and its six slots on the same line.
  *
  * The date and the distance to it are both given, for the reason every deadline
@@ -144,7 +171,7 @@ function DayRow({
   const free = freeSlots(day);
 
   return (
-    <li className="flex items-center gap-3 border-t border-ink-100 py-1.5 first:border-t-0 compact:flex-col compact:items-start compact:gap-1">
+    <li className="flex items-center gap-3 border-t border-ink-100 py-2 first:border-t-0 compact:flex-col compact:items-start compact:gap-1">
       <span className="flex w-40 shrink-0 items-baseline gap-2">
         <span className="text-small font-strong text-ink-800 numeric">{formatDay(day.date)}</span>
         <span className="text-meta text-ink-400">{daysAway(day.date)}</span>
@@ -191,7 +218,7 @@ function SlotButton({
       onClick={() => onPick(slot)}
       aria-label={`${formatTime(slot.time)} on ${formatDay(slot.date)}`}
       className={cn(
-        "rounded-[var(--radius-pill)] border px-2 py-0.5 text-meta transition-colors numeric",
+        "rounded-[var(--radius-pill)] border px-2 py-1 text-meta transition-colors numeric",
         "compact:min-h-[var(--tap-target)] compact:px-3",
         slot.taken && "cursor-not-allowed border-transparent bg-ink-50 text-ink-300 line-through",
         !slot.taken && !booked && "border-ink-200 bg-surface text-ink-700 hover:border-violet-400",
@@ -216,7 +243,7 @@ function TheBooking({ booking }: { booking: Booking }) {
   return (
     <Sections>
       <Section title="Your appointment">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-field)] bg-mint-50 text-mint-deep">
             <CheckIcon weight="bold" aria-hidden className="size-4" />
           </span>
@@ -234,11 +261,11 @@ function TheBooking({ booking }: { booking: Booking }) {
           </span>
           <span className="flex shrink-0 items-center gap-3 text-meta text-ink-500">
             <span className="flex items-center gap-1 numeric">
-              <ClockIcon weight="duotone" aria-hidden className="size-3.5" />
+              <ClockIcon weight="bold" aria-hidden className="size-4" />
               {service.minutes} min
             </span>
             <span className="flex items-center gap-1">
-              <CalendarCheckIcon weight="duotone" aria-hidden className="size-3.5" />
+              <CalendarCheckIcon weight="bold" aria-hidden className="size-4" />
               {daysAway(booking.date)}
             </span>
           </span>

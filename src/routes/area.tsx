@@ -37,9 +37,17 @@ export function AreaScreen({ id }: { id: AreaId }) {
   const area = areaById(id);
 
   return (
-    <PortalShell current={id} title={area.label}>
-      <Placeholder area={area} title={`${area.label} is not built yet`} sentence={area.future} />
-    </PortalShell>
+    <PortalShell
+      current={id}
+      title={area.label}
+      /* The placeholder is this screen's first unit, so the band contains it
+         the same way the Dashboard's band contains the lead card. An unbuilt
+         Area held inside the colour reads as a room that is empty; the same
+         card sitting under a grey header reads as a room that is broken. */
+      opens={
+        <Placeholder area={area} title={`${area.label} is not built yet`} sentence={area.future} />
+      }
+    />
   );
 }
 
@@ -60,18 +68,24 @@ export function RequirementScreen() {
   const requirement = requirements.find((candidate) => candidate.id === slug);
 
   return (
-    <PortalShell current="enrollment" title={requirement?.label ?? "Requirement"}>
-      <Placeholder
-        title={
-          requirement ? `${requirement.label} is not built yet` : "That requirement does not exist"
-        }
-        sentence={
-          requirement
-            ? `${requirement.blurb} It will take about ${requirement.minutes} minutes when this screen is built, and ${requirement.office} is who receives it.`
-            : "Nothing under this address. The list of everything outstanding is in My Enrollment."
-        }
-      />
-    </PortalShell>
+    <PortalShell
+      current="enrollment"
+      title={requirement?.label ?? "Requirement"}
+      opens={
+        <Placeholder
+          title={
+            requirement
+              ? `${requirement.label} is not built yet`
+              : "That requirement does not exist"
+          }
+          sentence={
+            requirement
+              ? `${requirement.blurb} It will take about ${requirement.minutes} minutes when this screen is built, and ${requirement.office} is who receives it.`
+              : "Nothing under this address. The list of everything outstanding is in My Enrollment."
+          }
+        />
+      }
+    />
   );
 }
 
@@ -87,12 +101,12 @@ function Placeholder({ area, title, sentence }: { area?: Area; title: string; se
   const Icon = area?.icon;
 
   return (
-    <Sections className="mx-auto mt-5 w-full max-w-[36rem]">
+    <Sections className="mx-auto w-full max-w-[36rem]">
       <Section title={title}>
         <div className="flex items-start gap-3">
           {Icon ? (
             <IconTile size="lg">
-              <Icon weight="duotone" aria-hidden className="size-5" />
+              <Icon weight="bold" aria-hidden className="size-5" />
             </IconTile>
           ) : null}
           <Prose>{sentence}</Prose>
@@ -100,14 +114,12 @@ function Placeholder({ area, title, sentence }: { area?: Area; title: string; se
 
         {area?.willLive.length ? (
           <>
-            <p className="mt-3.5 mb-1 text-micro font-bold tracking-[0.08em] text-ink-500 uppercase">
-              What will live here
-            </p>
+            <p className="mt-4 mb-1 text-meta font-bold text-ink-500">What will live here</p>
             <ul className="flex flex-col">
               {area.willLive.map((thing) => (
                 <li
                   key={thing}
-                  className="flex items-baseline gap-2 border-t border-ink-100 py-1.5 text-small text-ink-700 first:border-t-0"
+                  className="flex items-baseline gap-2 border-t border-ink-100 py-2 text-small text-ink-700 first:border-t-0"
                 >
                   {/* A dot rather than a tick: a tick would say this is done,
                       and a numeral would say there is an order to it. */}
@@ -128,23 +140,23 @@ function Placeholder({ area, title, sentence }: { area?: Area; title: string; se
             a button: the rule that survives is that a pointer goes somewhere
             real, never to another placeholder. */}
         {area?.meanwhile ? (
-          <Well label="Meanwhile" className="mt-3.5">
+          <Well label="Meanwhile" className="mt-4">
             <Prose className={area.pointer ? "mb-2" : undefined}>{area.meanwhile}</Prose>
             {area.pointer ? (
               <Button asChild variant="secondary" size="sm">
                 <Link to={area.pointer.path as never}>
                   {area.pointer.label}
-                  <ArrowRightIcon weight="bold" aria-hidden className="size-3.5" />
+                  <ArrowRightIcon weight="bold" aria-hidden className="size-4" />
                 </Link>
               </Button>
             ) : null}
           </Well>
         ) : null}
 
-        <div className="mt-3.5 border-t border-ink-100 pt-2.5">
+        <div className="mt-4 border-t border-ink-100 pt-2">
           <Button asChild variant="ghost" size="sm">
             <Link to="/portal/dashboard">
-              <ArrowLeftIcon weight="bold" aria-hidden className="size-3.5" />
+              <ArrowLeftIcon weight="bold" aria-hidden className="size-4" />
               Back to the Dashboard
             </Link>
           </Button>

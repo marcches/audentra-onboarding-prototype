@@ -52,7 +52,12 @@ export function PortalShell({
    * which is the height the greeting cost before there was a band.
    */
   opens?: React.ReactNode;
-  children: React.ReactNode;
+  /**
+   * Everything under the band. Optional, because a screen whose whole content
+   * is its first unit — an unbuilt Area — has nothing left to put here, and an
+   * empty `<PortalShell>…</PortalShell>` would be a lie about that.
+   */
+  children?: React.ReactNode;
 }) {
   const state = useOnboarding();
   const name = state.whoYouAre.preferredName.trim() || studentRecord.legalFirstName;
@@ -63,27 +68,23 @@ export function PortalShell({
           grouping is what pays for it: the headings do the work the vertical
           space was doing, so the rows come down too (Remote). */}
       <aside className={cn("w-56 shrink-0 bg-surface", aboveCompact)}>
-        <div className="sticky top-0 flex h-dvh flex-col gap-2.5 px-2.5 py-3">
+        <div className="sticky top-0 flex h-dvh flex-col gap-2 px-2 py-3">
           <div className="flex items-center gap-2 px-1">
             <InstitutionCrest className="size-8 shrink-0" />
             <span className="flex min-w-0 flex-col">
               <span className="truncate font-display text-body font-black tracking-[-0.015em] text-ink-900">
                 Aster University
               </span>
-              <span className="truncate text-meta tracking-[0.06em] text-ink-500 uppercase">
-                {name}
-              </span>
+              <span className="truncate text-meta text-ink-500">{name}</span>
             </span>
           </div>
 
           <nav aria-label="Areas" className="min-h-0 overflow-y-auto pt-2">
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col gap-2">
               {areaGroups.map((group) => (
                 <li key={group.label ?? group.areas[0].id}>
                   {group.label ? (
-                    <p className="px-2 pb-1 text-meta font-bold tracking-[0.08em] text-ink-400 uppercase">
-                      {group.label}
-                    </p>
+                    <p className="px-2 pb-1 text-meta font-bold text-ink-400">{group.label}</p>
                   ) : null}
                   <ul className="flex flex-col">
                     {group.areas.map((area) => {
@@ -106,7 +107,7 @@ export function PortalShell({
                             )}
                           >
                             <Icon
-                              weight={here ? "fill" : "regular"}
+                              weight={here ? "fill" : "bold"}
                               aria-hidden
                               className="size-4 shrink-0"
                             />
@@ -126,9 +127,7 @@ export function PortalShell({
               not "permanent", it is orphaned — and the flight that justified a
               fixed pixel in the gate does not happen here. */}
           <div className="flex flex-col gap-1 pt-2">
-            <p className="px-1 text-meta font-bold tracking-[0.08em] text-ink-400 uppercase">
-              Your balance
-            </p>
+            <p className="px-1 text-meta font-bold text-ink-400">Your balance</p>
             <div className="flex">
               <CompactBalance />
             </div>
@@ -162,7 +161,7 @@ export function PortalShell({
             carries it. Without this the portal was the only surface in the
             product with no signature at all, which is a fair part of why it read
             as somebody else's work. */}
-        <span aria-hidden className="brand-gradient h-0.5 shrink-0" />
+        <span aria-hidden className="brand-gradient h-[2px] shrink-0" />
 
         <main className="flex flex-1 flex-col px-4 pt-4 pb-6 compact:px-2 compact:pb-[5.5rem]">
           <div className="mx-auto flex w-full max-w-[var(--catalogue-measure)] flex-1 flex-col gap-4">
@@ -213,15 +212,11 @@ export function PortalShell({
                     to={area.path as never}
                     aria-current={here ? "page" : undefined}
                     className={cn(
-                      "flex min-h-[var(--tap-target)] w-[4.75rem] flex-col items-center justify-center gap-0.5 rounded-[var(--radius-field)] px-1 text-meta",
+                      "flex min-h-[var(--tap-target)] w-[4.75rem] flex-col items-center justify-center gap-1 rounded-[var(--radius-field)] px-1 text-meta",
                       here ? "bg-violet-50 font-bold text-violet-700" : "text-ink-500",
                     )}
                   >
-                    <Icon
-                      weight={here ? "fill" : "regular"}
-                      aria-hidden
-                      className="size-5 shrink-0"
-                    />
+                    <Icon weight={here ? "fill" : "bold"} aria-hidden className="size-5 shrink-0" />
                     <span className="w-full truncate text-center leading-3">{area.label}</span>
                   </Link>
                 </li>
