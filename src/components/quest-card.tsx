@@ -98,7 +98,7 @@ export function QuestCard({
           ) : null}
         </span>
         {lead ? (
-          <span className="ml-auto flex items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-1 text-meta font-bold text-violet-700">
+          <span className="ml-auto flex items-center gap-1 rounded-[var(--radius-pill)] bg-violet-50 px-2 py-1 text-meta font-bold text-violet-700 compact:ml-0">
             <LightningIcon weight="fill" aria-hidden className="size-3" />
             Best next step
             {opens > 0 ? (

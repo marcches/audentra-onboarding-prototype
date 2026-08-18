@@ -1,5 +1,11 @@
 # Panel becomes Section, and elevation stops being a signal
 
+> **Superseded entirely by [ADR 0015](./0015-the-room-and-the-band.md).**
+> `Section` survives as a composition; elevation stops being forbidden. The
+> risk this ADR accepted in writing — *"a screen that reads as a grey wall"*
+> — is the thing the designer reported, and it came back as elevation with
+> one condition: containment, never reaction.
+
 The density reference the client named is Salesforce, and Salesforce has no
 elevated panels: it has **sections** — a labelled header, a chevron, a rule, no
 shadow. Keeping the four-surface system of ADR 0006 while adding collapsible

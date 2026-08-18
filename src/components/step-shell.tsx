@@ -498,8 +498,12 @@ export function StepActions({
   saved?: boolean;
   children: React.ReactNode;
 }) {
+  /* `whitespace-nowrap`, because the bar is a constant height and this is the
+     only thing in it that can wrap. At body 15 "Saved automatically" broke to
+     two lines inside 64px on a 390px phone and pushed itself out of its own
+     bar — the reassurance overflowing the furniture it lives in. */
   const autosave = saved ? (
-    <span className="flex items-center gap-2 text-small text-ink-500">
+    <span className="flex shrink-0 items-center gap-2 text-meta whitespace-nowrap text-ink-500">
       <CloudCheckIcon weight="fill" aria-hidden className="size-4 text-mint-600" />
       Saved automatically
     </span>

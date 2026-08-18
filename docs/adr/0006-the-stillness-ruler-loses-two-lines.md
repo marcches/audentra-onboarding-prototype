@@ -1,5 +1,11 @@
 # The stillness ruler loses a line, and the stacking ruler loses two
 
+> **One line superseded by [ADR 0015](./0015-the-room-and-the-band.md):**
+> *"Selection is fill and a check, never elevation."* Selection is still fill
+> and a check — what changed is that elevation is no longer forbidden
+> everywhere else. The four drift invariants are untouched and are not
+> negotiable: they answer a different complaint, and nobody has withdrawn it.
+
 Written because a rule that disappears without a recorded reason comes back in
 two rounds, and one of the two below had already been reinstated once.
 

@@ -95,12 +95,157 @@ linha `quest-metadata` da tabela de Presence do portal. Console limpo.
 
 ---
 
+## O que o ciclo "a sala e a faixa" mediu
+
+O pedido que abriu o ciclo foi da designer, no navegador: *"o dashboard está
+muito chapado… dá pra deixar mais roxo e mais redondo?"* — a **segunda** vez que
+este repositório é informado de que perdeu a identidade. A ADR 0015 diagnosticou
+três defeitos sob uma palavra só, e os três foram medidos antes de qualquer coisa
+ser desenhada.
+
+| Defeito | Antes | Depois |
+|---|---|---|
+| Passos da escala tipográfica | 9, com 6 dentro de 5px (11/12/13/14/15/16) | 7, em 11/13/15/18/24/32/44 |
+| Corpo | 14/1.5 | 15/1.55 |
+| Voz de display | `--font-display` = `--font-sans` (a mesma face) | grotesca de terminais arredondados, em token trocável numa linha |
+| Pesos da face de interface | 1 acima do corpo (700) | 300–900 carregados, 650 nomeado |
+| Valores de espaçamento | 5 entre 4px e 12px, com meios-passos; 1 token declarado | 5 declarados: 4 / 8 / 16 / 24 / 40, sem meio-passo |
+| Meios-passos no código | 266 utilitários `x.5` | 0, e a régua falha o build no primeiro que voltar |
+| Pesos de ícone simultâneos | 3 (`regular`, `bold`, `duotone`) | 2: `bold` significa, `fill` é estado |
+| Rótulos em caixa alta | 27 | 0 na interface (restam 2 artefatos: o mote do brasão e a carteira impressa) |
+| Elevação | proibida (ADR 0010) | 2 papéis: `contains` e `floats`, e nenhum deles reage ao mouse |
+| Raio de contêiner | card 16, slab 20 | card 20, slab 28 — o campo continua em 10 |
+| Violeta na superfície | 0 (racionado a sinal, 4 arquivos) | o chão inteiro do app, mais uma faixa por tela |
+| Textura | 0 | 1, e só no chão (`body`) |
+
+### A varredura em 1366x768
+
+Loja limpa (`localStorage.clear()`), coluna útil de 668px pela ADR 0008.
+
+| Tela | Coluna | `h1` em | Primeira unidade termina em |
+|---|---|---|---|
+| Your offer | 689 | y=28 | dentro da faixa |
+| Who you are | 1323 | y=28 | dentro da faixa |
+| Health information | 668 | y=28 | dentro da faixa |
+| Who we call | 668 | y=28 | dentro da faixa |
+| Housing | 867 | y=28 | dentro da faixa |
+| Campus life | 1904 | y=28 | dentro da faixa |
+| Review & sign | 1094 | y=28 | y=288 |
+| Deposit | 668 | y=28 | dentro da faixa |
+| Dashboard | — | y=32 | **y=276** (card líder) |
+| Appointments | — | y=32 | y=368 |
+| Uma Area não construída | — | y=32 | y=645 |
+
+**A faixa contém a primeira unidade em todas as 12 telas**, e o custo dela é o
+próprio respiro: a faixa do Dashboard termina em y=292 e o card líder, dentro
+dela, em y=276. Um bloco de cor *antes* do primeiro card gastaria 140–180px dos
+~640 úteis — foi por isso que o ciclo anterior recusou exatamente essa
+composição.
+
+**O `h1` cai no mesmo pixel** chegando por Continue e pelo link de edição do
+Review, nas cinco telas testadas (y=28 nas duas). A diferença de `left` entre
+315 e 288 é a medida do arquétipo, que é um fato do Step e não deriva da rota.
+
+**Nada sobe, cresce ou engrossa**: passando o mouse por todos os cards e
+controles do Dashboard, 0 de 3 caixas mudaram de posição ou tamanho.
+
+**A textura aparece exatamente uma vez** — `BODY`, e mais nada no documento tem
+`background-image` de textura. **Uma faixa por tela**, medido.
+
+### A varredura em 390x844
+
+Sem overflow horizontal em nenhuma das 14 rotas (`scrollWidth - innerWidth` = 0).
+Nada cortado, nada sobreposto. Barra de ação em 64px constantes nos oito Steps,
+sem transbordo interno. Console limpo no percurso inteiro.
+
+Dois achados no compact, **corrigidos aqui**:
+
+- "Saved automatically" quebrava em duas linhas dentro de uma barra de altura
+  fixa a 15px de corpo, e transbordava o próprio móvel. Agora não quebra.
+- O selo `Best next step` ficava órfão numa linha só, empurrado à direita por
+  `ml-auto` num card de 390px. No compact ele acompanha os outros chips.
+
+### Os julgamentos que nenhum teste faz, com veredito
+
+1. **Ainda está chapado?** Não. A hierarquia agora existe em três eixos ao mesmo
+   tempo — tamanho (44 contra 15, e sete passos entre eles), peso (300 a 900) e
+   material (a faixa e o card líder elevados, tudo o mais plano). O que fechou a
+   queixa não foi o violeta: foi a escala. Nove passos com seis dentro de cinco
+   pixels é chapado no sentido mais literal disponível.
+2. **Está mais roxo?** Sim, e sem custar nada à dobra. O violeta virou chão e
+   faixa — material — enquanto continua sendo sinal em progresso e ação
+   primária. Um estudante nunca precisa decidir se uma cor está dizendo algo
+   sobre o progresso dele.
+3. **Está mais redondo?** Sim, e em dois lugares. Contêineres subiram (card 20,
+   slab 28) e os controles não se mexeram, que é a razão de a densidade do
+   formulário ter sobrevivido. O terminal arredondado da segunda voz é a metade
+   que o raio de canto não entrega.
+4. **A gamificação lê como razão para voltar ou como decoração?** Como razão, com
+   uma ressalva. Headroom ("457 pts ainda disponíveis hoje") e Streak ("2 dias
+   seguidos") estão na linha da saudação e não custaram um pixel; a trilha de
+   recompensa nomeia objetos em vez de números. A ressalva é que Streak é a única
+   das três que **não responde ao que o estudante fez hoje** sem um fixture por
+   trás — o protótipo não guarda carimbo de tempo, e isso está escrito em
+   `portal.ts` em vez de escondido.
+
+### O decaimento, julgado explicitamente
+
+**Veredito: lê como urgência, não como pressão — e continua sendo a aposta não
+validada deste ciclo.**
+
+O que sustenta o veredito: o par aparece **num card por tela**, é uma comparação
+(`100 pts · 99 tomorrow`) e não uma contagem regressiva, e o que já foi perdido
+não é derivável do que o card recebe. Nos outros dois cards do Dashboard há
+preço e não há decaimento, o que é a diferença entre "isto vale 66 pontos" e "a
+lista inteira está fugindo de você".
+
+O que **não** sustenta: nenhuma referência no catálogo. Trinta e seis telas
+pesquisadas e nenhum produto que tenha tentado valor limitado no tempo encolhe a
+recompensa — todos usam prazo ou contagem regressiva. Concentrar em um card por
+tela é exatamente o que permite este julgamento; se um estudante ler como
+punição, isso é conversa com o cliente e não bug para remendar em silêncio.
+
+### A segunda voz
+
+**Pendente de aprovação da designer.** O token está no ar como **Nunito**
+(700/800/900), escolhido pela banda de referência da ADR 0015 — Preply e o
+Feather da Duolingo, com o ClassDojo como guarda-corpo do lado infantil. Trocar
+é uma linha: `--font-display-face` em `app.css`. Apontada para `var(--font-sans)`
+o sistema inteiro cai para Satoshi em 300–900, e **nada mais no ciclo se mexe** —
+o que já é melhoria real contra o único peso acima do corpo que existia.
+
+### O que este ciclo não fecha, escrito aqui em vez de deixado
+
+- **`Who you are` continua sem caber numa tela**: 1323px contra 668 úteis. Já não
+  cabia (1175 antes), e o Prefill devolveu 141px sem encolher tipo nenhum — o
+  endereço inteiro virou uma linha confirmada em vez de cinco campos. Fechar de
+  vez custa apagar uma Section, que é o que a ADR 0010 prescreve e o que este
+  ciclo escolheu não fazer sem a designer na frente.
+- **`Your offer` passou a rolar 21px** (689 contra 668). É um arquétipo
+  `decision`, e a ADR 0009 diz que uma decisão rola.
+- **O Prefill é fixture.** A grammar está desenhada e testada contra valores
+  fixos; o CRM é o próximo ciclo. Não há flag `prefilled` em lugar nenhum: um
+  campo é Prefill enquanto o valor ainda é o da instituição.
+- **A carteira de estudante e o mote do brasão continuam em caixa alta.** São
+  artefatos — um cartão impresso e uma heráldica — e não rótulos de interface.
+  Ficam, e ficam nomeados aqui.
+
+---
+
 ## Antes de tudo — a fundação (`/style-guide`)
 
 - [ ] As quatro superfícies aparecem desenhadas: Ground, Panel, Well, cartão
       plano. Dá pra distinguir cada uma de sua vizinha **sem** ler o rótulo.
-- [ ] Nenhuma delas usa sombra para se distinguir: sombra só em modal, popover e
-      barra fixa.
+- [ ] **Cada material faz um trabalho só** (ADR 0015): tinta agrupa, sombra
+      contém, borda delimita um controle e nada mais, textura aparece uma vez e
+      só no chão. Nenhuma unidade delimitada duas vezes.
+- [ ] Sombra tem exatamente dois papéis desenhados — `contains` (a faixa, o card
+      líder) e `floats` (modal, popover, a pílula de ação) — e **nenhum dos dois
+      é reação ao mouse**.
+- [ ] A sala e a faixa estão desenhadas: chão tingido com uma textura, faixa
+      contendo a primeira unidade em vez de vir antes dela.
+- [ ] Os sete passos de tipo, as duas vozes e os cinco passos de espaçamento
+      estão numa tela só, e dá pra ver a distância entre cada passo.
 - [ ] As três exceções da Ground estão desenhadas e nomeadas: rótulo de seção,
       catálogo, assimetria do checkout.
 - [ ] Os cinco arquétipos estão listados com sua regra.
@@ -126,9 +271,10 @@ linha `quest-metadata` da tabela de Presence do portal. Console limpo.
       apartados das três Fases.
 - [ ] O brasão no topo do rail lê como **armas de universidade**, não como ícone
       de app, e o dourado dele não aparece em nenhum outro lugar da tela.
-- [ ] Exatamente **uma** régua de gradiente por tela, no topo da folha de
-      trabalho, e nenhuma no guia. Housing e Campus life não têm folha e portanto
-      não têm régua.
+- [ ] Exatamente **uma faixa** por tela, abrindo a tela e contendo a primeira
+      unidade dela. A régua de gradiente no topo da folha de trabalho não existe
+      mais: a ADR 0015 substitui a ADR 0012 inteira, e a marca virou propriedade
+      da superfície em vez de exceção concedida a quatro arquivos.
 - [ ] Nenhum bloco guarda espaço em branco depois que o conteúdo acabou. Folha
       curta mostra Ground embaixo, e isso é o estado normal de uma página.
 - [ ] Nenhum parágrafo dentro de uma Section passa de 75 caracteres por linha.

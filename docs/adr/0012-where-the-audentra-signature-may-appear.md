@@ -1,5 +1,12 @@
 # Where the Audentra signature may appear
 
+> **Superseded entirely by [ADR 0015](./0015-the-room-and-the-band.md).**
+> A narrow rule that failed twice is not a rule needing a fifth exception; it
+> is the wrong shape of rule. The list of permitted files is replaced by a
+> statement of what each material *does*, and the brand becomes a property of
+> the surface — the room and the band — rather than an exception granted to
+> four call sites.
+
 The client's complaint was that the product had lost its identity in pursuit of
 Salesforce density: *"vc focou mto em deixar salesforce q perdemos nossa
 identidade audentra q criamos. eu queria um salesforce tipo edtech sabe?"*
