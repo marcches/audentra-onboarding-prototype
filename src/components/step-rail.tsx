@@ -71,12 +71,12 @@ function QuestMark({ done, current }: { done: boolean; current: boolean }) {
       className={cn(
         "absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full",
         "transition-colors duration-[var(--duration-base)]",
-        done && "size-3.5 bg-mint-500 text-white",
+        done && "size-4 bg-mint-500 text-white",
         !done && current && "size-2 bg-violet-600",
         !done && !current && "size-2 border border-ink-300 bg-surface",
       )}
     >
-      {done ? <CheckIcon weight="bold" aria-hidden className="size-2.5" /> : null}
+      {done ? <CheckIcon weight="bold" aria-hidden className="size-3" /> : null}
     </span>
   );
 }
@@ -92,7 +92,7 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
 
   return (
     <li>
-      <div className="flex items-center gap-2 px-1 pt-1 pb-1.5">
+      <div className="flex items-center gap-2 px-1 pt-1 pb-2">
         <span
           className={cn(
             "flex size-5 shrink-0 items-center justify-center rounded-full border text-[0.625rem] font-bold",
@@ -112,7 +112,7 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
         </span>
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-micro font-bold tracking-[0.06em] uppercase",
+            "min-w-0 flex-1 truncate text-meta font-bold",
             active ? "text-violet-700" : "text-ink-500",
           )}
         >
@@ -139,9 +139,9 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
                 style={CONNECTOR}
                 className={cn(
                   "absolute bottom-1/2 w-px -translate-x-1/2 bg-ink-100",
-                  /* `-top-1.5` on the first row closes the group row's own
-                     `pb-1.5`, so the segment meets the marker above it. */
-                  index === 0 ? "-top-1.5" : "top-0",
+                  /* `-top-2` on the first row closes the group row's own
+                     `pb-2`, so the segment meets the marker above it. */
+                  index === 0 ? "-top-2" : "top-0",
                 )}
               />
               {isLast ? null : (
@@ -158,7 +158,7 @@ function GroupRow({ group, current, done }: { group: Group; current: StepId; don
                 aria-current={isCurrent ? "step" : undefined}
                 style={QUEST_INDENT}
                 className={cn(
-                  "row-nudge flex items-center rounded-[var(--radius-field)] py-1.5 pr-2 transition-colors",
+                  "row-nudge flex items-center rounded-[var(--radius-field)] py-2 pr-2 transition-colors",
                   isCurrent ? "bg-violet-50" : "hover:bg-ink-50",
                 )}
               >
@@ -192,8 +192,8 @@ export function StepRail({ current }: { current: StepId }) {
   const name = state.whoYouAre.preferredName.trim() || studentRecord.legalFirstName;
 
   return (
-    <aside className={cn(RAIL_WIDTH, "shrink-0 border-r border-ink-100 bg-surface", aboveCompact)}>
-      <div className="sticky top-0 flex h-dvh flex-col gap-3 overflow-y-auto px-3.5 py-3.5">
+    <aside className={cn(RAIL_WIDTH, "shrink-0 bg-surface", aboveCompact)}>
+      <div className="sticky top-0 flex h-dvh flex-col gap-3 overflow-y-auto px-4 py-4">
         {/* Whose portal this is, and whose record. The student's own name at
             the top is what stops the screen reading as a generic form. */}
         <div className="flex items-center gap-2">
@@ -202,17 +202,12 @@ export function StepRail({ current }: { current: StepId }) {
             <span className="truncate font-display text-body font-black tracking-[-0.015em] text-ink-900">
               Aster University
             </span>
-            <span className="truncate text-micro tracking-[0.06em] text-ink-500 uppercase">
-              {name}
-            </span>
+            <span className="truncate text-meta text-ink-500">{name}</span>
           </span>
         </div>
 
-        <nav
-          aria-label="Your path"
-          className="min-h-0 flex-1 overflow-y-auto border-t border-ink-100 pt-3"
-        >
-          <ol className="flex flex-col gap-2.5">
+        <nav aria-label="Your path" className="min-h-0 flex-1 overflow-y-auto pt-4">
+          <ol className="flex flex-col gap-2">
             {walk.map((group) => (
               <GroupRow key={group.id} group={group} current={current} done={done} />
             ))}
@@ -221,7 +216,7 @@ export function StepRail({ current }: { current: StepId }) {
 
         {/* Pinned to the foot, in the same pixel on every screen in the flow.
             Without a fixed destination the award's flight has nowhere to land. */}
-        <div className="border-t border-ink-100 pt-2.5">
+        <div className="pt-4">
           <RichBalance celebrates />
         </div>
       </div>
@@ -247,7 +242,7 @@ export function PhaseBar({ current }: { current: StepId }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-[var(--z-rail)] flex-col gap-1.5 border-b border-ink-100 bg-surface/90 px-4 py-2 backdrop-blur",
+        "sticky top-0 z-[var(--z-rail)] flex-col gap-2 border-b border-ink-100 bg-surface/90 px-4 py-2 backdrop-blur",
         inCompactFlex,
       )}
     >
@@ -303,7 +298,7 @@ export function PhaseBar({ current }: { current: StepId }) {
             );
           })}
         </div>
-        <p className="text-micro font-bold tracking-[0.06em] text-ink-500 uppercase">
+        <p className="text-meta font-bold text-ink-500">
           {beyondPhases ? activeGroup.label : `Phase ${activeNumber} of ${phaseCount}`} ·{" "}
           <span className="text-ink-700">{activeGroup.label}</span>
         </p>

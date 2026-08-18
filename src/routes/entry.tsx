@@ -88,7 +88,7 @@ export function EntryRoute() {
               No institution named, either — the entry screen does not know the
               tenant any more than it knows the person. Both arrive with the
               login. */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <h1 className="text-h1 text-ink-900">
               {tab === "create" ? "Create your account" : returning ? "Welcome back" : "Sign in"}
             </h1>
@@ -116,7 +116,7 @@ export function EntryRoute() {
               Split across two flex children it inherited the row's `gap-x`, so
               the line read "About 23 minutes , saved as you go" — punctuation
               pushed off its own word by a layout gap. */}
-          <p className="flex flex-wrap items-baseline gap-x-1.5 text-small text-ink-500">
+          <p className="flex flex-wrap items-baseline gap-x-2 text-small text-ink-500">
             <span className="font-strong text-ink-700 numeric">About {totalMinutes} minutes,</span>
             <span>saved as you go.</span>
             <span className="numeric">
@@ -286,9 +286,9 @@ function CreateAccountForm({ onSuccess }: { onSuccess: () => void }) {
             className="absolute top-1/2 right-1 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-50 hover:text-ink-700"
           >
             {showPassword ? (
-              <EyeSlashIcon aria-hidden className="size-4.5" />
+              <EyeSlashIcon aria-hidden className="size-5" />
             ) : (
-              <EyeIcon aria-hidden className="size-4.5" />
+              <EyeIcon aria-hidden className="size-5" />
             )}
             <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
           </button>

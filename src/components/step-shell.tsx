@@ -201,13 +201,13 @@ export function StepGuide({
     >
       <Section
         title="This screen"
-        icon={<CompassIcon weight="duotone" aria-hidden className="size-4" />}
+        icon={<CompassIcon weight="bold" aria-hidden className="size-4" />}
         count={tasks.length ? [done, tasks.length] : undefined}
       >
         <Prose>{why}</Prose>
 
         {tasks.length ? (
-          <ol className="mt-2.5 space-y-1.5 border-t border-ink-100 pt-2.5">
+          <ol className="mt-2 space-y-2 border-t border-ink-100 pt-2">
             {tasks.map((task, index) => (
               <li key={task.label} className="flex items-start gap-2">
                 <span
@@ -218,7 +218,7 @@ export function StepGuide({
                   )}
                 >
                   {task.done ? (
-                    <CheckIcon weight="bold" aria-hidden className="size-2.5" />
+                    <CheckIcon weight="bold" aria-hidden className="size-3" />
                   ) : (
                     index + 1
                   )}
@@ -231,7 +231,7 @@ export function StepGuide({
                 >
                   {task.label}
                   {task.optional ? (
-                    <span className="text-micro text-ink-400"> · optional</span>
+                    <span className="text-meta text-ink-400"> · optional</span>
                   ) : null}
                 </span>
               </li>
@@ -239,8 +239,8 @@ export function StepGuide({
           </ol>
         ) : null}
 
-        <p className="mt-2.5 flex items-baseline gap-1.5 border-t border-ink-100 pt-2.5 text-micro text-ink-400">
-          <ClockIcon weight="duotone" aria-hidden className="size-3.5 self-center" />
+        <p className="mt-2 flex items-baseline gap-2 border-t border-ink-100 pt-2 text-meta text-ink-400">
+          <ClockIcon weight="bold" aria-hidden className="size-4 self-center" />
           <span className="numeric">About {step.minutes} minutes</span>
           <span>· saved as you go</span>
         </p>
@@ -378,13 +378,13 @@ export function StepShell({
     <>
       <StepRail current={current} />
       <div
-        className={cn(
-          "flex min-w-0 flex-1 flex-col bg-canvas",
-          /* The one non-signal gradient admitted under a whole screen. A
-             decision with 450px of white beneath it reads as unfinished; the
-             same decision resting on a very low wash reads as placed. */
-          archetype === "decision" && "decision-ground",
-        )}
+        /* No ground of its own. The room is `body` (ADR 0015), and the wash
+           this used to paint under a `decision` screen was solving the same
+           problem one screen at a time: a decision with 450px of white beneath
+           it reads as unfinished. A tinted ground under every screen solves it
+           once, and a second ground painted over the first would be the page
+           coloured twice — once with the texture and once without. */
+        className="flex min-w-0 flex-1 flex-col"
       >
         <PhaseBar current={current} />
         {/* The foot is reserved rather than overlapped: `--action-bar-height`
@@ -405,16 +405,35 @@ export function StepShell({
               MEASURE[archetype],
             )}
           >
-            <motion.header key={beat.key} {...beat.enter(0)} className="flex items-baseline gap-3">
+            {/* **The band, and it is the header rather than a block above it**
+                (ADR 0015).
+
+                The gate opens on the same composition the portal does: a
+                gradient block that *contains* the screen's first unit instead
+                of preceding it. Here the band is the `h1` and its lead, with
+                48px of colour below the text — and the work sheet is pulled up
+                40px so its top edge sits inside that colour (Mercor).
+
+                The band being the header, rather than a wrapper around it, is
+                what keeps the ruler's second line true: nothing is born above
+                the title, because there is nothing above the title to be born.
+                Every Step still anchors its `h1` at the same pixel, and a Step
+                reached from the Review summary lands where a Step reached by
+                Next does. */}
+            <motion.header
+              key={beat.key}
+              {...beat.enter(0)}
+              className="band flex items-baseline gap-4 px-4 pt-4 pb-12"
+            >
               <div className="min-w-0 flex-1">
-                <h1 className="text-h1 text-ink-900">{title}</h1>
+                <h1 className="text-h1 text-white">{title}</h1>
                 {/* The lead takes the prose measure like everything else that
                     is prose. It was exempt on the grounds that a subtitle is
                     scanned rather than read — and then Campus life's ran to 113
                     characters on one line, which is three sentences, not a
                     subtitle. Two lines under an `h1` is ordinary; a line nobody
                     can track to its end is not. */}
-                {lead ? <Prose className="mt-0.5 text-ink-500">{lead}</Prose> : null}
+                {lead ? <Prose className="mt-1 text-white/80">{lead}</Prose> : null}
               </div>
               {headerAside ? <div className="shrink-0">{headerAside}</div> : null}
             </motion.header>
@@ -423,7 +442,10 @@ export function StepShell({
               {...beat.enter(0.06)}
               ref={workRef}
               className={cn(
-                "flex flex-col gap-[var(--space-section)]",
+                /* Pulled into the band's lower edge. The gap above is 16 and
+                   this is 40, so the sheet's top 24px are inside the colour —
+                   which is the whole reason the band costs the fold nothing. */
+                "-mt-10 flex flex-col gap-[var(--space-section)]",
                 /* Two panes: the work, and the guide beside it. Neither
                    stretches — `items-start` is the whole rule, and it is why
                    the two panes end at different heights and that is fine. A
@@ -469,8 +491,8 @@ export function StepActions({
   children: React.ReactNode;
 }) {
   const autosave = saved ? (
-    <span className="flex items-center gap-1.5 text-small text-ink-500">
-      <CloudCheckIcon weight="fill" aria-hidden className="size-3.5 text-mint-600" />
+    <span className="flex items-center gap-2 text-small text-ink-500">
+      <CloudCheckIcon weight="fill" aria-hidden className="size-4 text-mint-600" />
       Saved automatically
     </span>
   ) : null;
@@ -479,7 +501,7 @@ export function StepActions({
     <>
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-[var(--z-actions)] border-t border-ink-100 bg-surface/95 backdrop-blur",
+          "fixed inset-x-0 bottom-0 z-[var(--z-actions)] bg-surface/95 shadow-[var(--shadow-floats)] backdrop-blur",
           inCompactFlex,
           "h-[var(--action-bar-height)] items-center gap-2 px-3",
         )}
@@ -495,7 +517,7 @@ export function StepActions({
           aboveCompact,
         )}
       >
-        <div className="pointer-events-auto flex max-w-full items-center gap-2 overflow-x-auto rounded-[var(--radius-pill)] border border-ink-100 bg-surface/95 py-1.5 pr-1.5 pl-4 shadow-lift backdrop-blur">
+        <div className="pointer-events-auto flex max-w-full items-center gap-2 overflow-x-auto rounded-[var(--radius-pill)] bg-surface/95 py-2 pr-2 pl-4 shadow-[var(--shadow-floats)] backdrop-blur">
           {autosave}
           {children}
         </div>
