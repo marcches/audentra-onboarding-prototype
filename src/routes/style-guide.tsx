@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { RichBalance } from "@/components/balance";
 import { PricePill } from "@/components/celebration";
-import { Field, ReadOnlyField } from "@/components/field";
+import { Field, Prefilled, ReadOnlyField } from "@/components/field";
 import { ImageViewerProvider, useImageViewer } from "@/components/image-viewer";
 import { Notice } from "@/components/notice";
 import { OptionCard } from "@/components/option-card";
@@ -129,6 +129,13 @@ export function StyleGuideRoute() {
           caption="Five spacing steps with no half-step. Containers rise and controls freeze. Elevation has two roles — contains, and floats — and neither of them is a reaction to a mouse."
         >
           <SpaceAndMaterial />
+        </Chapter>
+
+        <Chapter
+          title="Prefill"
+          caption="A field the institution already answered, drawn as answered. The student's job is to confirm rather than to type — and a Step mostly prefilled reads shorter, because a confirmed row is one line where a field is a label, a control and a hint."
+        >
+          <PrefillGrammar />
         </Chapter>
 
         <Chapter
@@ -502,6 +509,54 @@ function SpaceAndMaterial() {
             <p className="text-meta text-ink-500">floats · a modal, a popover, the action pill</p>
           </div>
         </div>
+      </Section>
+    </Sections>
+  );
+}
+
+/**
+ * The grammar of a Prefill, beside the field it replaces.
+ *
+ * Both are live: the confirmed row opens its own control on `Change`, and what
+ * it reveals appears below it with nothing above moving.
+ */
+function PrefillGrammar() {
+  return (
+    <Sections columns={2}>
+      <Section title="Confirmed, and correctable">
+        <SectionFields>
+          <Prefilled
+            width="full"
+            label="Mobile number"
+            htmlFor="sg-prefill-phone"
+            value="+1 555 123 4567"
+            hint="Enrolment messages, and nothing else."
+          >
+            <Input id="sg-prefill-phone" defaultValue="555 123 4567" />
+          </Prefilled>
+        </SectionFields>
+        <p className="mt-4 text-meta text-ink-500">
+          Fill means done, which is the icon rule the rest of the system already follows. There is
+          no stored flag: a field is a Prefill exactly while its value is still the institution's
+          own copy.
+        </p>
+      </Section>
+
+      <Section title="The same field, unanswered">
+        <SectionFields>
+          <Field
+            width="full"
+            label="Mobile number"
+            htmlFor="sg-empty-phone"
+            hint="Enrolment messages, and nothing else."
+          >
+            <Input id="sg-empty-phone" placeholder="555 123 4567" />
+          </Field>
+        </SectionFields>
+        <p className="mt-4 text-meta text-ink-500">
+          A label, a control and a hint. The height between the two is where a mostly prefilled Step
+          gets shorter — not by setting anything smaller.
+        </p>
       </Section>
     </Sections>
   );

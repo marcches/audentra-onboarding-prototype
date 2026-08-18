@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { prefill } from "@/lib/fixtures";
 import { housingAvailability, residences } from "@/lib/housing";
 import type { StepId, StudentStatusAnswer } from "@/lib/steps";
 
@@ -274,8 +275,11 @@ const initialState: OnboardingState = {
   whoYouAre: {
     preferredName: "",
     pronouns: "",
-    dialCode: "+1",
-    phone: "",
+    /* Prefill: what the institution already holds. Not a default and not a
+       placeholder — a value the student's job is to *confirm*. See `prefill`
+       in `fixtures.ts` for why there is no flag beside it. */
+    dialCode: prefill.dialCode,
+    phone: prefill.phone,
     studentStatus: "",
     idDocuments: [],
     submitted: false,
@@ -288,12 +292,12 @@ const initialState: OnboardingState = {
     submitted: false,
   },
   whereYouLive: {
-    street: "",
-    unit: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "US",
+    street: prefill.street,
+    unit: prefill.unit,
+    city: prefill.city,
+    state: prefill.state,
+    postalCode: prefill.postalCode,
+    country: prefill.country,
     residencyVerification: "",
   },
   whoWeCall: {

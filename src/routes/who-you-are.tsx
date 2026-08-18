@@ -10,7 +10,7 @@ import * as React from "react";
 
 import { PricePill, useCelebration } from "@/components/celebration";
 import { DocumentUpload } from "@/components/document-upload";
-import { Field, ReadOnlyField } from "@/components/field";
+import { Field, isPrefill, Prefilled, ReadOnlyField } from "@/components/field";
 import { OptionCard } from "@/components/option-card";
 import { PhoneInput } from "@/components/phone-input";
 import {
@@ -33,6 +33,7 @@ import {
 import {
   citiesByState,
   countries,
+  prefill,
   residencyVerificationOptions,
   studentRecord,
   studentStatusOptions,
@@ -153,6 +154,23 @@ export function WhoYouAreRoute() {
   const cityLabel = cities.find((entry) => entry.value === live.city)?.label;
   const stateLabel = usStates.find((entry) => entry.value === live.state)?.label;
 
+  /* **Prefill is a comparison, not a flag** (see `isPrefill`). A field is one
+     exactly while its value is still the institution's own copy, so correcting
+     it stops it claiming a provenance it no longer has and no stored marker can
+     disagree with the value beside it.
+
+     The address is one Prefill rather than five: the institution either holds
+     an address or it does not, and confirming it is one decision. */
+  const phonePrefilled =
+    isPrefill(who.phone, prefill.phone) && isPrefill(who.dialCode, prefill.dialCode);
+  const addressPrefilled = (["street", "city", "state", "postalCode", "country"] as const).every(
+    (key) => isPrefill(live[key], prefill[key]),
+  );
+  const prefilledAddress = [live.street, cityLabel, stateLabel, live.postalCode]
+    .filter(Boolean)
+    .join(", ");
+  const addressError = errors.street ?? errors.city ?? errors.state ?? errors.postalCode;
+
   return (
     <StepShell
       current="who-you-are"
@@ -232,22 +250,49 @@ export function WhoYouAreRoute() {
                 onChange={(event) => set({ pronouns: event.target.value })}
               />
             </Field>
-            <Field
-              width="long"
-              label="Mobile number"
-              htmlFor="mobile"
-              hint="Enrolment messages, and nothing else."
-              error={errors.phone}
-            >
-              <PhoneInput
-                id="mobile"
-                dialCode={who.dialCode}
-                onDialCodeChange={(value) => set({ dialCode: value })}
-                value={who.phone}
-                invalid={Boolean(errors.phone)}
-                onChange={(event) => set({ phone: event.target.value })}
-              />
-            </Field>
+            {/* **Prefill.** Aster has a number for this student from the
+                application, so their job is to confirm rather than to type —
+                and the row says so instead of putting the value in an empty
+                box and hoping they notice. The moment they change it, the
+                comparison in `isPrefill` fails and it becomes an ordinary
+                field: nothing stored says "prefilled", so nothing stored can
+                disagree with the value beside it. */}
+            {phonePrefilled ? (
+              <Prefilled
+                width="long"
+                label="Mobile number"
+                htmlFor="mobile"
+                value={`${who.dialCode} ${who.phone}`}
+                hint="Enrolment messages, and nothing else."
+                error={errors.phone}
+              >
+                <PhoneInput
+                  id="mobile"
+                  dialCode={who.dialCode}
+                  onDialCodeChange={(value) => set({ dialCode: value })}
+                  value={who.phone}
+                  invalid={Boolean(errors.phone)}
+                  onChange={(event) => set({ phone: event.target.value })}
+                />
+              </Prefilled>
+            ) : (
+              <Field
+                width="long"
+                label="Mobile number"
+                htmlFor="mobile"
+                hint="Enrolment messages, and nothing else."
+                error={errors.phone}
+              >
+                <PhoneInput
+                  id="mobile"
+                  dialCode={who.dialCode}
+                  onDialCodeChange={(value) => set({ dialCode: value })}
+                  value={who.phone}
+                  invalid={Boolean(errors.phone)}
+                  onChange={(event) => set({ phone: event.target.value })}
+                />
+              </Field>
+            )}
           </SectionFields>
         </Section>
 
@@ -327,97 +372,206 @@ export function WhoYouAreRoute() {
               This decides your residency classification, and it is where anything official goes. It
               is not where you will be living during term.
             </Prose>
-            <SectionFields>
-              <Field width="long" label="Street address" htmlFor="street" error={errors.street}>
-                <Input
-                  id="street"
-                  autoComplete="address-line1"
-                  value={live.street}
-                  onChange={(event) => setAddress({ street: event.target.value })}
-                />
-              </Field>
-              <Field width="short" label="Apartment or unit" htmlFor="unit" optional>
-                <Input
-                  id="unit"
-                  autoComplete="address-line2"
-                  value={live.unit}
-                  onChange={(event) => setAddress({ unit: event.target.value })}
-                />
-              </Field>
+            {/* **The whole address is one Prefill, not five.** The institution
+                either holds an address for this student or it does not, and
+                confirming it is one decision — so the confirmed state is one
+                row where the form is five fields. That is where a mostly
+                prefilled Step actually gets shorter: not by setting anything
+                smaller, but by not drawing the machinery for an answer nobody
+                has to give. `Change` opens the five fields underneath, with
+                nothing above them moving. */}
+            {addressPrefilled ? (
+              <Prefilled
+                width="full"
+                label="Permanent address"
+                value={prefilledAddress}
+                error={addressError}
+              >
+                <SectionFields>
+                  <Field width="long" label="Street address" htmlFor="street" error={errors.street}>
+                    <Input
+                      id="street"
+                      autoComplete="address-line1"
+                      value={live.street}
+                      onChange={(event) => setAddress({ street: event.target.value })}
+                    />
+                  </Field>
+                  <Field width="short" label="Apartment or unit" htmlFor="unit" optional>
+                    <Input
+                      id="unit"
+                      autoComplete="address-line2"
+                      value={live.unit}
+                      onChange={(event) => setAddress({ unit: event.target.value })}
+                    />
+                  </Field>
 
-              {/* State and city are selects, and the city list is scoped to the
+                  {/* State and city are selects, and the city list is scoped to the
                   state. The review call asked for the dropdown explicitly, so
                   the registrar is not correcting free text. Changing the state
                   clears the city: a city that no longer belongs to the chosen
                   state is exactly the kind of well-formed nonsense a select
                   exists to prevent. */}
-              <Field width="short" label="State" htmlFor="state" error={errors.state}>
-                <Select
-                  value={live.state}
-                  onValueChange={(value) => setAddress({ state: value, city: "" })}
-                >
-                  <SelectTrigger id="state" className="w-full">
-                    <SelectValue placeholder="Choose your state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {usStates.map((entry) => (
-                      <SelectItem key={entry.value} value={entry.value}>
-                        {entry.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+                  <Field width="short" label="State" htmlFor="state" error={errors.state}>
+                    <Select
+                      value={live.state}
+                      onValueChange={(value) => setAddress({ state: value, city: "" })}
+                    >
+                      <SelectTrigger id="state" className="w-full">
+                        <SelectValue placeholder="Choose your state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {usStates.map((entry) => (
+                          <SelectItem key={entry.value} value={entry.value}>
+                            {entry.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-              <Field width="short" label="City" htmlFor="city" error={errors.city}>
-                <Select
-                  value={live.city}
-                  onValueChange={(value) => setAddress({ city: value })}
-                  disabled={!live.state}
-                >
-                  <SelectTrigger id="city" className="w-full">
-                    <SelectValue
-                      placeholder={live.state ? "Choose your city" : "Choose a state first"}
+                  <Field width="short" label="City" htmlFor="city" error={errors.city}>
+                    <Select
+                      value={live.city}
+                      onValueChange={(value) => setAddress({ city: value })}
+                      disabled={!live.state}
+                    >
+                      <SelectTrigger id="city" className="w-full">
+                        <SelectValue
+                          placeholder={live.state ? "Choose your city" : "Choose a state first"}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((entry) => (
+                          <SelectItem key={entry.value} value={entry.value}>
+                            {entry.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field width="short" label="ZIP code" htmlFor="postal" error={errors.postalCode}>
+                    <Input
+                      id="postal"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      value={live.postalCode}
+                      onChange={(event) => setAddress({ postalCode: event.target.value })}
                     />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((entry) => (
-                      <SelectItem key={entry.value} value={entry.value}>
-                        {entry.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+                  </Field>
 
-              <Field width="short" label="ZIP code" htmlFor="postal" error={errors.postalCode}>
-                <Input
-                  id="postal"
-                  inputMode="numeric"
-                  autoComplete="postal-code"
-                  value={live.postalCode}
-                  onChange={(event) => setAddress({ postalCode: event.target.value })}
-                />
-              </Field>
+                  <Field width="short" label="Country" htmlFor="country" error={errors.country}>
+                    <Select
+                      value={live.country}
+                      onValueChange={(value) => setAddress({ country: value })}
+                    >
+                      <SelectTrigger id="country" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((entry) => (
+                          <SelectItem key={entry.value} value={entry.value}>
+                            {entry.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </SectionFields>
+              </Prefilled>
+            ) : (
+              <SectionFields>
+                <Field width="long" label="Street address" htmlFor="street" error={errors.street}>
+                  <Input
+                    id="street"
+                    autoComplete="address-line1"
+                    value={live.street}
+                    onChange={(event) => setAddress({ street: event.target.value })}
+                  />
+                </Field>
+                <Field width="short" label="Apartment or unit" htmlFor="unit" optional>
+                  <Input
+                    id="unit"
+                    autoComplete="address-line2"
+                    value={live.unit}
+                    onChange={(event) => setAddress({ unit: event.target.value })}
+                  />
+                </Field>
 
-              <Field width="short" label="Country" htmlFor="country" error={errors.country}>
-                <Select
-                  value={live.country}
-                  onValueChange={(value) => setAddress({ country: value })}
-                >
-                  <SelectTrigger id="country" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((entry) => (
-                      <SelectItem key={entry.value} value={entry.value}>
-                        {entry.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </SectionFields>
+                {/* State and city are selects, and the city list is scoped to the
+                  state. The review call asked for the dropdown explicitly, so
+                  the registrar is not correcting free text. Changing the state
+                  clears the city: a city that no longer belongs to the chosen
+                  state is exactly the kind of well-formed nonsense a select
+                  exists to prevent. */}
+                <Field width="short" label="State" htmlFor="state" error={errors.state}>
+                  <Select
+                    value={live.state}
+                    onValueChange={(value) => setAddress({ state: value, city: "" })}
+                  >
+                    <SelectTrigger id="state" className="w-full">
+                      <SelectValue placeholder="Choose your state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {usStates.map((entry) => (
+                        <SelectItem key={entry.value} value={entry.value}>
+                          {entry.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field width="short" label="City" htmlFor="city" error={errors.city}>
+                  <Select
+                    value={live.city}
+                    onValueChange={(value) => setAddress({ city: value })}
+                    disabled={!live.state}
+                  >
+                    <SelectTrigger id="city" className="w-full">
+                      <SelectValue
+                        placeholder={live.state ? "Choose your city" : "Choose a state first"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((entry) => (
+                        <SelectItem key={entry.value} value={entry.value}>
+                          {entry.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field width="short" label="ZIP code" htmlFor="postal" error={errors.postalCode}>
+                  <Input
+                    id="postal"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    value={live.postalCode}
+                    onChange={(event) => setAddress({ postalCode: event.target.value })}
+                  />
+                </Field>
+
+                <Field width="short" label="Country" htmlFor="country" error={errors.country}>
+                  <Select
+                    value={live.country}
+                    onValueChange={(value) => setAddress({ country: value })}
+                  >
+                    <SelectTrigger id="country" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((entry) => (
+                        <SelectItem key={entry.value} value={entry.value}>
+                          {entry.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </SectionFields>
+            )}
           </Section>
         ) : null}
 

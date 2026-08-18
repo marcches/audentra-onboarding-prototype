@@ -75,6 +75,37 @@ export const studentRecord = {
 } as const;
 
 /**
+ * **Prefill**: what the institution already knows about this student before
+ * they arrive, from the application and from the campus visit record.
+ *
+ * FIXTURE, and deliberately so. The CRM integration is a separate cycle; what
+ * this cycle owes is the *grammar* — what a prefilled field looks like, so that
+ * it reads as already answered rather than as an empty field somebody typed
+ * into. Designing that grammar after the integration would mean designing it
+ * twice, and a prefilled field drawn as an empty one that happens to contain
+ * text throws away the whole of its value.
+ *
+ * That value is the direct answer to **Melt**, and it is the client's own
+ * argument: schools cannot get admitted students to fill things in, so the
+ * product has to show them that most of it is already filled.
+ *
+ * **There is no `prefilled` flag anywhere.** A field is a Prefill exactly while
+ * its current value still equals the institution's copy — so correcting one
+ * stops it claiming a provenance it no longer has, and no stored flag can
+ * disagree with the value beside it. See `isPrefill` in `field.tsx`.
+ */
+export const prefill = {
+  dialCode: "+1",
+  phone: "555 123 4567",
+  street: "1226 University Drive",
+  unit: "",
+  city: "menlo-park",
+  state: "CA",
+  postalCode: "94025",
+  country: "US",
+} as const;
+
+/**
  * A photograph shipped from `public/images`. The alt text is part of the
  * fixture rather than the component: it describes what is in the frame, which
  * is a property of the photo, and it changes when the photo changes.
